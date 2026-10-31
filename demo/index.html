@@ -1,0 +1,2291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16213e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Loopd-In Demo">
+<title>Loopd-In Demo Salon</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+
+/* Layout: phone-first single column — header, tab switch (Client log / Staff notes for owner), summary strip, add sheet, filters, feed */
+:root{
+  --bg:#f5f6fb;--surface:#ffffff;--ink:#16213e;--muted:#5f6b85;--line:#e0e4f0;
+  --accent:#5a56d6;--accent-ink:#ffffff;--accent-soft:#ecebfc;
+  --private:#8247b8;--private-soft:#f3eafb;
+  --crit:#c2412d;--warn:#b07a0e;--ok:#2f8a5b;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11152a;--surface:#1a2036;--ink:#eef0f8;--muted:#9ea6c0;--line:#2c3352;
+  --accent:#a3a0f5;--accent-ink:#141733;--accent-soft:#2a2b55;
+  --private:#cba8f0;--private-soft:#33284a;
+  --crit:#ef7b67;--warn:#e7b04a;--ok:#5cc28c;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11152a;--surface:#1a2036;--ink:#eef0f8;--muted:#9ea6c0;--line:#2c3352;
+  --accent:#a3a0f5;--accent-ink:#141733;--accent-soft:#2a2b55;
+  --private:#cba8f0;--private-soft:#33284a;
+  --crit:#ef7b67;--warn:#e7b04a;--ok:#5cc28c;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-size:1.75rem;line-height:1.1;margin:0;text-wrap:balance}
+h1.brand{font-family:"Poppins",var(--display);font-weight:700;font-size:2rem;letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline}
+.brand .loop{width:1.3em;height:.66em;margin:0 .03em;align-self:baseline;transform:translateY(.02em)}
+.brand-in{color:#2f6be0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand-in{color:#6f9bf5}}
+:root[data-theme="dark"] .brand-in{color:#6f9bf5}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.who{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
+.who img{width:26px;height:26px;border-radius:50%}
+.role{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.tabs button[hidden]{display:none}.tabs button{border:0;background:transparent;color:var(--muted);border-radius:9px;padding:9px;font-weight:600}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tabs button.priv[aria-selected="true"]{background:var(--private);color:var(--bg)}
+.banner{background:var(--private-soft);color:var(--private);border-radius:10px;padding:10px 12px;font-size:.85rem;font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.add-btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 16px;font-weight:600;width:100%}
+.add-btn.priv{background:var(--private)}
+form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+form .full{grid-column:1/-1}
+label,.lbl{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;box-sizing:border-box}
+textarea{min-height:80px;resize:vertical}
+.sev{display:flex;gap:6px}
+.sev button{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 4px;font-size:.85rem}
+.sev button[aria-pressed="true"]{border-color:currentColor;font-weight:600}
+.sev [data-v="low"][aria-pressed="true"]{color:var(--ok)}.sev [data-v="med"][aria-pressed="true"]{color:var(--warn)}.sev [data-v="high"][aria-pressed="true"]{color:var(--crit)}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+.form-err{color:var(--crit);font-size:.85rem;margin-right:auto}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 16px;font-weight:600}
+.primary.priv{background:var(--private)}
+.tools{display:flex;flex-direction:column;gap:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 12px;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.feed{display:flex;flex-direction:column;gap:10px}
+.entry{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--stripe,var(--line));border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.entry.resolved{opacity:.72}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.name{font-weight:600;font-size:1.02rem}
+.repeat{font-size:.72rem;font-weight:600;color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent);padding:2px 8px;border-radius:99px;margin-left:6px}
+.meta{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.note{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.tag{font-size:.75rem;font-weight:600;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
+.mgr{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:.88rem}
+.mgr b{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.link{border:0;background:transparent;font-size:.82rem;font-weight:600;padding:4px 0;color:var(--accent)}
+.link.done{color:var(--ok)}.link.del{color:var(--crit)}
+.resolve-box{display:flex;flex-direction:column;gap:8px}
+.empty{text-align:center;color:var(--muted);padding:28px 16px;background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+.empty b{display:block;color:var(--ink);font-family:var(--display);font-size:1.1rem;margin-bottom:4px}
+.tally{display:flex;gap:6px;flex-wrap:wrap}
+.tally span{font-size:.78rem;background:var(--private-soft);color:var(--private);padding:3px 9px;border-radius:99px;font-weight:600;font-variant-numeric:tabular-nums}
+.quick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quick textarea{min-height:64px}
+.quick-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.quick-row input[type=time]{width:auto}
+.quick-row .primary{margin-left:auto}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.cat{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:5px 11px;font-size:.82rem}
+.cat[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.day{display:flex;flex-direction:column;gap:6px}
+.day h2{font-family:var(--display);font-size:1rem;margin:6px 0 2px;display:flex;justify-content:space-between;align-items:baseline}
+.day h2 span{font-family:var(--body);font-size:.78rem;color:var(--muted);font-weight:500}
+.dl{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:4.2rem 1fr;gap:4px 10px;min-width:0}
+.dl time{font-weight:600;font-variant-numeric:tabular-nums;font-size:.9rem;padding-top:1px}
+.dl .body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fu-check{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:.88rem;color:var(--ink);font-weight:500;cursor:pointer}
+.fu-check input{width:18px;height:18px;margin:0;accent-color:var(--warn)}
+.fu{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:6px}
+.fu.wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
+.fu.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
+.dl.flag{border-color:color-mix(in srgb,var(--warn) 55%,var(--line));box-shadow:inset 3px 0 0 var(--warn)}
+.fu-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,var(--line));border-radius:12px;padding:10px 14px;font-weight:600}
+.fu-bar button{border:0;background:transparent;color:var(--warn);font-weight:700;padding:4px 0}
+.fu-box{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.replies{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding-left:10px;border-left:2px solid var(--accent-soft)}
+.rp{font-size:.9rem;display:flex;flex-direction:column;gap:1px;min-width:0}
+.rp .who{font-size:.78rem;color:var(--muted)}
+.rp .who b{color:var(--ink);font-weight:600}
+.rp .who .link{font-size:.78rem}
+.arch{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.arch-toggle{align-self:center;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:99px;padding:7px 16px;font:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
+.arch-item{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.arch-item .note{color:var(--muted)}
+.foot{font-size:.8rem;color:var(--muted);text-align:center}
+@media (max-width:480px){form{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:inline-grid;place-items:center;font-weight:700;font-size:.8rem}
+.h2{font-family:var(--display);font-size:1.25rem;margin:0}
+form.plain{background:none;border:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#view-login{max-width:440px;margin:24px auto 0;width:100%;box-sizing:border-box}
+.pbox{position:relative;display:block}.pbox textarea{padding-bottom:52px;width:100%;box-sizing:border-box}
+.cam{position:absolute;left:8px;bottom:8px;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
+.cam.inline{position:static;flex:none}
+.pprev{display:flex;align-items:center;gap:10px}.pprev:empty{display:none}.pprev img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.daterow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.daterow label{flex:1 1 130px;min-width:0}
+input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:none}
+.supgrp{display:flex;flex-direction:column;gap:8px}.supgrp h3{margin:6px 0 0;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.photo{display:block;max-width:100%;max-height:240px;border-radius:10px;border:1px solid var(--line);margin-top:4px}
+.todo-add{display:flex;gap:8px}.todo-add input{flex:1}
+.todo{display:flex;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.todo input[type=checkbox]{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:var(--ok);cursor:pointer}
+.todo .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.todo.done .note{text-decoration:line-through;color:var(--muted)}
+.sigpad{display:block;width:100%;height:170px;background:#fff;border:1px dashed var(--line);border-radius:10px;touch-action:none}
+.sig{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sig img{max-width:260px;max-height:110px;background:#fff;border-radius:6px}
+.wu-item{display:flex;gap:8px;align-items:center}.wu-item input[type=text]{flex:1;min-width:0}.wu-item input[type=date]{width:auto;flex:none}
+.wu-sec{display:flex;flex-direction:column;gap:2px}.wu-sec b{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+#printArea{display:none}
+@media print{body{background:#fff}.wrap{display:none!important}#printArea{display:block!important;color:#000;font-family:Figtree,sans-serif;padding:24px}#printArea img{max-width:240px;max-height:100px}#printArea h1{font-size:22px;margin:0 0 4px}#printArea h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 4px}#printArea p{margin:0;white-space:pre-wrap}#printArea table{border-collapse:collapse;width:100%}#printArea td{border:1px solid #999;padding:4px 6px;font-size:12px;vertical-align:top}#printArea .gp{font-family:Georgia,"Times New Roman",serif;font-size:14px;max-width:640px;margin:0 auto}#printArea .gp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}#printArea .gp-head img{width:76px;height:76px}#printArea .gp-head>div{min-width:180px}#printArea .gp-head>div:last-child{text-align:right}#printArea .gp-title{font-family:inherit;text-align:center;font-weight:400;font-size:18px;margin:4px 0 22px}#printArea .gp-sec{margin-bottom:18px}#printArea .gp-ln{border-bottom:1px solid #888;min-height:28px;line-height:20px;padding-top:8px;white-space:pre-wrap}#printArea .gp-row{display:flex;gap:40px;margin:0 0 16px}#printArea .gp-row>div{flex:1}#printArea .gp-line{display:inline-block;min-width:150px;border-bottom:1px solid #888}#printArea .gp-help{margin-top:26px;font-size:12.5px;line-height:1.6}}
+#pushBox{display:none!important}#logout{display:none!important}
+</style>
+<script>
+/* Sample data for the Loopd-In demo. Dates are relative to today so the demo always looks current. */
+window.__demoSeed = function (ME) {
+  const pad = n => String(n).padStart(2, "0");
+  const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const day = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };      // n days ago (negative = future)
+  const ts = (n, h, m) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m || 0, 0, 0); return d.toISOString(); };
+  const ym = n => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - n); return d.getFullYear() + "-" + pad(d.getMonth() + 1); };
+  const yr = String(new Date().getFullYear());
+  const E = n => n + "@demosalon.example";
+  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
+  let i = 0; const id = p => p + "-" + (++i);
+
+  const staff = [
+    { email: ME, name: "Jordan Lee", role: "manager" },
+    { email: SAM, name: "Sam Patel", role: "manager" },
+    { email: RILEY, name: "Riley Brooks", role: "front_desk" },
+    { email: CASEY, name: "Casey Nguyen", role: "front_desk" },
+    { email: MAYA, name: "Maya Torres", role: "stylist" },
+    { email: AVA, name: "Ava Johnson", role: "stylist" },
+    { email: LILY, name: "Lily Chen", role: "stylist" },
+    { email: NOAH, name: "Noah Kim", role: "stylist" },
+    { email: EMMA, name: "Emma Davis", role: "stylist" },
+  ];
+
+  const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
+  const dryer = dl(0, "11:15", "Maintenance", "Dryer #2 is making a grinding noise again. Unplugged it for now so nobody uses it.", CASEY, { needs_followup: true });
+  const rep = dl(0, "14:10", "Visitor", "Product rep stopped by with new gloss samples. Left her card at the desk for Jordan.", CASEY);
+  const windows = dl(1, "16:45", "Reminder", "Window cleaners are coming Friday at 8am. Someone needs to be here to open.", CASEY, { needs_followup: true });
+  const daily_log = [
+    dl(0, "09:05", "Delivery", "Color order arrived (2 boxes). Checked against the packing slip and shelved in the back.", RILEY),
+    dl(0, "09:40", "Phone call", "Mrs. Alvarez called to move her Saturday color to next Thursday. Rebooked with Maya at 10am.", RILEY),
+    dryer, rep,
+    dl(1, "10:20", "Supplies", "Out of large foils and low on 20 vol developer. Added both to the Supplies list.", RILEY),
+    windows,
+    dl(1, "18:55", "General", "Busy close: 3 walk-ins, all booked with Noah and Lily. Drawer balanced.", RILEY),
+    dl(2, "12:30", "Phone call", "Bridal party of 5 asked about a Saturday in June. Took their info; Sam to call back with a quote.", CASEY),
+    dl(3, "17:20", "General", "Gift card balance issue for a guest. Looked it up in the booking system and fixed it.", RILEY),
+  ];
+  const followups = [
+    { log_id: dryer.id, flagged: true, done: false, note: "", updated_by: CASEY, updated_at: ts(0, 11, 16) },
+    { log_id: windows.id, flagged: true, done: true, note: "Sam will open Friday at 7:45.", updated_by: SAM, updated_at: ts(1, 17, 30) },
+  ];
+  const log_replies = [{ id: id("rp"), log_id: rep.id, note: "Thanks! I'll call her back tomorrow morning.", created_by: ME, created_at: ts(0, 14, 40) }];
+
+  const inc = (n, client, stylist, issue_type, severity, note, by) => ({ id: id("in"), client, stylist, issue_type, incident_date: day(n), severity, note, created_by: by, created_at: ts(n, 15, 0), deleted_at: null });
+  const i1 = inc(1, "Karen M.", "Ava Johnson", "Unhappy with result", "med", "Said her blonde came out too warm. Offered a toner refresh within our 7-day fix window; booked for Thursday.", RILEY);
+  const i2 = inc(5, "Tom R.", "Noah Kim", "No-show / late cancel", "low", "Third no-show this year. Front desk will ask for a card on file next time he books.", CASEY);
+  const i3 = inc(9, "Denise P.", "Maya Torres", "Refund / redo request", "high", "Asked for a full refund on a partial highlight. Sam spoke with her; free redo scheduled.", SAM);
+  const incidents = [i1, i2, i3];
+  const resolutions = [
+    { incident_id: i2.id, done: true, note: "Card-on-file note added to his profile.", updated_by: CASEY, updated_at: ts(4, 10, 0) },
+    { incident_id: i3.id, done: true, note: "Redo done; she was happy and rebooked.", updated_by: SAM, updated_at: ts(6, 13, 0) },
+  ];
+
+  const staff_notes = [
+    { id: id("sn"), staff_member: "Noah Kim", note_type: "Late arrival", note_date: day(2), note_time: "09:20", note: "Arrived 20 minutes late; first guest was at 9:30. Said traffic. Second time this month.", created_by: ME, created_at: ts(2, 9, 25) },
+    { id: id("sn"), staff_member: "Ava Johnson", note_type: "Praise", note_date: day(4), note_time: null, note: "A guest left a 5-star review naming Ava for her balayage.", created_by: SAM, created_at: ts(4, 12, 0) },
+    { id: id("sn"), staff_member: "Lily Chen", note_type: "Called out / sick", note_date: day(6), note_time: "07:45", note: "Called Sam before her shift. Guests moved to Maya and Emma.", created_by: SAM, created_at: ts(6, 7, 50) },
+  ];
+
+  const items = [["Color", "20 vol developer"], ["Color", "30 vol developer"], ["Color", "Lightener"], ["Color", "Large foils"], ["Color", "Gloss / toner"],
+    ["Back bar", "Shampoo (gallon)"], ["Back bar", "Conditioner (gallon)"], ["Back bar", "Neck strips"],
+    ["Front desk", "Receipt paper"], ["Front desk", "Coffee pods"], ["Front desk", "Bottled water"],
+    ["Cleaning", "Disinfectant"], ["Cleaning", "Paper towels"], ["Cleaning", "Trash bags"]];
+  const supply_items = items.map(([category, name], k) => ({ id: id("si"), category, name, sort: k + 1, active: true }));
+  const item = n => supply_items.find(s => s.name === n);
+  const need = (n, by, d, bought) => { const it = item(n); return { id: id("sn"), item_id: it.id, item_name: it.name, category: it.category, requested_by: by, requested_at: ts(d, 10, 0), bought: !!bought, bought_by: bought ? SAM : null, bought_at: bought ? ts(d - 1, 15, 0) : null }; };
+  const supply_needs = [need("Large foils", RILEY, 1), need("20 vol developer", RILEY, 1), need("Coffee pods", CASEY, 0), need("Paper towels", MAYA, 4, true)];
+
+  const todos = [
+    { id: id("td"), task: "Call the repair company about dryer #2", done: false, created_by: ME, created_at: ts(0, 11, 30) },
+    { id: id("td"), task: "Sink 3 faucet drips when it's off", reported: true, done: false, created_by: MAYA, created_at: ts(1, 13, 0) },
+    { id: id("td"), task: "Order new front door mat", done: true, done_by: SAM, done_at: ts(3, 12, 0), created_by: SAM, created_at: ts(5, 9, 0) },
+  ];
+  const manager_log = [
+    { id: id("ml"), note: "Talked to the landlord about the parking lot lights. They're fixing them next week.", created_by: ME, created_at: ts(1, 15, 0) },
+    { id: id("ml"), note: "November promo approved: 15% off glosses with any haircut, starting the 1st.", created_by: SAM, created_at: ts(3, 11, 0) },
+  ];
+  const announcements = [
+    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0) },
+    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0) },
+  ];
+  const messages = [
+    { id: id("ms"), body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2) },
+    { id: id("ms"), body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4) },
+    { id: id("ms"), body: "Yep, send her my way 👍", created_by: LILY, created_at: ts(0, 10, 6) },
+    { id: id("ms"), body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
+    { id: id("ms"), body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33) },
+  ];
+
+  const time_off = [
+    { id: id("to"), off_from: day(-10), back_on: day(-14), note: "Family wedding in Charleston", created_by: AVA, role: "stylist", status: "pending", created_at: ts(2, 9, 0) },
+    { id: id("to"), off_from: day(-11), back_on: day(-13), note: "Long weekend", created_by: EMMA, role: "stylist", status: "pending", created_at: ts(1, 9, 0) },
+    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "stylist", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
+  ];
+
+  const oMaya = { id: id("oo"), created_by: MAYA, with_manager: ME, req_date: day(-2), req_time: "10:00:00", meet_date: day(-2), meet_time: "10:00:00", topic: "Moving up to Level 3", status: "confirmed", decided_by: ME, decided_at: ts(1, 9, 0), created_at: ts(2, 8, 0) };
+  const oNoah = { id: id("oo"), created_by: NOAH, with_manager: SAM, req_date: day(25), req_time: "15:00:00", meet_date: day(25), meet_time: "15:00:00", topic: "Building my book", status: "done", decided_by: SAM, decided_at: ts(27, 9, 0), created_at: ts(28, 9, 0) };
+  const one_on_ones = [
+    oMaya,
+    { id: id("oo"), created_by: LILY, with_manager: null, req_date: day(-4), req_time: "14:00:00", topic: "Ideas for growing my color clients", status: "pending", created_at: ts(0, 8, 30) },
+    { id: id("oo"), created_by: EMMA, with_manager: SAM, req_date: day(-1), req_time: "09:00:00", meet_date: day(-3), meet_time: "15:30:00", topic: "Schedule change", manager_note: "Tomorrow is booked solid. Does this time work?", status: "proposed", decided_by: SAM, decided_at: ts(0, 13, 0), created_at: ts(1, 11, 0) },
+    oNoah,
+  ];
+  const goal_sheets = [
+    { id: id("gs"), created_by: MAYA, kind: "monthly", period: ym(0), one_on_one_id: oMaya.id, updated_at: ts(0, 21, 0), data: { professional: "Rebook 70% of my guests\nTake the advanced balayage class", personal: "Run 3 times a week", days: "4", service_month: "9000", service_week: "2250", service_day: "563", retail_month: "1100", retail_week: "275", retail_day: "69", notes: "Want to talk about what Level 3 needs." } },
+    { id: id("gs"), created_by: MAYA, kind: "smart", period: yr, one_on_one_id: oMaya.id, updated_at: ts(0, 21, 5), data: { m3: "Build my book to 40 regular guests", m6: "Move up to Level 3", m12: "Average ticket over $160" } },
+    { id: id("gs"), created_by: MAYA, kind: "monthly", period: ym(1), one_on_one_id: null, updated_at: ts(32, 20, 0), data: { professional: "Post 3 reels a week", service_month: "8200", service_week: "2050", retail_month: "900", notes: "Hit 104% of goal!" } },
+    { id: id("gs"), created_by: NOAH, kind: "monthly", period: ym(1), one_on_one_id: oNoah.id, updated_at: ts(26, 20, 0), data: { professional: "Arrive by 8:45 every shift", personal: "Start a savings plan", days: "5", service_month: "6000", service_week: "1500", service_day: "300", retail_month: "500", retail_week: "125", retail_day: "25" } },
+  ];
+
+  const ans = o => o;
+  const applicants = [
+    { id: id("ap"), submission_id: "demo-1", name: "Jasmine Ortiz", position: "Stylist", phone: "(919) 555-0142", email: "jasmine@example.com", status: "new", submitted_at: ts(0, 8, 50), log: [], answers: ans({ q3_positionsApplied: "Stylist", q5_name: "Jasmine Ortiz", q191_email: "jasmine@example.com", q9_cell: "(919) 555-0142", q193_instagramHandle: "@jas.hair", q10_areYou10: "Full Time", q123_cosmetologySchool: "Aveda Institute", q187_graduatedyesno187: "Yes", q55_employer: "Studio 9", q159_jobTitle159: "Stylist", q136_reasonFor136: "Looking for more education" }) },
+    { id: id("ap"), submission_id: "demo-2", name: "Brooke Lane", position: "Front desk", phone: "(919) 555-0177", email: "brooke@example.com", status: "no_answer", submitted_at: ts(3, 13, 0), answers: ans({ q3_positionsApplied: "Front desk", q5_name: "Brooke Lane", q10_areYou10: "Part Time", q17_whatLanguages: "Spanish" }),
+      log: [{ what: "Called – no answer", by: RILEY, at: ts(2, 14, 15) }, { what: "Called – no answer", by: ME, at: ts(1, 10, 5) }] },
+    { id: id("ap"), submission_id: "demo-3", name: "Mia Chen", position: "Stylist, Assistant", phone: "(984) 555-0110", email: "mia@example.com", status: "interview", interview_at: ts(-2, 11, 0), submitted_at: ts(5, 18, 0), notes: "Graduated in May. Great color portfolio on Instagram.",
+      answers: ans({ q3_positionsApplied: "Stylist, Assistant", q5_name: "Mia Chen", q10_areYou10: "Full Time", q123_cosmetologySchool: "Paul Mitchell", q187_graduatedyesno187: "Yes", q55_employer: "Great Clips", q159_jobTitle159: "Stylist", q136_reasonFor136: "Want a boutique salon" }),
+      log: [{ what: "Spoke to", by: ME, at: ts(4, 16, 0) }, { what: "Interview scheduled", by: ME, at: ts(4, 16, 2) }] },
+    { id: id("ap"), submission_id: "demo-4", name: "Daniel Reyes", position: "Assistant", phone: "(919) 555-0188", email: "daniel@example.com", status: "hired", submitted_at: ts(20, 12, 0), answers: ans({ q3_positionsApplied: "Assistant", q5_name: "Daniel Reyes" }), log: [{ what: "Spoke to", by: SAM, at: ts(19, 10, 0) }, { what: "Hired", by: SAM, at: ts(12, 16, 0) }] },
+  ];
+
+  const staff_writeups = [
+    { id: id("wu"), staff_member: "Noah Kim", incident_date: day(2), category: "Attendance", level: "Documented verbal warning", policy: "Punctuality",
+      description: "Arrived at 9:20 for a 9:00 shift; first guest was booked at 9:30. Second late arrival this month (also on the 3rd).",
+      notes: "Noah said traffic on I-40. We talked about leaving earlier.", action_plan: "Arrive by 8:45 for every shift for the next 30 days. Another late arrival in that time moves to a written warning.",
+      actions: [{ task: "Arrive by 8:45 every shift for 30 days", due: day(-28), done: false }, { task: "Check in with Jordan at 2 weeks", due: day(-12), done: false }],
+      review_date: day(-28), witnesses: null, created_by: ME, created_at: ts(2, 17, 0) },
+  ];
+
+  return {
+    staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
+    announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
+    _handbooks: [{ name: "Demo_Salon_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
+  };
+};
+
+</script>
+<script>
+/* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
+   Nothing leaves this browser. "Reset demo" puts the sample data back. */
+(function () {
+  const KEY = "loopdDemoDB_v2";
+  const DEMO_EMAIL = "jordan@demosalon.example";
+  const now = () => new Date().toISOString();
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+  let DB = null;
+  try { DB = JSON.parse(localStorage.getItem(KEY) || "null"); } catch { DB = null; }
+  if (!DB) DB = window.__demoSeed(DEMO_EMAIL);
+  const fileUrls = {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch {} };
+  const listeners = [];
+  const fire = () => { save(); listeners.forEach(f => { try { f({}); } catch {} }); };
+  const CONFLICT = { followups: "log_id", resolutions: "incident_id", staff: "email" };
+  const roleOf = e => (DB.staff.find(s => s.email === e) || {}).role || "stylist";
+  const cmp = (a, b) => (a === b ? 0 : a == null ? -1 : b == null ? 1 : a < b ? -1 : 1);
+  const lit = v => { v = String(v).replace(/^"|"$/g, ""); return v === "true" ? true : v === "false" ? false : v === "null" ? null : v; };
+
+  function withDefaults(t, r) {
+    r.id = r.id || uid();
+    r.created_at = r.created_at || now();
+    if (!("created_by" in r) && t !== "staff" && t !== "supply_items") r.created_by = DEMO_EMAIL;
+    if (t === "time_off") { r.status = r.status || "pending"; r.role = r.role || roleOf(r.created_by); }
+    if (t === "one_on_ones") r.status = r.status || "pending";
+    if (t === "todos") r.done = r.done || false;
+    if (t === "supply_needs") { r.requested_at = r.requested_at || now(); r.bought = r.bought || false; }
+    if (t === "supply_items") r.active = r.active !== false;
+    if (t === "goal_sheets") r.updated_at = r.updated_at || now();
+    if (t === "daily_log" || t === "incidents") r.deleted_at = r.deleted_at || null;
+    if (t === "staff_writeups") r.actions = r.actions || [];
+    if (t === "applicants") { r.status = r.status || "new"; r.log = r.log || []; r.submitted_at = r.submitted_at || now(); }
+    return r;
+  }
+
+  class Q {
+    constructor(t) { this.t = t; this.fs = []; this.os = []; this.lim = null; this.op = "select"; this.val = null; this.ret = false; this.one = null; this.opts = {}; }
+    select() { if (this.op !== "select") this.ret = true; return this; }
+    eq(c, v) { this.fs.push(r => r[c] === v); return this; }
+    neq(c, v) { this.fs.push(r => r[c] !== v); return this; }
+    gte(c, v) { this.fs.push(r => r[c] != null && r[c] >= v); return this; }
+    lte(c, v) { this.fs.push(r => r[c] != null && r[c] <= v); return this; }
+    gt(c, v) { this.fs.push(r => r[c] != null && r[c] > v); return this; }
+    lt(c, v) { this.fs.push(r => r[c] != null && r[c] < v); return this; }
+    in(c, a) { this.fs.push(r => a.includes(r[c])); return this; }
+    is(c, v) { this.fs.push(r => (v === null ? r[c] == null : r[c] === v)); return this; }
+    not(c, op, v) { if (op === "is" && v === null) this.fs.push(r => r[c] != null); return this; }
+    or(s) {
+      const parts = s.split(",").map(p => {
+        const m = p.match(/^(\w+)\.(eq|gte|lte|is)\.(.*)$/); if (!m) return () => false;
+        const [, c, op, raw] = m, v = lit(raw);
+        return r => op === "eq" ? r[c] === v : op === "is" ? (v === null ? r[c] == null : r[c] === v) : op === "gte" ? r[c] != null && r[c] >= v : r[c] != null && r[c] <= v;
+      });
+      this.fs.push(r => parts.some(f => f(r))); return this;
+    }
+    order(c, o) { this.os.push([c, !(o && o.ascending === false)]); return this; }
+    limit(n) { this.lim = n; return this; }
+    range() { return this; }
+    single() { this.one = "single"; return this; }
+    maybeSingle() { this.one = "maybe"; return this; }
+    insert(v) { this.op = "insert"; this.val = v; return this; }
+    update(v) { this.op = "update"; this.val = v; return this; }
+    upsert(v, o) { this.op = "upsert"; this.val = v; this.opts = o || {}; return this; }
+    delete() { this.op = "delete"; return this; }
+    then(res, rej) { let out; try { out = this.run(); } catch (e) { out = { data: null, error: { message: String(e && e.message || e) } }; } return Promise.resolve(out).then(res, rej); }
+    run() {
+      const T = (DB[this.t] = DB[this.t] || []);
+      const match = r => this.fs.every(f => f(r));
+      let data = null;
+      if (this.op === "select") {
+        data = T.filter(match).map(r => JSON.parse(JSON.stringify(r)));
+        for (const [c, asc] of [...this.os].reverse()) data.sort((a, b) => (asc ? cmp(a[c], b[c]) : cmp(b[c], a[c])));
+        if (this.lim != null) data = data.slice(0, this.lim);
+      } else if (this.op === "insert") {
+        const rows = (Array.isArray(this.val) ? this.val : [this.val]).map(r => withDefaults(this.t, JSON.parse(JSON.stringify(r))));
+        T.push(...rows); data = rows.map(r => ({ ...r }));
+      } else if (this.op === "update") {
+        data = [];
+        T.forEach(r => { if (match(r)) { Object.assign(r, JSON.parse(JSON.stringify(this.val))); data.push({ ...r }); } });
+      } else if (this.op === "upsert") {
+        const key = this.opts.onConflict || CONFLICT[this.t] || "id";
+        data = [];
+        (Array.isArray(this.val) ? this.val : [this.val]).forEach(row => {
+          const ex = T.find(x => x[key] === row[key]);
+          if (ex) { if (!this.opts.ignoreDuplicates) Object.assign(ex, row); data.push({ ...ex }); }
+          else { const r = withDefaults(this.t, { ...row }); T.push(r); data.push({ ...r }); }
+        });
+      } else if (this.op === "delete") {
+        data = T.filter(match); DB[this.t] = T.filter(r => !match(r));
+      }
+      if (this.op !== "select") setTimeout(fire, 0);
+      if (this.one) {
+        if (!data || !data.length) return this.one === "single" ? { data: null, error: { message: "not found" } } : { data: null, error: null };
+        return { data: data[0], error: null };
+      }
+      return { data: this.op === "select" || this.ret ? data : null, error: null };
+    }
+  }
+
+  const session = { user: { email: DEMO_EMAIL, id: "demo-user" }, access_token: "demo" };
+  const client = {
+    from: t => new Q(t),
+    rpc: async (name, a) => {
+      if (name === "my_role") return { data: roleOf(DEMO_EMAIL), error: null };
+      if (name === "is_invited") return { data: true, error: null };
+      if (name === "archive_entry") {
+        const t = a.p_kind === "d" ? "daily_log" : "incidents";
+        const r = (DB[t] || []).find(x => x.id === a.p_id);
+        if (r) r.deleted_at = a.p_restore ? null : now();
+        setTimeout(fire, 0); return { data: !!r, error: null };
+      }
+      return { data: null, error: null };
+    },
+    auth: {
+      getSession: async () => ({ data: { session } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signOut: async () => ({ error: null }),
+      updateUser: async () => ({ data: {}, error: null }),
+      signInWithPassword: async () => ({ data: { session }, error: null }),
+      signUp: async () => ({ data: { session }, error: null }),
+    },
+    storage: {
+      from: () => ({
+        upload: async (path, blob) => {
+          fileUrls[path] = URL.createObjectURL(blob);
+          if (path.startsWith("handbook/")) { DB._handbooks = DB._handbooks || []; DB._handbooks.unshift({ name: path.slice(9), created_at: now() }); save(); }
+          return { data: { path }, error: null };
+        },
+        createSignedUrls: async paths => ({ data: paths.map(p => ({ path: p, signedUrl: fileUrls[p] || (DB._fileMap || {})[p] || null })), error: null }),
+        createSignedUrl: async p => ({ data: { signedUrl: fileUrls[p] || (DB._fileMap || {})[p] || "demo-handbook.pdf" }, error: null }),
+        list: async folder => ({ data: folder === "handbook" ? (DB._handbooks || []).filter(h => fileUrls["handbook/" + h.name] || h.seed) : [], error: null }),
+        remove: async () => ({ data: [], error: null }),
+      }),
+    },
+    channel: () => { const ch = { on(_e, _f, cb) { if (cb) listeners.push(cb); return ch; }, subscribe() { return ch; } }; return ch; },
+  };
+  window.supabase = { createClient: () => client };
+  window.__demoReset = () => { try { localStorage.removeItem(KEY); } catch {} location.reload(); };
+})();
+
+</script>
+</head>
+<body>
+<div id="demoBar" style="background:var(--accent);color:var(--accent-ink);font-size:.85rem;padding:9px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center">
+  <span><b>Loopd-In demo.</b> Everything here is sample data. Try anything; use <b>Access level</b> below to see each role.</span>
+  <button type="button" onclick="__demoReset()" style="background:transparent;color:inherit;border:1px solid currentColor;border-radius:8px;padding:4px 10px;font:inherit;font-weight:600">Reset demo</button>
+</div>
+<div id="printArea"></div>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Demo Salon · Sample data</div>
+      <h1 class="brand" aria-label="Loopd-In">L<svg class="loop" viewBox="0 0 300 150" aria-hidden="true"><defs><linearGradient id="loopGrad" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#2f6be0"/></linearGradient></defs><path d="M150 75C118 40 96 28 72 28 44 28 24 49 24 75s20 47 48 47c24 0 46-12 78-47 32-35 54-47 78-47 28 0 48 21 48 47s-20 47-48 47c-24 0-46-12-78-47z" fill="none" stroke="url(#loopGrad)" stroke-width="36" stroke-linejoin="round"/></svg>pd<span class="brand-in">-In</span></h1>
+    </div>
+    <div class="who" id="who" hidden>
+      <span class="avatar" id="avatar"></span><span id="whoName"></span><span class="role" id="roleBadge"></span>
+      <button type="button" class="link" id="logout">Log out</button>
+    </div>
+  </header>
+
+  <!-- SIGN IN -->
+  <section id="view-login" class="quick" hidden>
+    <h2 class="h2" id="loginTitle">Sign in</h2>
+    <p class="meta" id="loginHelp">Use the email your manager added you with.</p>
+    <form id="loginForm" class="plain">
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" required autocomplete="email" placeholder="you@example.com">
+      <label for="loginPw">Password</label>
+      <input id="loginPw" type="password" required minlength="6" autocomplete="current-password" placeholder="Your password">
+      <div id="pw2Wrap" hidden><label for="loginPw2">Type it again</label>
+      <input id="loginPw2" type="password" minlength="6" autocomplete="new-password" placeholder="Same password again"></div>
+      <div class="form-actions"><span class="form-err" id="loginErr"></span><button type="submit" class="primary" id="loginBtn">Sign in</button></div>
+    </form>
+    <p class="meta" style="margin-top:12px"><button type="button" class="link" id="modeToggle">First time here? Create your password</button></p>
+    <p class="meta">Forgot your password? Ask a manager to reset it.</p>
+  </section>
+
+  <!-- NO ACCESS -->
+  <div id="view-noaccess" class="empty" hidden style="padding:40px 20px"><b>🔒 Access not granted</b><span id="noaccessMsg"></span><br><br><button type="button" class="ghost" id="logout2">Log out</button></div>
+
+  <!-- APP -->
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="lbl" id="viewAs" hidden>Access level
+      <div class="tabs">
+        <button type="button" id="va-sty" aria-selected="false">Stylist</button>
+        <button type="button" id="va-desk" aria-selected="false">Front desk</button>
+        <button type="button" id="va-mgr" aria-selected="true">Manager</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs" role="tablist">
+      <button role="tab" id="tab-daily" aria-selected="true">Daily log</button>
+      <button role="tab" id="tab-log" aria-selected="false">Incidents</button>
+      <button role="tab" id="tab-supplies" aria-selected="false">Supplies</button>
+      <button role="tab" id="tab-chat" aria-selected="false">Team 💬</button>
+      <button role="tab" id="tab-time" aria-selected="false">Time off</button>
+      <button role="tab" id="tab-oo" aria-selected="false">1:1s</button>
+      <button role="tab" id="tab-apps" class="priv" aria-selected="false" hidden>Applicants</button>
+      <button role="tab" id="tab-staff" class="priv" aria-selected="false" hidden>Staff notes 🔒</button>
+      <button role="tab" id="tab-team" aria-selected="false" hidden>Managers ⚙</button>
+    </div>
+    <div class="fu-bar" id="previewBar" hidden style="background:var(--private-soft);border-color:var(--private);color:var(--private)"><span id="previewText">You're seeing what staff see.</span><button type="button" id="exitPreview" style="color:var(--private)">Back to manager view</button></div>
+
+    <!-- DAILY LOG -->
+    <section id="view-daily" style="display:flex;flex-direction:column;gap:16px">
+      <form class="quick" id="dailyForm" style="display:flex">
+        <label for="d-note">What happened?</label>
+        <div class="pbox"><textarea id="d-note" required maxlength="4000" placeholder="e.g. UPS dropped off 3 boxes, driver needed a signature"></textarea><button type="button" class="cam" data-ph="d" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-d" accept="image/*" hidden></div>
+        <div class="pprev" id="pp-d"></div>
+        <div class="cats" id="d-cats">
+          <button type="button" class="cat" aria-pressed="false">Delivery</button>
+          <button type="button" class="cat" aria-pressed="false">Phone call</button>
+          <button type="button" class="cat" aria-pressed="false">Visitor</button>
+          <button type="button" class="cat" aria-pressed="false">Maintenance</button>
+          <button type="button" class="cat" aria-pressed="false">Supplies</button>
+          <button type="button" class="cat" aria-pressed="false">Reminder</button>
+          <button type="button" class="cat" aria-pressed="true">General</button>
+        </div>
+        <label class="fu-check"><input type="checkbox" id="d-fu"> Needs manager follow-up</label>
+        <div class="quick-row">
+          <input id="d-time" type="time" aria-label="Time">
+          <span class="meta">Time fills in automatically</span>
+          <button type="submit" class="primary">Add to log</button>
+        </div>
+        <span class="form-err" id="d-err"></span>
+      </form>
+      <div class="fu-bar" id="fuBar" hidden><span id="fuText"></span><button type="button" id="fuToggle">Show only these</button></div>
+      <input id="d-search" type="search" placeholder="Search the daily log (e.g. UPS, plumber, Sherwin)">
+      <div class="daterow"><label>From<input id="d-from" type="date"></label><label>To<input id="d-to" type="date"></label><button type="button" class="link" id="d-clear" hidden>Clear dates</button></div>
+      <div class="feed" id="dailyFeed"></div>
+      <div class="arch" id="d-arch"></div>
+    </section>
+
+    <!-- INCIDENTS -->
+    <section id="view-log" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="stats">
+        <div class="stat"><b id="st-open">0</b><span>Open issues</span></div>
+        <div class="stat"><b id="st-week">0</b><span>Logged this week</span></div>
+        <div class="stat"><b id="st-repeat">0</b><span>Repeat clients</span></div>
+      </div>
+      <button class="add-btn" id="openLog" type="button">+ Log a client incident</button>
+      <form id="logForm" hidden>
+        <label>Client name<input id="l-client" required maxlength="200" autocomplete="off" placeholder="First name + last initial"></label>
+        <label>Stylist involved<input id="l-staff" maxlength="100" autocomplete="off" placeholder="Who was the service with?"></label>
+        <label>Issue type<select id="l-type"><option>Unhappy with result</option><option>Refund / redo request</option><option>No-show / late cancel</option><option>Rude to staff</option><option>Payment dispute</option><option>Other</option></select></label>
+        <label>Date<input id="l-date" type="date" required></label>
+        <div class="full lbl">Severity
+          <div class="sev" id="l-sev">
+            <button type="button" data-v="low" aria-pressed="false">Minor</button>
+            <button type="button" data-v="med" aria-pressed="true">Watch</button>
+            <button type="button" data-v="high" aria-pressed="false">Serious</button>
+          </div></div>
+        <label class="full">What happened (facts only)<span class="pbox"><textarea id="l-note" required maxlength="4000" placeholder="What was said and done, and how it was left."></textarea><button type="button" class="cam" data-ph="l" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-l" accept="image/*" hidden></span></label>
+        <div class="full pprev" id="pp-l"></div>
+        <div class="full form-actions">
+          <span class="form-err" id="l-err"></span>
+          <button type="button" class="ghost" id="cancelLog">Cancel</button>
+          <button type="submit" class="primary">Save entry</button>
+        </div>
+      </form>
+      <div class="tools">
+        <input id="l-search" type="search" placeholder="Search client name or note">
+        <div class="daterow"><label>From<input id="l-from" type="date"></label><label>To<input id="l-to" type="date"></label><button type="button" class="link" id="l-clear" hidden>Clear dates</button></div>
+        <div class="chips" id="l-chips">
+          <button class="chip" data-f="all" aria-pressed="true">All</button>
+          <button class="chip" data-f="open" aria-pressed="false">Open</button>
+          <button class="chip" data-f="resolved" aria-pressed="false">Resolved</button>
+          <button class="chip" data-f="high" aria-pressed="false">Serious</button>
+        </div>
+      </div>
+      <div class="feed" id="logFeed"></div>
+      <div class="arch" id="l-arch"></div>
+    </section>
+
+    <!-- STAFF NOTES (managers) -->
+    <section id="view-staff" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="banner">Only managers can see this tab. Front desk logins can't open or read these notes.</div>
+      <button class="add-btn priv" id="openStaff" type="button">+ Add a staff note</button>
+      <form id="staffForm" hidden>
+        <label>Staff member<input id="s-name" required maxlength="100" list="staffList" autocomplete="off" placeholder="Name"></label>
+        <label>Type<select id="s-type"><option>Late arrival</option><option>Left early</option><option>Called out / sick</option><option>Attitude / mood</option><option>Heads-up</option><option>Policy issue</option><option>Praise</option><option>Other</option></select></label>
+        <label>Date<input id="s-date" type="date" required></label>
+        <label>Time (optional)<input id="s-time" type="time"></label>
+        <label class="full">Note<textarea id="s-note" required maxlength="4000" placeholder="e.g. Arrived 9:25 for a 9:00 shift. Didn't text ahead."></textarea></label>
+        <div class="full form-actions">
+          <span class="form-err" id="s-err"></span>
+          <button type="button" class="ghost" id="cancelStaff">Cancel</button>
+          <button type="submit" class="primary priv">Save note</button>
+        </div>
+      </form>
+      <div class="tools">
+        <select id="s-filter" aria-label="Filter by staff member"><option value="">All staff</option></select>
+        <div class="tally" id="s-tally"></div>
+      </div>
+      <div class="feed" id="staffFeed"></div>
+    </section>
+
+    <!-- SUPPLIES (front desk + managers) -->
+    <section id="view-supplies" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick">
+        <div class="row"><h2 class="h2">Shopping list</h2><button type="button" class="link" id="supShare" hidden>Share list</button></div>
+        <p class="meta" style="margin:0" id="supShareMsg">Check items off once they've been bought.</p>
+        <div class="feed" id="supOpen"></div>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2">Running low?</h2><button type="button" class="link" id="supEditToggle" hidden>Edit items</button></div>
+        <p class="meta" style="margin:0" id="supHelp">Tap anything that's running low to add it to the shopping list.</p>
+        <div id="supCatalog" style="display:flex;flex-direction:column;gap:12px"></div>
+        <form id="supEditForm" class="plain" hidden>
+          <label>Add an item to the list<span class="daterow"><input id="supNewCat" list="supCats" maxlength="60" required placeholder="Category (e.g. Snacks)"><input id="supNewName" maxlength="100" required placeholder="Item (e.g. Pretzels)"></span></label>
+          <datalist id="supCats"></datalist>
+          <div class="form-actions"><span class="form-err" id="supEditErr"></span><button type="submit" class="primary">Add item</button></div>
+        </form>
+        <form id="supOtherForm" class="plain">
+          <label for="supOther">Something else</label>
+          <div class="todo-add"><input id="supOther" maxlength="200" required autocomplete="off" placeholder="e.g. Oat milk x4, light bulbs for station 3"><button type="submit" class="primary">Add</button></div>
+          <span class="form-err" id="supErr"></span>
+        </form>
+      </div>
+      <button type="button" class="link" id="supBoughtToggle" hidden></button>
+      <div class="feed" id="supBought" hidden></div>
+    </section>
+
+    <!-- TEAM CHAT (everyone) -->
+    <section id="view-chat" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick" id="hbBox" style="border:2px solid var(--accent)">
+        <h2 class="h2">📘 Employee handbook</h2>
+        <p class="meta" style="margin:0" id="hbMeta">Read it, then sign that you received it.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="primary" id="hbRead" href="#" target="_blank" rel="noopener" style="flex:1;min-width:140px;text-align:center;text-decoration:none">Read handbook</a>
+          <a class="ghost" id="hbSign" href="#" data-demo-sign="1" target="_blank" rel="noopener" style="flex:1;min-width:140px;text-align:center;text-decoration:none">Sign receipt ↗</a>
+        </div>
+        <div id="hbMgr" hidden style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button type="button" class="ghost" id="hbUpBtn">Upload new handbook (PDF)</button><input type="file" id="hbFile" accept="application/pdf" hidden>
+          <span class="meta" id="hbUpMsg">Managers only. Staff always see the newest one.</span>
+        </div>
+      </div>
+      <div class="quick" id="pushBox">
+        <div class="row"><h2 class="h2">🔔 Notifications</h2><span class="meta" id="pushState"></span></div>
+        <p class="meta" style="margin:0" id="pushHelp"></p>
+        <div class="actions" id="pushBtns"></div>
+        <div id="pushPrefs" hidden style="display:flex;flex-direction:column;gap:6px"></div>
+        <span class="form-err" id="pushErr"></span>
+      </div>
+      <div class="quick">
+        <h2 class="h2">📣 Announcements</h2>
+        <form id="annForm" class="plain" hidden>
+          <textarea id="annText" required maxlength="2000" placeholder="Post an update for the whole team"></textarea>
+          <div class="form-actions"><span class="form-err" id="annErr"></span><button type="submit" class="primary">Post announcement</button></div>
+        </form>
+        <div class="feed" id="annFeed"></div>
+      </div>
+      <div class="quick" id="reportBox">
+        <h2 class="h2">🛠 Report an issue</h2>
+        <p class="meta" style="margin:0">Goes straight to the managers' to-do list.</p>
+        <form id="repForm" class="todo-add plain" style="flex-direction:row">
+          <button type="button" class="cam inline" data-ph="rep" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-rep" accept="image/*" hidden>
+          <input id="repText" required maxlength="500" autocomplete="off" placeholder="e.g. Out of 6N color, dryer #2 is broken">
+          <button type="submit" class="primary">Send</button>
+        </form>
+        <div class="pprev" id="pp-rep"></div>
+        <span class="form-err" id="repErr"></span>
+        <div class="feed" id="repFeed"></div>
+      </div>
+      <div class="quick">
+        <h2 class="h2">💬 Team chat</h2>
+        <form id="msgForm" class="todo-add plain" style="flex-direction:row">
+          <button type="button" class="cam inline" data-ph="msg" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-msg" accept="image/*" hidden>
+          <input id="msgText" required maxlength="1000" autocomplete="off" placeholder="Message the whole team">
+          <button type="submit" class="primary">Send</button>
+        </form>
+        <div class="pprev" id="pp-msg"></div>
+        <span class="form-err" id="msgErr"></span>
+        <div class="feed" id="msgFeed"></div>
+      </div>
+    </section>
+
+    <!-- APPLICANTS (managers only; fed by the Jotform application form) -->
+    <section id="view-apps" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="banner">Managers only. New applications from the online job application show up here automatically.</div>
+      <div id="apInterviewsWrap" style="display:flex;flex-direction:column;gap:10px">
+        <h2 class="h2">📅 Upcoming interviews</h2>
+        <div class="feed" id="apInterviews"></div>
+      </div>
+      <div class="tabs" id="apFilter" role="tablist" style="grid-template-columns:repeat(4,1fr)">
+        <button type="button" data-apf="active" aria-selected="true">Active</button>
+        <button type="button" data-apf="hired" aria-selected="false">Hired</button>
+        <button type="button" data-apf="not_a_fit" aria-selected="false">Not a fit</button>
+        <button type="button" data-apf="all" aria-selected="false">All</button>
+      </div>
+      <input id="apSearch" type="search" placeholder="Search by name, position or phone" autocomplete="off">
+      <div class="feed" id="apList"></div>
+    </section>
+
+    <!-- ONE-ON-ONES (staff request; managers confirm) -->
+    <section id="view-oo" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick" id="ooAskBox">
+        <h2 class="h2">Request a 1:1</h2>
+        <p class="meta" style="margin:0">Pick a time that works for you. A manager will confirm it or suggest another time.</p>
+        <form id="ooForm" class="plain" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label>Day<input id="oo-date" type="date" required></label>
+          <label>Time<input id="oo-time" type="time" required step="900"></label>
+          <label class="full">With<select id="oo-mgr"><option value="">Any manager</option></select></label>
+          <label class="full">What do you want to talk about? (optional)<input id="oo-topic" maxlength="500" autocomplete="off" placeholder="e.g. Moving up a level, building my book"></label>
+          <div class="full form-actions"><span class="form-err" id="oo-err"></span><button type="submit" class="primary">Send request</button></div>
+        </form>
+      </div>
+      <div id="ooMgrWrap" hidden style="display:flex;flex-direction:column;gap:10px">
+        <h2 class="h2">Requests to review</h2>
+        <div class="feed" id="ooPending"></div>
+        <h2 class="h2">Upcoming 1:1s</h2>
+        <div class="feed" id="ooUpcoming"></div>
+        <button type="button" class="link" id="ooPastToggle"></button>
+        <div class="feed" id="ooPast" hidden></div>
+        <div class="quick" style="margin-top:6px">
+          <h2 class="h2">📁 Goal files</h2>
+          <p class="meta" style="margin:0">Every goal sheet a team member has filled out, newest first.</p>
+          <label>Team member<select id="gfWho"></select></label>
+          <div class="feed" id="gfList"></div>
+        </div>
+      </div>
+      <div id="ooMineWrap" style="display:flex;flex-direction:column;gap:10px">
+        <h2 class="h2">My 1:1s</h2>
+        <div class="feed" id="ooMine"></div>
+        <div class="quick" id="gfMineBox" style="margin-top:6px"><h2 class="h2">📁 My goal sheets</h2><div class="feed" id="gfMine"></div></div>
+      </div>
+    </section>
+
+    <!-- TIME OFF (everyone requests; managers decide) -->
+    <section id="view-time" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="banner">No more than two stylists (or two front desk) out of the salon at the same time. A request is just a request: it isn't time off until a manager approves it.</div>
+      <div class="quick">
+        <h2 class="h2">Request time off</h2>
+        <form id="toForm">
+          <label>First day off<input id="to-from" type="date" required></label>
+          <label>Back to work<input id="to-back" type="date" required></label>
+          <label class="full">Note (optional)<input id="to-note" maxlength="500" autocomplete="off" placeholder="e.g. Family wedding"></label>
+          <div class="full form-actions"><span class="form-err" id="to-err"></span><button type="submit" class="primary">Send to managers</button></div>
+        </form>
+      </div>
+      <div id="toMgrWrap" hidden style="display:flex;flex-direction:column;gap:10px">
+        <h2 class="h2">Requests to review</h2>
+        <div class="feed" id="toPending"></div>
+        <h2 class="h2">Upcoming approved</h2>
+        <div class="feed" id="toUpcoming"></div>
+        <button type="button" class="link" id="toPastToggle"></button>
+        <div class="feed" id="toPast" hidden></div>
+      </div>
+      <div id="toMineWrap" style="display:flex;flex-direction:column;gap:10px">
+        <h2 class="h2">My requests</h2>
+        <div class="feed" id="toMine"></div>
+      </div>
+    </section>
+
+    <!-- TEAM (managers) -->
+    <section id="view-team" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick">
+        <h2 class="h2">To-do list</h2>
+        <form id="todoForm" class="todo-add plain" style="flex-direction:row">
+          <input id="todoText" required maxlength="500" autocomplete="off" placeholder="e.g. Zinc faucet needs to be fixed">
+          <button type="submit" class="primary">Add</button>
+        </form>
+        <span class="form-err" id="todoErr"></span>
+        <div class="feed" id="todoOpen"></div>
+        <button type="button" class="link" id="todoDoneToggle" hidden></button>
+        <div class="feed" id="todoDone" hidden></div>
+      </div>
+      <div class="quick">
+        <h2 class="h2">Manager log 🔒</h2>
+        <p class="meta" style="margin:0">Only managers can see this. Front desk and stylists can't.</p>
+        <form id="mlForm" class="plain">
+          <label for="ml-note">What happened?</label>
+          <div class="pbox"><textarea id="ml-note" required maxlength="4000" placeholder="e.g. Talked to landlord about parking lot lights. Fixing next week."></textarea><button type="button" class="cam" data-ph="ml" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-ml" accept="image/*" hidden></div>
+          <div class="pprev" id="pp-ml"></div>
+          <div class="form-actions"><span class="form-err" id="ml-err"></span><button type="submit" class="primary">Add to manager log</button></div>
+        </form>
+        <input id="ml-search" type="search" placeholder="Search the manager log">
+        <div class="feed" id="mlFeed"></div>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2">Staff write-ups 🔒</h2><button type="button" class="link" id="wuNew">+ New write-up</button></div>
+        <p class="meta" style="margin:0">Only managers can see these.</p>
+        <form id="wuForm" hidden>
+          <label>Employee<input id="wu-staff" list="staffList" required maxlength="100" autocomplete="off" placeholder="Name"></label>
+          <label>Date of incident<input id="wu-date" type="date" required></label>
+          <label>Type<select id="wu-type"><option>Attendance</option><option>Conduct</option><option>Performance</option><option>Policy violation</option><option>Client complaint</option><option>Other</option></select></label>
+          <label class="full">Handbook policy<select id="wu-policy"><option value="">None / not a policy issue</option><option>Client experience / guest service</option><option>Harassment and discrimination</option><option>Sexual harassment</option><option>Confidential information / company property</option><option>Drug and alcohol use</option><option>Inspections</option><option>State board license requirements</option><option>Dress code</option><option>Tips</option><option>Breaks / lunches</option><option>Attendance / time off requests</option><option>Punctuality</option><option>Illness / calling out</option><option>Cell phones / personal calls</option><option>Break room courtesy</option><option>Cleanliness</option><option>Laundry</option><option>Smoking / vaping</option><option>Parking</option><option>Safety / reporting an injury</option><option>Family / friend service discount</option><option>Product discount</option><option>Vacation requests</option><option>Not covered in the handbook</option></select></label>
+          <label>Level<select id="wu-level"><option>Documented verbal warning</option><option>Written warning</option><option>Final written warning</option></select></label>
+          <label class="full">What happened<textarea id="wu-what" required maxlength="4000" placeholder="Facts only: what, when, where, who was involved."></textarea></label>
+          <label class="full">Notes<textarea id="wu-notes" maxlength="4000" placeholder="Prior conversations, the employee's side, anything else."></textarea></label>
+          <label class="full">Plan of action<textarea id="wu-plan" required maxlength="4000" placeholder="What needs to change, and what happens if it doesn't."></textarea></label>
+          <div class="full lbl">Action items and due dates<div id="wu-items" style="display:flex;flex-direction:column;gap:8px"></div><button type="button" class="link" id="wu-additem" style="align-self:flex-start">+ Add action item</button></div>
+          <label>Follow-up review date<input id="wu-review" type="date"></label>
+          <label>Witnesses<input id="wu-witness" maxlength="300" placeholder="Names, if any"></label>
+          <div class="full form-actions"><span class="form-err" id="wu-err"></span><button type="button" class="ghost" id="wu-cancel">Cancel</button><button type="submit" class="primary">Save, then sign</button></div>
+        </form>
+        <div class="feed" id="wuFeed"></div>
+      </div>
+      <h2 class="h2">Team</h2>
+      <div class="banner">Add someone here, then text them the link. The first time, they tap “Create your password” and use this same email. Managers get everything; front desk gets Daily log, Incidents and Team chat; stylists get Team chat only.</div>
+      <form id="teamForm">
+        <label>Name<input id="t-name" required maxlength="100" placeholder="e.g. Jennifer"></label>
+        <label>Email<input id="t-email" type="email" required placeholder="name@example.com"></label>
+        <label class="full">Access<select id="t-role"><option value="front_desk">Front desk</option><option value="stylist">Stylist</option><option value="manager">Manager</option></select></label>
+        <div class="full form-actions"><span class="form-err" id="t-err"></span><button type="submit" class="primary">Add person</button></div>
+      </form>
+      <div class="feed" id="teamFeed"></div>
+    </section>
+
+    <datalist id="staffList"></datalist>
+  </div>
+  <p class="foot" id="foot"></p>
+</div>
+<script>
+const SUPABASE_URL = "https://demo.invalid";
+const SUPABASE_KEY = "demo";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const isoLocal = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const daysAgo = n => { const x = new Date(); x.setDate(x.getDate() - n); return isoLocal(x); };
+const nowTime = () => { const d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+const fmt = s => s ? new Date(s + "T12:00").toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"}) : "";
+const t12 = t => { if (!t) return ""; let [h, m] = t.split(":").map(Number); const ap = h >= 12 ? "pm" : "am"; h = h % 12 || 12; return h + ":" + pad(m) + ap; };
+const dayLabel = s => { const w = new Date(s + "T12:00").toLocaleDateString(undefined, {weekday:"long", month:"short", day:"numeric"}); return s === daysAgo(0) ? "Today · " + w : s === daysAgo(1) ? "Yesterday · " + w : w; };
+const stripe = {low:"var(--ok)", med:"var(--warn)", high:"var(--crit)"};
+const sevName = {low:"Minor", med:"Watch", high:"Serious"};
+const staffStripe = {"Praise":"var(--ok)","Late arrival":"var(--warn)","Left early":"var(--warn)","Called out / sick":"var(--warn)","Attitude / mood":"var(--crit)","Policy issue":"var(--crit)"};
+const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Stylist" : "Front desk";
+
+let session = null, me = null, previewRole = "", current = "daily";
+let daily = [], fups = {}, incidents = [], res = {}, notes = [], team = [];
+let pwOpen = false;
+let dEdit = null, rpEdit = null;
+let replies = {}, arch = { d: [], l: [] }, archOpen = { d: false, l: false }, archDel = null, replyOpen = null, rpDel = null;
+const stamp = iso => { if (!iso) return ""; const d = new Date(iso); return (isoLocal(d) === daysAgo(0) ? "" : d.toLocaleDateString(undefined, {month:"short", day:"numeric"}) + " ") + t12(pad(d.getHours()) + ":" + pad(d.getMinutes())); };
+let dcat = "General", fuOnly = false, fuOpen = null, logFilter = "all", sev = "med", openResolve = null, confirmDel = null;
+
+const realMgr = () => me && me.role === "manager";
+const effRole = () => previewRole || (me && me.role);
+const isMgr = () => effRole() === "manager";
+const isDesk = () => effRole() === "manager" || effRole() === "front_desk";
+const nameOf = email => { const p = team.find(x => x.email === (email || "").toLowerCase()); return p ? p.name : (email || "Someone").split("@")[0]; };
+function show(view) { ["view-login", "view-noaccess", "app"].forEach(v => $(v).hidden = v !== view); }
+function friendly(err) { return err && /row-level security|permission/i.test(err.message || "") ? "You don't have permission to do that." : "Couldn't save. Check your connection and try again."; }
+
+/* ---------- sign in / out ---------- */
+let signupMode = false;
+function setMode(m) {
+  signupMode = m;
+  $("loginTitle").textContent = m ? "Create your password" : "Sign in";
+  $("loginHelp").textContent = m ? "First time? Enter the email your manager added and pick a password (6+ characters)." : "Use the email your manager added you with.";
+  $("pw2Wrap").hidden = !m; $("loginPw2").required = m;
+  $("loginPw").autocomplete = m ? "new-password" : "current-password";
+  $("loginBtn").textContent = m ? "Create password & sign in" : "Sign in";
+  $("modeToggle").textContent = m ? "Already have a password? Sign in" : "First time here? Create your password";
+  $("loginErr").textContent = "";
+}
+$("modeToggle").onclick = () => setMode(!signupMode);
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = t => $("loginErr").textContent = t;
+  err("");
+  const email = $("loginEmail").value.trim().toLowerCase(), password = $("loginPw").value;
+  $("loginBtn").disabled = true;
+  try {
+    if (!signupMode) {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) err(/invalid/i.test(error.message) ? "Email or password is wrong. First time? Tap “Create your password” below." : "Couldn't sign in. Check your connection and try again.");
+      return;
+    }
+    if (password !== $("loginPw2").value) return err("The two passwords don't match.");
+    const { data: ok } = await sb.rpc("is_invited", { p_email: email });
+    if (!ok) return err("That email isn't on the team yet. Ask a manager to add you.");
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) return err(/already/i.test(error.message) ? "This email already has a password. Sign in instead, or ask a manager to reset it." : /password/i.test(error.message) ? "Pick a longer password (at least 6 characters)." : "Couldn't create your password. Try again.");
+    if (!data.session) return err("Account created, but sign-in is still being set up. Tell a manager.");
+  } finally { $("loginBtn").disabled = false; }
+});
+async function logout() { await sb.auth.signOut(); location.reload(); }
+$("logout").onclick = logout; $("logout2").onclick = logout;
+
+/* ---------- tabs & preview ---------- */
+const TABS = ["daily", "log", "supplies", "chat", "time", "oo", "apps", "staff", "team"];
+function setTab(t) {
+  if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
+  if ((t === "daily" || t === "log" || t === "supplies") && !isDesk()) t = "chat";
+  current = t;
+  for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
+}
+TABS.forEach(k => $("tab-" + k).onclick = () => setTab(k));
+window.__demoPersona = () => {
+  if (!me) return;
+  const r = effRole(), p = r === "stylist" ? ["maya@demosalon.example", "Maya Torres"] : r === "front_desk" ? ["riley@demosalon.example", "Riley Brooks"] : ["jordan@demosalon.example", "Jordan Lee"];
+  me.email = p[0]; me.name = p[1]; $("whoName").textContent = p[1]; $("avatar").textContent = p[1][0];
+};
+function applyRole() {
+  __demoPersona();
+  openResolve = null; confirmDel = null; fuOpen = null;
+  $("viewAs").hidden = !realMgr();
+  $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-mgr").setAttribute("aria-selected", isMgr());
+  $("previewBar").hidden = !previewRole;
+  $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a stylist" : "Riley, at the front desk"}. This is what they see.`;
+  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk();
+  $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr();
+  $("hbMgr").hidden = !isMgr(); refreshHandbookMeta(); renderPush();
+  $("roleBadge").textContent = roleName(effRole());
+  $("foot").textContent = isMgr() ? "Manager view. Deleted notes go to Deleted history at the bottom of each log; only managers can delete forever." : isDesk() ? "Everything you add is visible to the whole team. Keep notes factual." : "Announcements and chat are shared with the whole team.";
+  setTab(current); renderAll();
+}
+$("va-sty").onclick = () => { previewRole = "stylist"; applyRole(); };
+$("va-desk").onclick = () => { previewRole = "front_desk"; applyRole(); };
+$("va-mgr").onclick = () => { previewRole = ""; applyRole(); };
+$("exitPreview").onclick = () => { previewRole = ""; applyRole(); };
+
+/* ---------- photos ---------- */
+const pendingPhoto = {}, photoUrls = {};
+async function shrinkPhoto(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(r => c.toBlob(r, "image/jpeg", 0.82));
+  } finally { URL.revokeObjectURL(url); }
+}
+function showPhotoPreview(k) {
+  const b = pendingPhoto[k];
+  $("pp-" + k).innerHTML = b ? `<img src="${URL.createObjectURL(b)}" alt="Photo to attach"><button type="button" class="link del" data-phx="${k}">Remove photo</button>` : "";
+}
+["d", "l", "rep", "msg", "ml"].forEach(k => $("ph-" + k).addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { pendingPhoto[k] = await shrinkPhoto(f); } catch { alert("Couldn't read that photo. Try a different one."); return; }
+  showPhotoPreview(k);
+}));
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-ph]"); if (b) { $("ph-" + b.dataset.ph).click(); return; }
+  const x = e.target.closest("[data-phx]"); if (x) { delete pendingPhoto[x.dataset.phx]; showPhotoPreview(x.dataset.phx); }
+});
+async function uploadPhoto(k, folder) {
+  if (!pendingPhoto[k]) return null;
+  const path = `${folder}/${crypto.randomUUID()}.jpg`;
+  const { error } = await sb.storage.from("photos").upload(path, pendingPhoto[k], { contentType: "image/jpeg" });
+  if (error) throw error;
+  return path;
+}
+const clearPhoto = k => { delete pendingPhoto[k]; showPhotoPreview(k); };
+async function signPhotos(paths) {
+  const need = [...new Set(paths.filter(p => p && !photoUrls[p]))];
+  if (!need.length) return;
+  const { data } = await sb.storage.from("photos").createSignedUrls(need, 60 * 60 * 12);
+  (data || []).forEach(x => { if (x.signedUrl) photoUrls[x.path] = x.signedUrl; });
+}
+const photoHtml = p => p && photoUrls[p] ? `<a href="${esc(photoUrls[p])}" target="_blank" rel="noopener"><img class="photo" src="${esc(photoUrls[p])}" alt="Attached photo" loading="lazy"></a>` : "";
+
+/* ---------- date filters ---------- */
+const rangeData = { d: null, l: null };
+const rangeOf = k => ({ from: $(k + "-from").value, to: $(k + "-to").value });
+const rangeOn = k => { const r = rangeOf(k); return !!(r.from || r.to); };
+const inRange = (k, day) => { const r = rangeOf(k); return (!r.from || day >= r.from) && (!r.to || day <= r.to); };
+async function fetchRange(k) {
+  if (!rangeOn(k)) { rangeData[k] = null; return; }
+  const r = rangeOf(k), col = k === "d" ? "entry_date" : "incident_date";
+  let q = sb.from(k === "d" ? "daily_log" : "incidents").select("*").is("deleted_at", null).order(col, { ascending: false }).limit(2000);
+  if (r.from) q = q.gte(col, r.from);
+  if (r.to) q = q.lte(col, r.to);
+  const { data } = await q;
+  rangeData[k] = data || [];
+}
+async function onRangeChange(k) {
+  $(k + "-clear").hidden = !rangeOn(k);
+  await fetchRange(k);
+  await signPhotos((rangeData[k] || []).map(x => x.photo));
+  k === "d" ? renderDaily() : renderLog();
+}
+["d", "l"].forEach(k => {
+  $(k + "-from").addEventListener("change", () => onRangeChange(k));
+  $(k + "-to").addEventListener("change", () => onRangeChange(k));
+  $(k + "-clear").onclick = () => { $(k + "-from").value = ""; $(k + "-to").value = ""; onRangeChange(k); };
+});
+
+/* ---------- data ---------- */
+async function loadAll() {
+  const q = [
+    sb.from("staff").select("*").order("name"),
+    sb.from("daily_log").select("*").is("deleted_at", null).order("entry_date", {ascending: false}).order("entry_time", {ascending: false}).limit(1000),
+    sb.from("followups").select("*"),
+    sb.from("incidents").select("*").is("deleted_at", null).order("incident_date", {ascending: false}).order("created_at", {ascending: false}).limit(1000),
+    sb.from("resolutions").select("*"),
+  ];
+  if (realMgr()) q.push(sb.from("staff_notes").select("*").order("note_date", {ascending: false}).order("created_at", {ascending: false}).limit(1000));
+  if (realMgr()) q.push(sb.from("todos").select("*").order("created_at", {ascending: false}).limit(500));
+  if (realMgr()) q.push(sb.from("manager_log").select("*").order("created_at", {ascending: false}).limit(1000));
+  if (realMgr()) q.push(sb.from("staff_writeups").select("*").order("incident_date", {ascending: false}).order("created_at", {ascending: false}).limit(500));
+  const r = await Promise.all(q);
+  team = r[0].data || []; daily = r[1].data || [];
+  fups = {}; (r[2].data || []).forEach(f => fups[f.log_id] = f);
+  incidents = r[3].data || [];
+  res = {}; (r[4].data || []).forEach(x => res[x.incident_id] = x);
+  notes = realMgr() ? (r[5].data || []) : [];
+  todos = realMgr() ? (r[6].data || []) : [];
+  mlog = realMgr() ? (r[7].data || []) : [];
+  writeups = realMgr() ? (r[8].data || []) : [];
+  const since14 = new Date(Date.now() - 14 * 864e5).toISOString();
+  const [ra, rm, rt, roo, rgs, rap, rr, rsi, rsn, rrep, rad, ral] = await Promise.all([
+    sb.from("announcements").select("*").order("created_at", {ascending: false}).limit(50),
+    sb.from("messages").select("*").order("created_at", {ascending: false}).limit(200),
+    sb.from("time_off").select("*").order("off_from", {ascending: true}).limit(500),
+    sb.from("one_on_ones").select("*").order("created_at", {ascending: false}).limit(500),
+    sb.from("goal_sheets").select("*").order("period", {ascending: false}).limit(1000),
+    realMgr() ? sb.from("applicants").select("*").order("submitted_at", {ascending: false}).limit(1000) : Promise.resolve({ data: [] }),
+    realMgr() ? Promise.resolve({ data: [] }) : sb.from("todos").select("*").eq("created_by", me.email).order("created_at", {ascending: false}).limit(30),
+    sb.from("supply_items").select("*").eq("active", true).order("sort").order("name"),
+    sb.from("supply_needs").select("*").or(`bought.eq.false,bought_at.gte."${since14}"`).order("requested_at", {ascending: false}).limit(500),
+    sb.from("log_replies").select("*").order("created_at", {ascending: true}).limit(3000),
+    sb.from("daily_log").select("*").not("deleted_at", "is", null).order("deleted_at", {ascending: false}).limit(300),
+    sb.from("incidents").select("*").not("deleted_at", "is", null).order("deleted_at", {ascending: false}).limit(300),
+  ]);
+  replies = {}; (rrep.data || []).forEach(x => (replies[x.log_id] = replies[x.log_id] || []).push(x));
+  arch = { d: rad.data || [], l: ral.data || [] };
+  anns = ra.data || []; msgs = rm.data || []; timeOff = rt.data || []; oos = roo.data || []; goals = rgs.data || []; applicants = rap.data || []; myReports = rr.data || []; supItems = rsi.data || []; supNeeds = rsn.data || [];
+  await Promise.all([fetchRange("d"), fetchRange("l")]);
+  await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
+  renderAll();
+}
+let reloadTimer = null;
+const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 400); };
+
+function renderAll() { renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
+
+/* ---------- staff write-ups ---------- */
+let writeups = [], wuOpen = null, wuSign = null, wuDel = null, wuPad = null;
+const wuStatus = w => (w.manager_sig && (w.employee_sig || w.employee_refused) && (!w.witnesses || w.witness_sig)) ? `<span class="fu ok">✓ Signed</span>` : `<span class="fu wait">Needs signatures</span>`;
+function wuItemRow(task = "", due = "") {
+  const d = document.createElement("div"); d.className = "wu-item";
+  d.innerHTML = `<input type="text" maxlength="300" placeholder="e.g. Arrive by 8:45 every shift" aria-label="Action item"><input type="date" aria-label="Due date"><button type="button" class="link del" aria-label="Remove action item">×</button>`;
+  d.children[0].value = task; d.children[1].value = due;
+  d.children[2].onclick = () => d.remove();
+  $("wu-items").appendChild(d);
+}
+$("wuNew").onclick = () => { wuTypeTouched = false; $("wuForm").hidden = false; $("wuNew").hidden = true; $("wu-date").value = daysAgo(0); $("wu-items").innerHTML = ""; wuItemRow(); $("wu-staff").focus(); };
+$("wu-additem").onclick = () => wuItemRow();
+const wuClose = () => { $("wuForm").hidden = true; $("wuNew").hidden = false; $("wuForm").reset(); $("wu-items").innerHTML = ""; $("wu-err").textContent = ""; };
+$("wu-cancel").onclick = wuClose;
+let wuTypeTouched = false;
+$("wu-type").addEventListener("change", () => { wuTypeTouched = true; });
+$("wu-policy").addEventListener("change", e => {
+  const v = e.target.value; if (!v || wuTypeTouched || v === "Not covered in the handbook") return;
+  $("wu-type").value = /Attendance|Punctuality|Illness|Vacation/.test(v) ? "Attendance" : /Client experience/.test(v) ? "Performance" : "Policy violation";
+});
+$("wuForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("wu-err").textContent = "";
+  const actions = [...$("wu-items").children].map(r => ({ task: r.children[0].value.trim(), due: r.children[1].value || null, done: false })).filter(a => a.task);
+  const row = { staff_member: $("wu-staff").value.trim(), incident_date: $("wu-date").value, category: $("wu-type").value, level: $("wu-level").value, policy: $("wu-policy").value || null,
+    description: $("wu-what").value.trim(), notes: $("wu-notes").value.trim() || null, action_plan: $("wu-plan").value.trim(), actions,
+    review_date: $("wu-review").value || null, witnesses: $("wu-witness").value.trim() || null, created_by: me.email };
+  if (!row.staff_member || !row.description || !row.action_plan) return;
+  const { data, error } = await sb.from("staff_writeups").insert(row).select("id").single();
+  if (error) { $("wu-err").textContent = friendly(error); return; }
+  wuClose(); wuOpen = data.id; await loadAll();
+});
+function makePad(canvas) {
+  const ctx = canvas.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  const size = () => { const r = canvas.getBoundingClientRect(); canvas.width = r.width * dpr; canvas.height = r.height * dpr; ctx.scale(dpr, dpr); ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111"; };
+  size();
+  let drawing = false, empty = true;
+  const pt = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener("pointerdown", e => { drawing = true; empty = false; canvas.setPointerCapture(e.pointerId); const [x, y] = pt(e); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 0.1, y + 0.1); ctx.stroke(); });
+  canvas.addEventListener("pointermove", e => { if (!drawing) return; const [x, y] = pt(e); ctx.lineTo(x, y); ctx.stroke(); });
+  const end = () => { drawing = false; };
+  canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+  return { clear: () => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.restore(); empty = true; }, isEmpty: () => empty, toBlob: () => new Promise(r => canvas.toBlob(r, "image/png")) };
+}
+function sigBlock(w, slot, label, who) {
+  const path = w[slot + "_sig"], at = w[slot + "_signed_at"];
+  if (slot === "employee" && w.employee_refused) return `<div class="sig"><b>${label}</b><span>${esc(who)} declined to sign · ${whenFull(at)}</span></div>`;
+  if (path) return `<div class="sig"><b>${label}</b>${photoUrls[path] ? `<img src="${esc(photoUrls[path])}" alt="${label} signature">` : ""}<span class="meta">${esc(who)} · ${whenFull(at)}</span></div>`;
+  if (wuSign && wuSign.id === w.id && wuSign.slot === slot) return `<div class="sig"><b>${label}: ${esc(who)}</b><span class="meta">Sign with your finger in the box.</span><canvas class="sigpad" id="wuPad" data-k="${w.id}${slot}"></canvas><div class="actions"><button class="primary" data-wu="sig-save" data-id="${w.id}">Save signature</button><button class="link" data-wu="sig-clear">Clear</button><button class="link" data-wu="sig-cancel">Cancel</button><span class="form-err" id="wuSigErr"></span></div></div>`;
+  return `<div class="sig"><b>${label}</b><span class="meta">${esc(who)} · not signed yet</span><div class="actions"><button class="link" data-wu="sign" data-slot="${slot}" data-id="${w.id}">Sign now</button>${slot === "employee" ? `<button class="link del" data-wu="refused" data-id="${w.id}">Employee declined to sign</button>` : ""}</div></div>`;
+}
+function wuDetail(w) {
+  const items = (w.actions || []);
+  const sec = (t, v) => v ? `<div class="wu-sec"><b>${t}</b><p class="note">${esc(v)}</p></div>` : "";
+  return `${sec("What happened", w.description)}${sec("Notes", w.notes)}${sec("Plan of action", w.action_plan)}
+    ${items.length ? `<div class="wu-sec"><b>Action items</b>${items.map((a, i) => `<label class="fu-check"><input type="checkbox" data-wu="item" data-id="${w.id}" data-i="${i}"${a.done ? " checked" : ""}> <span${a.done ? ' style="text-decoration:line-through;color:var(--muted)"' : ""}>${esc(a.task)}${a.due ? ` · due ${fmt(a.due)}` : ""}</span></label>`).join("")}</div>` : ""}
+    ${w.review_date ? `<div class="wu-sec"><b>Follow-up review</b><span>${fmt(w.review_date)}</span></div>` : ""}
+    ${sec("Witnesses", w.witnesses)}
+    ${sigBlock(w, "employee", "Employee signature", w.staff_member)}
+    ${w.witnesses ? sigBlock(w, "witness", "Witness signature", w.witnesses) : ""}
+    ${sigBlock(w, "manager", "Manager sign-off", w.manager_name || me.name)}
+    <div class="actions"><button class="link" data-wu="pdf" data-id="${w.id}">Email / share PDF</button><button class="link" data-wu="print" data-id="${w.id}">Print</button>${wuDel === w.id ? `<span class="meta">Delete this write-up?</span><button class="link del" data-wu="del-yes" data-id="${w.id}">Yes, delete</button><button class="link" data-wu="del-no">Keep it</button>` : `<button class="link del" data-wu="del" data-id="${w.id}">Delete</button>`}<button class="link" data-wu="close">Close</button></div>`;
+}
+function renderWriteups() {
+  if (!isMgr()) { $("wuFeed").innerHTML = ""; return; }
+  if (wuSign && $("wuPad") && $("wuPad").dataset.k === wuSign.id + wuSign.slot) return; // keep a signature in progress
+  if (!writeups.length) { $("wuFeed").innerHTML = `<div class="meta">No write-ups yet.</div>`; return; }
+  $("wuFeed").innerHTML = writeups.map(w => {
+    const open = (w.actions || []).filter(a => !a.done).length;
+    return `<article class="entry" style="--stripe:${w.level.startsWith("Final") ? "var(--crit)" : w.level.startsWith("Written") ? "var(--warn)" : "var(--private)"}">
+      <div class="row"><span class="name">${esc(w.staff_member)}</span>${wuStatus(w)}</div>
+      <div class="row"><span><span class="tag">${esc(w.category)}</span> <span class="meta">${esc(w.level)}</span></span><span class="meta">${fmt(w.incident_date)}</span></div>
+      ${w.policy ? `<div class="meta">📘 ${esc(w.policy)}</div>` : ""}
+      ${open ? `<div class="meta">${open} open action ${open === 1 ? "item" : "items"}</div>` : ""}
+      ${wuOpen === w.id ? wuDetail(w) : `<div class="actions"><button class="link" data-wu="open" data-id="${w.id}">Open</button></div>`}
+    </article>`;
+  }).join("");
+  if (wuSign && $("wuPad")) wuPad = makePad($("wuPad"));
+}
+function loadJsPdf() {
+  if (window.jspdf) return Promise.resolve();
+  return new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+}
+const toDataUrl = async url => { const blob = await (await fetch(url)).blob(); return await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); };
+async function wuPdf(w) {
+  await loadJsPdf();
+  const doc = new window.jspdf.jsPDF({ unit: "pt", format: "letter" });
+  const L = 54, W = 504, BOTTOM = 740; let y = 60;
+  const room = h => { if (y + h > BOTTOM) { doc.addPage(); y = 60; } };
+  const text = (t, size = 11, bold = false) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); const lines = doc.splitTextToSize(String(t), W); lines.forEach(line => { room(size + 4); doc.text(line, L, y); y += size + 4; }); };
+  const head = t => { y += 8; room(30); doc.setDrawColor(180); doc.line(L, y - 10, L + W, y - 10); text(t.toUpperCase(), 9, true); y += 2; };
+  const field = (k, v) => { room(16); doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text(k + ":", L, y); doc.setFont("helvetica", "normal"); doc.text(String(v), L + 120, y); y += 16; };
+  text("Demo Salon · Employee write-up", 18, true); y += 6;
+  field("Employee", w.staff_member); field("Date of incident", fmt(w.incident_date)); field("Type", w.category); if (w.policy) field("Handbook policy", w.policy); field("Level", w.level);
+  if (w.review_date) field("Follow-up review", fmt(w.review_date));
+  head("What happened"); text(w.description);
+  if (w.notes) { head("Notes"); text(w.notes); }
+  head("Plan of action"); text(w.action_plan);
+  if ((w.actions || []).length) { head("Action items"); w.actions.forEach(a => text(`${a.done ? "[x]" : "[  ]"} ${a.task}${a.due ? "  (due " + fmt(a.due) + ")" : ""}`)); }
+  if (w.witnesses) { head("Witnesses"); text(w.witnesses); }
+  head("Signatures");
+  const sig = async (slot, label, who) => {
+    room(100);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text(label, L, y); y += 8;
+    if (slot === "employee" && w.employee_refused) { y += 10; text(`${who} declined to sign · ${whenFull(w.employee_signed_at)}`); y += 8; return; }
+    const p = w[slot + "_sig"];
+    if (p && photoUrls[p]) { try { doc.addImage(await toDataUrl(photoUrls[p]), "PNG", L, y, 180, 60); } catch (e) {} }
+    else { doc.setDrawColor(120); doc.line(L, y + 55, L + 220, y + 55); }
+    y += 68; text(`${who}${w[slot + "_signed_at"] ? " · " + whenFull(w[slot + "_signed_at"]) : " · Date: ____________"}`, 10); y += 8;
+  };
+  await sig("employee", "Employee", w.staff_member);
+  if (w.witnesses) await sig("witness", "Witness", w.witnesses);
+  await sig("manager", "Manager", w.manager_name || "");
+  const name = `Write-up - ${w.staff_member} - ${w.incident_date}.pdf`.replace(/[\\/:*?"<>|]/g, "");
+  const file = new File([doc.output("blob")], name, { type: "application/pdf" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); } catch (e) { /* share sheet closed */ }
+    return;
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => alert("PDF saved to your downloads. Attach it to an email to send it."), 300);
+}
+function wuPrint(w) {
+  const sig = (slot, label, who) => {
+    if (slot === "employee" && w.employee_refused) return `<tr><td>${label}</td><td>${esc(who)} declined to sign · ${whenFull(w.employee_signed_at)}</td></tr>`;
+    const p = w[slot + "_sig"];
+    return `<tr><td>${label}</td><td>${p && photoUrls[p] ? `<img src="${esc(photoUrls[p])}" alt="">` : "&nbsp;<br>&nbsp;"}<br>${esc(who)}${w[slot + "_signed_at"] ? " · " + whenFull(w[slot + "_signed_at"]) : " · Date: ________"}</td></tr>`;
+  };
+  const items = (w.actions || []).map(a => `<tr><td>${a.done ? "☑" : "☐"} ${esc(a.task)}</td><td>${a.due ? fmt(a.due) : ""}</td></tr>`).join("");
+  $("printArea").innerHTML = `<h1>Demo Salon · Employee write-up</h1>
+    <table><tr><td>Employee</td><td>${esc(w.staff_member)}</td></tr><tr><td>Date of incident</td><td>${fmt(w.incident_date)}</td></tr><tr><td>Type</td><td>${esc(w.category)}</td></tr>${w.policy ? `<tr><td>Handbook policy</td><td>${esc(w.policy)}</td></tr>` : ""}<tr><td>Level</td><td>${esc(w.level)}</td></tr>${w.review_date ? `<tr><td>Follow-up review</td><td>${fmt(w.review_date)}</td></tr>` : ""}</table>
+    <h3>What happened</h3><p>${esc(w.description)}</p>${w.notes ? `<h3>Notes</h3><p>${esc(w.notes)}</p>` : ""}<h3>Plan of action</h3><p>${esc(w.action_plan)}</p>
+    ${items ? `<h3>Action items</h3><table><tr><td><b>Item</b></td><td><b>Due</b></td></tr>${items}</table>` : ""}
+    ${w.witnesses ? `<h3>Witnesses</h3><p>${esc(w.witnesses)}</p>` : ""}
+    <h3>Signatures</h3><table>${sig("employee", "Employee", w.staff_member)}${w.witnesses ? sig("witness", "Witness", w.witnesses) : ""}${sig("manager", "Manager", w.manager_name || "")}</table>`;
+  setTimeout(() => window.print(), 300);
+}
+$("wuFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-wu]"); if (!b || !isMgr()) return;
+  const a = b.dataset.wu, id = b.dataset.id, w = writeups.find(x => x.id === id);
+  if (a === "item" && w) {
+    const actions = (w.actions || []).map((x, i) => i === +b.dataset.i ? { ...x, done: b.checked } : x);
+    const { error } = await sb.from("staff_writeups").update({ actions }).eq("id", id);
+    if (error) alert(friendly(error)); return loadAll();
+  }
+  if (a === "open") { wuOpen = id; wuSign = null; wuDel = null; return renderWriteups(); }
+  if (a === "close") { wuOpen = null; wuSign = null; return renderWriteups(); }
+  if (a === "sign") { wuSign = { id, slot: b.dataset.slot }; return renderWriteups(); }
+  if (a === "sig-cancel") { wuSign = null; return renderWriteups(); }
+  if (a === "sig-clear") { wuPad && wuPad.clear(); return; }
+  if (a === "print" && w) return wuPrint(w);
+  if (a === "pdf" && w) { b.disabled = true; b.textContent = "Making PDF…"; try { await wuPdf(w); } catch (err) { alert("Couldn't make the PDF. Try Print instead."); } b.disabled = false; b.textContent = "Email / share PDF"; return; }
+  if (a === "del") { wuDel = id; return renderWriteups(); }
+  if (a === "del-no") { wuDel = null; return renderWriteups(); }
+  let error = null;
+  if (a === "del-yes") { wuDel = null; wuOpen = null; ({ error } = await sb.from("staff_writeups").delete().eq("id", id)); }
+  if (a === "refused") ({ error } = await sb.from("staff_writeups").update({ employee_refused: true, employee_signed_at: new Date().toISOString() }).eq("id", id));
+  if (a === "sig-save") {
+    if (!wuPad || wuPad.isEmpty()) { $("wuSigErr").textContent = "Please sign in the box first."; return; }
+    const slot = wuSign.slot, blob = await wuPad.toBlob();
+    const path = `writeups/${id}/${slot}-${crypto.randomUUID()}.png`;
+    const up = await sb.storage.from("photos").upload(path, blob, { contentType: "image/png" });
+    if (up.error) { $("wuSigErr").textContent = "Couldn't save the signature. Try again."; return; }
+    const row = { [slot + "_sig"]: path, [slot + "_signed_at"]: new Date().toISOString() };
+    if (slot === "manager") row.manager_name = me.name;
+    ({ error } = await sb.from("staff_writeups").update(row).eq("id", id));
+    wuSign = null;
+  }
+  if (error) alert(friendly(error));
+  loadAll();
+});
+
+
+/* ---------- manager log ---------- */
+let mlog = [], mlEdit = null, mlDel = null;
+const timeOf = s => new Date(s).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).replace(" ", "").toLowerCase();
+function renderMlog() {
+  if (!isMgr()) { $("mlFeed").innerHTML = ""; return; }
+  const q = $("ml-search").value.trim().toLowerCase();
+  const list = mlog.filter(m => !q || (m.note + " " + nameOf(m.created_by)).toLowerCase().includes(q));
+  if (!mlog.length) { $("mlFeed").innerHTML = `<div class="meta">Nothing in the manager log yet.</div>`; return; }
+  if (!list.length) { $("mlFeed").innerHTML = `<div class="meta">Nothing matches that search.</div>`; return; }
+  const days = {}; list.forEach(m => (days[m.entry_date] = days[m.entry_date] || []).push(m));
+  $("mlFeed").innerHTML = Object.entries(days).map(([day, items]) => `<div class="day"><h2>${esc(dayLabel(day))}<span>${items.length} ${items.length === 1 ? "note" : "notes"}</span></h2>${items.map(m => {
+    let act;
+    if (mlEdit === m.id) act = `<div class="fu-box"><textarea id="mlEdit-${m.id}" maxlength="4000" aria-label="Edit note">${esc(m.note)}</textarea><div class="actions"><button class="primary" data-ml="save" data-id="${m.id}">Save</button><button class="link" data-ml="cancel">Cancel</button></div></div>`;
+    else if (mlDel === m.id) act = `<div class="actions"><span class="meta">Delete this note?</span><button class="link del" data-ml="del-yes" data-id="${m.id}">Yes, delete</button><button class="link" data-ml="del-no">Keep it</button></div>`;
+    else act = `<div class="actions"><button class="link" data-ml="edit" data-id="${m.id}">Edit</button><button class="link del" data-ml="del" data-id="${m.id}">Delete</button></div>`;
+    return `<div class="dl"><time>${esc(timeOf(m.created_at))}</time><div class="body">${mlEdit === m.id ? "" : `<p class="note">${esc(m.note)}</p>`}${photoHtml(m.photo)}<span class="meta">${esc(nameOf(m.created_by))}${m.edited_at ? " · edited" : ""}</span>${act}</div></div>`;
+  }).join("")}</div>`).join("");
+}
+$("ml-search").addEventListener("input", renderMlog);
+$("mlForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("ml-err").textContent = "";
+  const note = $("ml-note").value.trim(); if (!note) return;
+  let photo = null;
+  try { photo = await uploadPhoto("ml", "mgrlog"); } catch { $("ml-err").textContent = "Couldn't upload the photo. Try again."; return; }
+  const { error } = await sb.from("manager_log").insert({ entry_date: daysAgo(0), note, photo, created_by: me.email });
+  if (error) { $("ml-err").textContent = friendly(error); return; }
+  clearPhoto("ml"); $("ml-note").value = ""; loadAll();
+});
+$("mlFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-ml]"); if (!b || !isMgr()) return;
+  const a = b.dataset.ml, id = b.dataset.id; let error = null;
+  if (a === "edit") { mlEdit = id; mlDel = null; return renderMlog(); }
+  if (a === "cancel") { mlEdit = null; return renderMlog(); }
+  if (a === "del") { mlDel = id; mlEdit = null; return renderMlog(); }
+  if (a === "del-no") { mlDel = null; return renderMlog(); }
+  if (a === "save") { const note = $("mlEdit-" + id).value.trim(); if (!note) return; mlEdit = null; ({ error } = await sb.from("manager_log").update({ note, edited_at: new Date().toISOString() }).eq("id", id)); }
+  if (a === "del-yes") { mlDel = null; ({ error } = await sb.from("manager_log").delete().eq("id", id)); }
+  if (error) alert(friendly(error));
+  loadAll();
+});
+
+/* ---------- supplies ---------- */
+let supItems = [], supNeeds = [], supEdit = false, showBought = false;
+function supGroups(rows, catOf) {
+  const order = [], g = {};
+  rows.forEach(r => { const c = catOf(r) || "Other"; if (!g[c]) { g[c] = []; order.push(c); } g[c].push(r); });
+  return order.map(c => [c, g[c]]);
+}
+function renderSupplies() {
+  if (!me) return;
+  if (!isDesk()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }
+  const open = supNeeds.filter(n => !n.bought), bought = supNeeds.filter(n => n.bought).sort((a, b) => (b.bought_at || "").localeCompare(a.bought_at || ""));
+  $("tab-supplies").textContent = open.length ? `Supplies (${open.length})` : "Supplies";
+  $("supShare").hidden = !open.length;
+  const catOrder = [...new Set(supItems.map(i => i.category))];
+  const openSorted = [...open].sort((a, b) => { const x = catOrder.indexOf(a.category), y = catOrder.indexOf(b.category); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
+  $("supOpen").innerHTML = open.length ? supGroups(openSorted, n => n.category).map(([c, rows]) => `<div class="supgrp"><h3>${esc(c)}</h3>${rows.map(n => {
+    const canRemove = isMgr() || n.requested_by === me.email;
+    return `<div class="todo"><input type="checkbox" data-sup="buy" data-id="${n.id}" aria-label="Mark ${esc(n.item_name)} bought"><div class="body"><p class="note">${esc(n.item_name)}</p><div class="actions"><span class="meta">Asked by ${esc(nameOf(n.requested_by))} · ${whenShort(n.requested_at)}</span>${canRemove ? `<button class="link del" data-sup="remove" data-id="${n.id}">Remove</button>` : ""}</div></div></div>`;
+  }).join("")}</div>`).join("") : `<div class="meta">Nothing needed right now.</div>`;
+  const onList = new Set(open.filter(n => n.item_id).map(n => n.item_id));
+  $("supEditToggle").hidden = !isMgr();
+  $("supEditToggle").textContent = supEdit ? "Done editing" : "Edit items";
+  $("supEditForm").hidden = !(isMgr() && supEdit);
+  $("supHelp").textContent = supEdit ? "Tap × to take an item off this list for good, or add a new one below." : "Tap anything that's running low to add it to the shopping list.";
+  $("supCats").innerHTML = catOrder.map(c => `<option value="${esc(c)}">`).join("");
+  $("supCatalog").innerHTML = supItems.length ? supGroups(supItems, i => i.category).map(([c, rows]) => `<div class="supgrp"><h3>${esc(c)}</h3><div class="cats">${rows.map(i =>
+    supEdit && isMgr()
+      ? `<button type="button" class="cat" data-sup="retire" data-id="${i.id}" aria-label="Remove ${esc(i.name)} from the list">${esc(i.name)} ×</button>`
+      : `<button type="button" class="cat" data-sup="add" data-id="${i.id}" aria-pressed="${onList.has(i.id)}">${onList.has(i.id) ? "✓ " : ""}${esc(i.name)}</button>`
+  ).join("")}</div></div>`).join("") : `<div class="meta">No items yet.</div>`;
+  $("supBoughtToggle").hidden = !bought.length;
+  $("supBoughtToggle").textContent = showBought ? "Hide recently bought" : `Recently bought (${bought.length})`;
+  $("supBought").hidden = !showBought;
+  $("supBought").innerHTML = bought.map(n => `<div class="todo done"><div class="body"><p class="note">${esc(n.item_name)}</p><div class="actions"><span class="meta">Bought by ${esc(nameOf(n.bought_by))} · ${whenShort(n.bought_at)}</span><button class="link" data-sup="unbuy" data-id="${n.id}">Undo</button></div></div></div>`).join("");
+}
+async function addNeed(row) {
+  const { error } = await sb.from("supply_needs").insert({ ...row, requested_by: me.email });
+  if (error) { $("supErr").textContent = friendly(error); return false; }
+  return true;
+}
+$("supEditToggle").onclick = () => { supEdit = !supEdit; renderSupplies(); };
+$("supShare").onclick = async () => {
+  const open = supNeeds.filter(n => !n.bought); if (!open.length) return;
+  const catOrder = [...new Set(supItems.map(i => i.category))];
+  open.sort((a, b) => { const x = catOrder.indexOf(a.category), y = catOrder.indexOf(b.category); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
+  const text = "Demo Salon shopping list\n" + supGroups(open, n => n.category).map(([c, rows]) => `${c}: ${rows.map(n => n.item_name).join(", ")}`).join("\n");
+  const note = t => { $("supShareMsg").textContent = t; setTimeout(() => $("supShareMsg").textContent = "Check items off once they've been bought.", 4000); };
+  if (navigator.share) {
+    try { await navigator.share({ text }); note("Shared. Items stay on the list until they're checked off."); } catch (e) { /* closed the share sheet */ }
+    return;
+  }
+  try { await navigator.clipboard.writeText(text); note("Copied. Paste it into a text. Items stay on the list until they're checked off."); }
+  catch { location.href = "sms:?&body=" + encodeURIComponent(text); }
+};
+$("supBoughtToggle").onclick = () => { showBought = !showBought; renderSupplies(); };
+$("supOtherForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("supErr").textContent = "";
+  const v = $("supOther").value.trim(); if (!v) return;
+  if (await addNeed({ item_name: v, category: "Other" })) { $("supOther").value = ""; loadAll(); }
+});
+$("supEditForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("supEditErr").textContent = "";
+  const category = $("supNewCat").value.trim(), name = $("supNewName").value.trim(); if (!category || !name) return;
+  const sort = supItems.filter(i => i.category === category).reduce((m, i) => Math.max(m, i.sort || 0), supItems.reduce((m, i) => Math.max(m, i.sort || 0), 0)) + 1;
+  const { error } = await sb.from("supply_items").insert({ category, name, sort });
+  if (error) { $("supEditErr").textContent = friendly(error); return; }
+  $("supNewName").value = ""; loadAll();
+});
+$("view-supplies").addEventListener("click", async e => {
+  const b = e.target.closest("[data-sup]"); if (!b) return;
+  const a = b.dataset.sup, id = b.dataset.id; let error = null;
+  $("supErr").textContent = "";
+  if (a === "add") {
+    const item = supItems.find(i => i.id === id); if (!item) return;
+    const existing = supNeeds.find(n => !n.bought && n.item_id === id);
+    if (existing) {
+      if (!(isMgr() || existing.requested_by === me.email)) { $("supErr").textContent = `${item.name} is already on the list.`; return; }
+      ({ error } = await sb.from("supply_needs").delete().eq("id", existing.id));
+    } else if (!(await addNeed({ item_id: id, item_name: item.name, category: item.category }))) return;
+  }
+  else if (a === "remove") ({ error } = await sb.from("supply_needs").delete().eq("id", id));
+  else if (a === "buy") ({ error } = await sb.from("supply_needs").update({ bought: true, bought_by: me.email, bought_at: new Date().toISOString() }).eq("id", id));
+  else if (a === "unbuy") ({ error } = await sb.from("supply_needs").update({ bought: false, bought_by: null, bought_at: null }).eq("id", id));
+  else if (a === "retire") ({ error } = await sb.from("supply_items").update({ active: false }).eq("id", id));
+  if (error) alert(friendly(error));
+  loadAll();
+});
+
+/* ---------- time off ---------- */
+let timeOff = [], showPast = false;
+const dayCount = (a, b) => Math.round((new Date(b + "T12:00") - new Date(a + "T12:00")) / 864e5);
+const statusTag = st => ({ pending: `<span class="fu wait">Pending</span>`, approved: `<span class="fu ok">✓ Approved</span>`, denied: `<span class="fu" style="color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)">Denied</span>`, cancelled: `<span class="fu" style="color:var(--muted)">Cancelled</span>` }[st] || "");
+function toRow(r, mgrView) {
+  const n = dayCount(r.off_from, r.back_on);
+  const overlap = mgrView ? timeOff.filter(o => o.id !== r.id && o.role === r.role && (o.status === "pending" || o.status === "approved") && o.off_from < r.back_on && r.off_from < o.back_on) : [];
+  let act = "";
+  if (mgrView && r.status === "pending") act = `<div class="actions"><button class="link done" data-to="approved" data-id="${r.id}">Approve</button><button class="link del" data-to="denied" data-id="${r.id}">Deny</button></div>`;
+  else if (mgrView && (r.status === "approved" || r.status === "denied")) act = `<div class="actions"><button class="link" data-to="pending" data-id="${r.id}">Undo decision</button></div>`;
+  else if (!mgrView && r.status === "pending" && r.created_by === me.email) act = `<div class="actions"><button class="link del" data-to="cancelled" data-id="${r.id}">Cancel request</button></div>`;
+  return `<article class="entry" style="--stripe:${r.status === "approved" ? "var(--ok)" : r.status === "pending" ? "var(--warn)" : "var(--line)"}">
+    <div class="row"><span><span class="name">${esc(nameOf(r.created_by))}</span> <span class="tag">${roleName(r.role)}</span></span>${statusTag(r.status)}</div>
+    <div><b>Off ${fmt(r.off_from)}</b> · back to work <b>${fmt(r.back_on)}</b> <span class="meta">(${n} ${n === 1 ? "day" : "days"})</span></div>
+    ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+    ${overlap.length ? `<div class="meta" style="color:var(--warn)">Also off then (${roleName(r.role).toLowerCase()}): ${overlap.map(o => esc(nameOf(o.created_by)) + (o.status === "pending" ? " (pending)" : "")).join(", ")}</div>` : ""}
+    <div class="meta">Sent ${whenFull(r.created_at)}${r.decided_at ? ` · ${r.status} by ${esc(nameOf(r.decided_by))} ${whenFull(r.decided_at)}` : ""}</div>${act}</article>`;
+}
+function renderTime() {
+  if (!me) return;
+  const today = daysAgo(0);
+  const pend = isMgr() ? timeOff.filter(r => r.status === "pending") : [];
+  $("tab-time").textContent = pend.length ? `Time off (${pend.length})` : "Time off";
+  $("toMgrWrap").hidden = !isMgr();
+  if (isMgr()) {
+    const upcoming = timeOff.filter(r => r.status === "approved" && r.back_on > today);
+    const past = timeOff.filter(r => !pend.includes(r) && !upcoming.includes(r)).sort((a, b) => b.off_from.localeCompare(a.off_from));
+    $("toPending").innerHTML = pend.length ? pend.map(r => toRow(r, true)).join("") : `<div class="meta">No requests waiting.</div>`;
+    $("toUpcoming").innerHTML = upcoming.length ? upcoming.map(r => toRow(r, true)).join("") : `<div class="meta">Nobody is scheduled off.</div>`;
+    $("toPastToggle").hidden = !past.length;
+    $("toPastToggle").textContent = showPast ? "Hide past & declined" : `Show past & declined (${past.length})`;
+    $("toPast").hidden = !showPast;
+    $("toPast").innerHTML = past.map(r => toRow(r, true)).join("");
+  }
+  const mine = timeOff.filter(r => r.created_by === me.email).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  $("toMineWrap").hidden = isMgr() && !mine.length;
+  $("toMine").innerHTML = mine.length ? mine.map(r => toRow(r, false)).join("") : `<div class="meta">You haven't requested any time off.</div>`;
+}
+$("toPastToggle").onclick = () => { showPast = !showPast; renderTime(); };
+$("toForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = t => $("to-err").textContent = t; err("");
+  const off_from = $("to-from").value, back_on = $("to-back").value;
+  if (!off_from || !back_on) return;
+  if (back_on <= off_from) return err("Back-to-work day has to be after the first day off.");
+  if (off_from < daysAgo(0)) return err("The first day off can't be in the past.");
+  const { error } = await sb.from("time_off").insert({ off_from, back_on, note: $("to-note").value.trim() || null, created_by: me.email });
+  if (error) {
+    const m = /TIMEOFF_LIMIT:\s*(\d{4}-\d{2}-\d{2})/.exec(error.message || "");
+    const who = me.role === "stylist" ? "stylists" : me.role === "front_desk" ? "front desk people" : "managers";
+    return err(m ? `Sorry, two ${who} are already requested off on ${fmt(m[1])}. Pick different dates or talk to a manager.` : friendly(error));
+  }
+  $("toForm").reset(); err(""); $("foot").textContent = "Request sent to managers."; loadAll();
+});
+$("view-time").addEventListener("click", async e => {
+  const b = e.target.closest("[data-to]"); if (!b) return;
+  const st = b.dataset.to, id = b.dataset.id;
+  const row = st === "cancelled" ? { status: "cancelled" } : st === "pending" ? { status: "pending", decided_by: null, decided_at: null } : { status: st, decided_by: me.email, decided_at: new Date().toISOString() };
+  const { error } = await sb.from("time_off").update(row).eq("id", id);
+  if (error) alert(friendly(error));
+  loadAll();
+});
+
+/* ---------- one-on-ones ---------- */
+let oos = [], ooShowPast = false, ooSuggest = null, ooDecline = null, goals = [], goalOpen = null;
+const ooDay = r => r.meet_date || r.req_date;
+const monthName = ym => new Date(ym + "-15T12:00").toLocaleDateString(undefined, {month: "long", year: "numeric"});
+const sheetOf = (who, kind, period) => goals.find(g => g.created_by === who && g.kind === kind && g.period === period);
+function sheetsFor(r) {
+  if (r.status !== "confirmed" && r.status !== "done") return [];
+  const ym = ooDay(r).slice(0, 7), yr = ooDay(r).slice(0, 4), out = [];
+  const sm = sheetOf(r.created_by, "smart", yr);
+  if (!sm || sm.one_on_one_id === r.id) out.push({ kind: "smart", period: yr, title: `SMART Goal Planning (${yr})`, sheet: sm });
+  out.push({ kind: "monthly", period: ym, title: `Monthly Goals (${monthName(ym)})`, sheet: sheetOf(r.created_by, "monthly", ym) });
+  return out;
+}
+const GOAL_FIELDS = {
+  monthly: [["professional", "Professional goals", "area"], ["personal", "Personal goals", "area"],
+    ["days", "Days I work per week", "days"], ["service_month", "Monthly service goal ($)", "money"], ["service_week", "Weekly", "money"], ["service_day", "Daily", "money"],
+    ["retail_month", "Monthly retail goal ($)", "money"], ["retail_week", "Weekly", "money"], ["retail_day", "Daily", "money"],
+    ["notes", "Notes", "area"]],
+  smart: [["m3", "3 months", "area"], ["m6", "6 months", "area"], ["m12", "12 months", "area"]],
+};
+const SMART_HELP = `<div class="meta" style="line-height:1.5"><b>S</b>pecific: make your goals specific and narrow · <b>M</b>easurable: how you'll know you're making progress · <b>A</b>ttainable: something you can reasonably accomplish in that time · <b>R</b>elevant: fits your values and long-term plans · <b>T</b>ime based: a realistic, ambitious end date</div>`;
+function goalForm(r, it) {
+  const v = (it.sheet && it.sheet.data) || {};
+  const f = GOAL_FIELDS[it.kind].map(([k, label, t]) => {
+    const full = t === "area" ? ' style="grid-column:1/-1"' : (k.endsWith("_month") ? ' style="grid-column:1/-1"' : "");
+    const input = t === "area" ? `<textarea data-gf="${k}" maxlength="1500" rows="3">${esc(v[k] || "")}</textarea>`
+      : t === "days" ? `<input data-gf="${k}" type="number" min="1" max="7" step="1" inputmode="numeric" value="${esc(v[k] || "5")}">`
+      : `<input data-gf="${k}" inputmode="decimal" maxlength="12" value="${esc(v[k] || "")}" placeholder="$">`;
+    return `<label${full}>${label}${input}</label>`;
+  }).join("");
+  return `<div class="fu-box" id="gform"><b>${esc(it.title)}</b>${it.kind === "smart" ? SMART_HELP : ""}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${f}</div><div class="actions"><button class="primary" data-oo="goal-save" data-id="${r.id}" data-kind="${it.kind}" data-period="${it.period}">Save</button><button class="link" data-oo="goal-close">Cancel</button><span class="form-err" id="gErr"></span></div></div>`;
+}
+function goalView(it) {
+  const v = it.sheet.data || {};
+  const money = (a, b, c) => [a, b, c].some(Boolean) ? `${a ? "$" + esc(a.replace(/^\$/, "")) + "/mo" : ""}${b ? " · $" + esc(b.replace(/^\$/, "")) + "/wk" : ""}${c ? " · $" + esc(c.replace(/^\$/, "")) + "/day" : ""}` : "";
+  const row = (label, val) => val ? `<div><span class="meta">${label}</span><div class="note" style="white-space:pre-wrap">${val}</div></div>` : "";
+  const body = it.kind === "smart"
+    ? row("3 months", esc(v.m3)) + row("6 months", esc(v.m6)) + row("12 months", esc(v.m12))
+    : row("Professional", esc(v.professional)) + row("Personal", esc(v.personal)) + row("Days per week", esc(v.days)) + row("Service goal", money(v.service_month, v.service_week, v.service_day)) + row("Retail goal", money(v.retail_month, v.retail_week, v.retail_day)) + row("Notes", esc(v.notes));
+  return `<div class="mgr" style="display:flex;flex-direction:column;gap:6px"><b>${esc(it.title)}</b>${body || `<span class="meta">Left blank.</span>`}<span class="meta">Updated ${whenFull(it.sheet.updated_at)}</span></div>`;
+}
+function goalPrint(r, it) {
+  const v = (it.sheet && it.sheet.data) || {};
+  const box = (label, val, rows) => { const ls = String(val || "").split("\n").filter(x => x.trim()); while (ls.length < rows) ls.push(""); return `<div class="gp-sec"><div class="gp-lbl">${label}</div>${ls.map(x => `<div class="gp-ln">${esc(x) || "&nbsp;"}</div>`).join("")}</div>`; };
+  const amt = x => x ? "$" + esc(String(x).replace(/^\$/, "")) : "";
+  const pair = (l1, v1, l2, v2) => `<div class="gp-row"><div><span class="gp-lbl">${l1}</span> <span class="gp-line">${amt(v1)}</span></div><div><span class="gp-lbl">${l2}</span> <span class="gp-line">${amt(v2)}</span></div></div>`;
+  const head = `<div class="gp-head"><div><span class="gp-lbl">Date:</span> ${fmt(ooDay(r))}</div><img src="icon-192.png" alt="Demo Salon"><div><span class="gp-lbl">Name:</span> ${esc(nameOf(r.created_by))}</div></div>`;
+  const body = it.kind === "smart"
+    ? `<h1 class="gp-title">SMART Goal Planning · ${esc(it.period)}</h1>${box("3 Months:", v.m3, 4)}${box("6 Months:", v.m6, 4)}${box("12 Months:", v.m12, 4)}
+       <div class="gp-help">S - Specific: Make your goals specific and narrow for more effective planning<br>M - Measurable: Define what evidence you're making progress and reevaluate when necessary<br>A - Attainable: Make sure you can reasonably accomplish your goal within a certain time frame<br>R - Relevant: Your goals should align with your values and long term objectives<br>T - Time based: Set a realistic, ambitious end date for task prioritization and motivation</div>`
+    : `<h1 class="gp-title">Monthly Goals · ${esc(monthName(it.period))}</h1>${box("Professional:", v.professional, 3)}${box("Personal:", v.personal, 3)}
+       <div class="gp-row"><div><span class="gp-lbl">Monthly Service Goal:</span> <span class="gp-line">${amt(v.service_month)}</span></div></div>${pair("Weekly:", v.service_week, "Daily:", v.service_day)}
+       <div class="gp-row"><div><span class="gp-lbl">Monthly Retail Goal:</span> <span class="gp-line">${amt(v.retail_month)}</span></div></div>${pair("Weekly:", v.retail_week, "Daily:", v.retail_day)}
+       ${box("Notes:", v.notes, 3)}`;
+  $("printArea").innerHTML = `<div class="gp">${head}${body}</div>`;
+  const img = $("printArea").querySelector("img");
+  const go = () => setTimeout(() => window.print(), 150);
+  if (img && !img.complete) { img.onload = go; img.onerror = go; } else go();
+}
+let gfOpen = null;
+function fileItem(g) {
+  const r1 = oos.find(x => x.id === g.one_on_one_id);
+  const r = r1 || { id: "f" + g.id, created_by: g.created_by, meet_date: (g.updated_at || g.created_at).slice(0, 10), status: "done" };
+  const it = { kind: g.kind, period: g.period, sheet: g, title: g.kind === "smart" ? `SMART Goal Planning (${g.period})` : `Monthly Goals (${monthName(g.period)})` };
+  return { r, it };
+}
+function goalFiles(email, box) {
+  const sk = g => g.kind === "smart" ? g.period + "-13" : g.period;
+  const list = goals.filter(g => g.created_by === email).sort((a, b) => sk(b).localeCompare(sk(a)));
+  if (!list.length) { $(box).innerHTML = `<div class="meta">No goal sheets yet.</div>`; return; }
+  const latestM = list.find(g => g.kind === "monthly"), latestS = list.find(g => g.kind === "smart");
+  $(box).innerHTML = list.map(g => {
+    const { it } = fileItem(g);
+    const cur = g === latestM || g === latestS ? ` <span class="fu ok">Current</span>` : "";
+    const open = gfOpen === g.id;
+    return `<div class="todo"><div class="body"><div class="row" style="gap:8px;flex-wrap:wrap"><span>📝 ${esc(it.title)}${cur}</span><span class="actions" style="gap:10px"><button class="link" data-gf-act="${open ? "hide" : "view"}" data-id="${g.id}">${open ? "Hide" : "View"}</button><button class="link" data-gf-act="print" data-id="${g.id}">Print / save</button></span></div>${open ? goalView(it) : ""}</div></div>`;
+  }).join("");
+}
+function renderGoalFiles() {
+  if (!me) return;
+  if (isMgr()) {
+    const sel = $("gfWho"), cur = sel.value;
+    const people = team.filter(t => t.role !== "manager" || goals.some(g => g.created_by === t.email)).sort((a, b) => a.name.localeCompare(b.name));
+    sel.innerHTML = `<option value="">Choose someone…</option>` + people.map(t => { const n = goals.filter(g => g.created_by === t.email).length; return `<option value="${esc(t.email)}">${esc(t.name)}${n ? ` (${n})` : ""}</option>`; }).join("");
+    sel.value = cur;
+    if (sel.value) goalFiles(sel.value, "gfList"); else $("gfList").innerHTML = "";
+  }
+  const mine = goals.some(g => g.created_by === me.email);
+  $("gfMineBox").hidden = isMgr() && !mine;
+  goalFiles(me.email, "gfMine");
+}
+const gNum = x => parseFloat(String(x || "").replace(/[$,\s]/g, ""));
+$("view-oo").addEventListener("input", e => {
+  const k = e.target.dataset && e.target.dataset.gf; if (!k) return;
+  const g = $("gform"); if (!g) return;
+  const el = n => g.querySelector(`[data-gf="${n}"]`);
+  const days = Math.min(7, Math.max(1, gNum(el("days") && el("days").value) || 5));
+  const fill = kind => {
+    const m = gNum(el(kind + "_month").value);
+    if (!(m > 0)) return;
+    const wk = Math.round(m / 4);
+    el(kind + "_week").value = wk;
+    el(kind + "_day").value = Math.round(wk / days);
+  };
+  if (k === "service_month" || k === "days") fill("service");
+  if (k === "retail_month" || k === "days") fill("retail");
+});
+$("gfWho").addEventListener("change", () => { gfOpen = null; renderGoalFiles(); });
+$("view-oo").addEventListener("click", e => {
+  const b = e.target.closest("[data-gf-act]"); if (!b) return;
+  const g = goals.find(x => x.id === b.dataset.id); if (!g) return;
+  const act = b.dataset.gfAct;
+  if (act === "view") { gfOpen = g.id; return renderGoalFiles(); }
+  if (act === "hide") { gfOpen = null; return renderGoalFiles(); }
+  if (act === "print") { const { r, it } = fileItem(g); goalPrint(r, it); }
+});
+function goalsBlock(r, mgrView) {
+  const items = sheetsFor(r); if (!items.length) return "";
+  const mine = r.created_by === me.email && !mgrView;
+  return `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><span class="meta"><b>${mine ? "Before your 1:1, fill out" : "Goal sheets"}</b></span>${items.map(it => {
+    const key = r.id + ":" + it.kind;
+    if (mine && goalOpen === key) return goalForm(r, it);
+    if (goalOpen === "v:" + key && it.sheet) return goalView(it) + `<button class="link" data-oo="goal-close" style="align-self:flex-start">Hide</button>`;
+    const done = !!it.sheet;
+    const tag = done ? `<span class="fu ok">✓ Filled out</span>` : `<span class="fu wait">${mine ? "To do" : "Not filled out yet"}</span>`;
+    const btns = (mine && r.status !== "done" ? `<button class="link" data-oo="goal-open" data-key="${key}">${done ? "Edit" : "Fill out"}</button>` : "") + (done ? `<button class="link" data-oo="goal-view" data-key="${key}">View</button><button class="link" data-oo="goal-print" data-key="${key}">Print / save</button>` : "");
+    return `<div class="row" style="gap:8px;flex-wrap:wrap"><span>📝 ${esc(it.title)}</span><span class="actions" style="gap:10px">${tag}${btns}</span></div>`;
+  }).join("")}</div>`;
+}
+const ooWhen = r => r.meet_date ? `${fmt(r.meet_date)} at ${t12(r.meet_time)}` : `${fmt(r.req_date)} at ${t12(r.req_time)}`;
+const ooTag = st => ({
+  pending: `<span class="fu wait">Waiting for a manager</span>`,
+  proposed: `<span class="fu wait">New time suggested</span>`,
+  confirmed: `<span class="fu ok">✓ Confirmed</span>`,
+  done: `<span class="fu ok">Done</span>`,
+  declined: `<span class="fu" style="color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)">Declined</span>`,
+  cancelled: `<span class="fu" style="color:var(--muted)">Cancelled</span>`,
+}[st] || "");
+function ooRow(r, mgrView) {
+  const mine = r.created_by === me.email;
+  let act = "";
+  if (mgrView && ooSuggest === r.id) act = `<div class="fu-box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Day<input type="date" id="ooS-d-${r.id}" value="${r.meet_date || r.req_date}"></label><label>Time<input type="time" step="900" id="ooS-t-${r.id}" value="${(r.meet_time || r.req_time || "").slice(0,5)}"></label></div><input id="ooS-n-${r.id}" maxlength="300" placeholder="Note to ${esc(nameOf(r.created_by))} (optional)"><div class="actions"><button class="primary" data-oo="suggest-send" data-id="${r.id}">Send new time</button><button class="link" data-oo="close">Cancel</button><span class="form-err" id="ooS-err"></span></div></div>`;
+  else if (mgrView && ooDecline === r.id) act = `<div class="fu-box"><input id="ooD-n-${r.id}" maxlength="300" placeholder="Reason (optional)"><div class="actions"><button class="link del" data-oo="decline-yes" data-id="${r.id}">Decline request</button><button class="link" data-oo="close">Cancel</button></div></div>`;
+  else if (mgrView && r.status === "pending") act = `<div class="actions"><button class="link done" data-oo="confirm" data-id="${r.id}">Confirm</button><button class="link" data-oo="suggest" data-id="${r.id}">Suggest another time</button><button class="link del" data-oo="decline" data-id="${r.id}">Decline</button></div>`;
+  else if (mgrView && r.status === "confirmed") act = `<div class="actions"><button class="link done" data-oo="done" data-id="${r.id}">Mark done</button><button class="link" data-oo="suggest" data-id="${r.id}">Reschedule</button><button class="link del" data-oo="mgr-cancel" data-id="${r.id}">Cancel</button></div>`;
+  else if (mgrView && r.status === "proposed") act = `<div class="actions"><span class="meta">Waiting for ${esc(nameOf(r.created_by))} to accept</span><button class="link" data-oo="suggest" data-id="${r.id}">Change time</button></div>`;
+  else if (!mgrView && mine && r.status === "proposed") act = `<div class="actions"><button class="link done" data-oo="accept" data-id="${r.id}">Accept new time</button><button class="link del" data-oo="cancel" data-id="${r.id}">Can't make it</button></div>`;
+  else if (!mgrView && mine && (r.status === "pending" || r.status === "confirmed")) act = `<div class="actions"><button class="link del" data-oo="cancel" data-id="${r.id}">Cancel</button></div>`;
+  const asked = r.meet_date && (r.meet_date !== r.req_date || (r.meet_time || "").slice(0,5) !== (r.req_time || "").slice(0,5)) ? `<div class="meta">Asked for ${fmt(r.req_date)} at ${t12(r.req_time)}</div>` : "";
+  const stripe = r.status === "confirmed" ? "var(--ok)" : (r.status === "pending" || r.status === "proposed") ? "var(--warn)" : "var(--line)";
+  return `<article class="entry" style="--stripe:${stripe}">
+    <div class="row"><span><span class="name">${esc(nameOf(r.created_by))}</span>${r.with_manager ? ` <span class="meta">with ${esc(nameOf(r.with_manager))}</span>` : ""}</span>${ooTag(r.status)}</div>
+    <div><b>${ooWhen(r)}</b></div>${asked}
+    ${r.topic ? `<p class="note">${esc(r.topic)}</p>` : ""}
+    ${r.manager_note ? `<div class="mgr"><b>From ${esc(nameOf(r.decided_by))}</b><div class="note">${esc(r.manager_note)}</div></div>` : ""}
+    ${goalsBlock(r, mgrView)}
+    <div class="meta">Requested ${whenFull(r.created_at)}</div>${act}</article>`;
+}
+function renderOO() {
+  if (!me) return;
+  const keep = {}; const gf = $("gform"); if (gf) gf.querySelectorAll("[data-gf]").forEach(el => keep[el.dataset.gf] = el.value);
+  setTimeout(() => { const g = $("gform"); if (g && Object.keys(keep).length) g.querySelectorAll("[data-gf]").forEach(el => { if (el.dataset.gf in keep) el.value = keep[el.dataset.gf]; }); }, 0);
+  const today = daysAgo(0);
+  const mgrs = team.filter(t => t.role === "manager");
+  const sel = $("oo-mgr"), cur = sel.value;
+  sel.innerHTML = `<option value="">Any manager</option>` + mgrs.map(m => `<option value="${esc(m.email)}">${esc(m.name)}</option>`).join("");
+  sel.value = cur;
+  const pend = isMgr() ? oos.filter(r => r.status === "pending") : [];
+  const myNew = oos.filter(r => r.created_by === me.email && r.status === "proposed").length
+    + oos.filter(r => r.created_by === me.email && r.status === "confirmed").reduce((n, r) => n + sheetsFor(r).filter(it => !it.sheet).length, 0);
+  const badge = isMgr() ? pend.length : myNew;
+  $("tab-oo").textContent = badge ? `1:1s (${badge})` : "1:1s";
+  $("ooMgrWrap").hidden = !isMgr();
+  $("ooAskBox").hidden = isMgr();
+  if (isMgr()) {
+    const upcoming = oos.filter(r => (r.status === "confirmed" || r.status === "proposed")).sort((a, b) => (a.meet_date + a.meet_time).localeCompare(b.meet_date + b.meet_time));
+    const past = oos.filter(r => !pend.includes(r) && !upcoming.includes(r));
+    $("ooPending").innerHTML = pend.length ? pend.map(r => ooRow(r, true)).join("") : `<div class="meta">No requests waiting.</div>`;
+    $("ooUpcoming").innerHTML = upcoming.length ? upcoming.map(r => ooRow(r, true)).join("") : `<div class="meta">Nothing on the calendar.</div>`;
+    $("ooPastToggle").hidden = !past.length;
+    $("ooPastToggle").textContent = ooShowPast ? "Hide past" : `Show past (${past.length})`;
+    $("ooPast").hidden = !ooShowPast;
+    $("ooPast").innerHTML = past.map(r => ooRow(r, true)).join("");
+  }
+  const mine = oos.filter(r => r.created_by === me.email);
+  $("ooMineWrap").hidden = isMgr() && !mine.length;
+  $("ooMine").innerHTML = mine.length ? mine.map(r => ooRow(r, false)).join("") : `<div class="meta">You haven't requested a 1:1 yet.</div>`;
+  renderGoalFiles();
+  if (!$("oo-date").value) $("oo-date").min = today;
+}
+$("ooPastToggle").onclick = () => { ooShowPast = !ooShowPast; renderOO(); };
+$("ooForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = t => $("oo-err").textContent = t; err("");
+  const req_date = $("oo-date").value, req_time = $("oo-time").value;
+  if (!req_date || !req_time) return err("Pick a day and a time.");
+  if (req_date < daysAgo(0)) return err("Pick a day that hasn't passed yet.");
+  const { error } = await sb.from("one_on_ones").insert({ req_date, req_time, with_manager: $("oo-mgr").value || null, topic: $("oo-topic").value.trim() || null, created_by: me.email });
+  if (error) return err(friendly(error));
+  $("ooForm").reset(); $("foot").textContent = "1:1 request sent to managers."; loadAll();
+});
+$("view-oo").addEventListener("click", async e => {
+  const b = e.target.closest("[data-oo]"); if (!b) return;
+  const a = b.dataset.oo, id = b.dataset.id, r = oos.find(x => x.id === id);
+  if (a === "close") { ooSuggest = null; ooDecline = null; return renderOO(); }
+  if (a === "goal-open") { const g0 = $("gform"); if (g0) g0.remove(); goalOpen = b.dataset.key; renderOO(); const g = $("gform"); if (g) { const t = g.querySelector("textarea,input"); if (t) t.focus(); } return; }
+  if (a === "goal-view") { goalOpen = "v:" + b.dataset.key; return renderOO(); }
+  if (a === "goal-close") { goalOpen = null; return renderOO(); }
+  if (a === "goal-print") { const [rid, kind] = b.dataset.key.split(":"); const rr = oos.find(x => x.id === rid); const it = rr && sheetsFor(rr).find(x => x.kind === kind); if (it) goalPrint(rr, it); return; }
+  if (a === "goal-save") {
+    const data = {}; $("gform").querySelectorAll("[data-gf]").forEach(el => { const v = el.value.trim(); if (v) data[el.dataset.gf] = v; });
+    const { kind, period } = b.dataset, ex = sheetOf(me.email, kind, period);
+    b.disabled = true;
+    const { error } = ex
+      ? await sb.from("goal_sheets").update({ data, updated_at: new Date().toISOString() }).eq("id", ex.id)
+      : await sb.from("goal_sheets").insert({ kind, period, data, one_on_one_id: id, created_by: me.email });
+    if (error) { b.disabled = false; $("gErr").textContent = friendly(error); return; }
+    goalOpen = null; $("gform").remove(); $("foot").textContent = "Goal sheet saved."; return loadAll();
+  }
+  if (a === "suggest") { ooSuggest = id; ooDecline = null; return renderOO(); }
+  if (a === "decline") { ooDecline = id; ooSuggest = null; return renderOO(); }
+  const now = new Date().toISOString();
+  let row = null;
+  if (a === "confirm") row = { status: "confirmed", meet_date: r.req_date, meet_time: r.req_time, decided_by: me.email, decided_at: now };
+  if (a === "suggest-send") {
+    const d = $("ooS-d-" + id).value, t = $("ooS-t-" + id).value;
+    if (!d || !t) { $("ooS-err").textContent = "Pick a day and a time."; return; }
+    row = { status: "proposed", meet_date: d, meet_time: t, manager_note: $("ooS-n-" + id).value.trim() || null, decided_by: me.email, decided_at: now };
+  }
+  if (a === "decline-yes") row = { status: "declined", manager_note: $("ooD-n-" + id).value.trim() || null, decided_by: me.email, decided_at: now };
+  if (a === "done") row = { status: "done" };
+  if (a === "mgr-cancel") row = { status: "cancelled", decided_by: me.email, decided_at: now };
+  if (a === "accept") row = { status: "confirmed" };
+  if (a === "cancel") row = { status: "cancelled" };
+  if (!row) return;
+  b.disabled = true;
+  const { error } = await sb.from("one_on_ones").update(row).eq("id", id);
+  if (error) { b.disabled = false; alert(friendly(error)); return; }
+  ooSuggest = null; ooDecline = null; loadAll();
+});
+
+/* ---------- applicants ---------- */
+let applicants = [], apFilter = "active", apOpen = null, apFull = null, apSched = null, apDel = null;
+const AP_STATUS = {
+  new: ["New", "var(--accent)"], no_answer: ["Called – no answer", "var(--warn)"], voicemail: ["Left voicemail", "var(--warn)"],
+  spoke: ["Spoke to", "var(--private)"], interview: ["Interview scheduled", "var(--ok)"], hired: ["Hired", "var(--ok)"], not_a_fit: ["Not a fit", "var(--muted)"],
+};
+const AP_ACTIVE = ["new", "no_answer", "voicemail", "spoke", "interview"];
+const AP_SECTIONS = [
+  ["Contact", [["q3_positionsApplied","Position(s) applied for"],["q189_date189","Date"],["q5_name","Name"],["q8_address","Address"],["q6_telephoneNumbers","Telephone"],["q191_email","Email"],["q193_instagramHandle","Instagram"],["q7_home","Home phone"],["q9_cell","Cell phone"],["q11_other11","Other phone"]]],
+  ["Availability and background", [["q10_areYou10","Available to work"],["q190_ifTemporary","If temporary, date available"],["q14_haveYou","Previously employed by us?"],["q15_ifYes","If yes, when"],["q16_areYou","Employed now?"],["q17_whatLanguages","Other languages"],["q174_doYou","Valid driver's license?"],["q21_expirationDate","License expiration"],["q175_doYou175","Own transportation?"],["q176_isIt","Reliable?"],["q177_haveYou177","Ever convicted of a crime?"],["q27_ifYes27","If yes, offense"],["q29_date","Date"],["q179_doYou179","Controlled substances affecting job performance?"]]],
+  ["Skills and education", [["q32_typingSpeed","Typing speed"],["q33_shorthandSpeed","Shorthand speed"],["q34_otherSkills","Other skills"],["q35_listSoftware","Software / computer skills"],["q121_highSchool","High school"],["q107_from","From"],["q180_to","To"],["q181_graduatedyesno","Graduated"],["q122_colleges122","College or other"],["q182_from182","From"],["q183_to183","To"],["q184_graduatedyesno184","Graduated"],["q123_cosmetologySchool","Cosmetology school"],["q185_from185","From"],["q186_to186","To"],["q187_graduatedyesno187","Graduated"],["q47_1","Training 1"],["q110_2110","Training 2"],["q111_3111","Training 3"],["q49_4","Training 4"]]],
+  ["Employer 1", [["q55_employer","Employer"],["q142_phone142","Phone"],["q145_address145","Address"],["q159_jobTitle159","Job title"],["q134_duties","Duties"],["q135_supervisormanager","Supervisor"],["q137_mayWe137","May we contact?"],["q136_reasonFor136","Reason for leaving"],["q156_from156","From"],["q157_to157","To"]]],
+  ["Employer 2", [["q138_employer138","Employer"],["q125_phone","Phone"],["q69_address69","Address"],["q60_jobTitle","Job title"],["q162_duties162","Duties"],["q165_supervisormanager165","Supervisor"],["q75_mayWe","May we contact?"],["q168_reasonFor168","Reason for leaving"],["q150_from150","From"],["q158_to158","To"]]],
+  ["Employer 3", [["q139_employer139","Employer"],["q143_phone143","Phone"],["q124_address124","Address"],["q160_jobTitle160","Job title"],["q163_duties163","Duties"],["q166_supervisormanager166","Supervisor"],["q171_mayWe171","May we contact?"],["q169_reasonFor169","Reason for leaving"],["q132_from132","From"],["q188_to188","To"]]],
+  ["Employer 4", [["q140_employer140","Employer"],["q141_phone141","Phone"],["q144_address144","Address"],["q161_jobTitle161","Job title"],["q164_duties164","Duties"],["q98_supervisor","Supervisor"],["q172_mayWe172","May we contact?"],["q100_reasonFor","Reason for leaving"],["q133_from133","From"],["q151_to151","To"]]],
+  ["Personal references", [["q103_1103","Reference 1"],["q112_2112","Reference 2"],["q113_3113","Reference 3"]]],
+  ["Signature", [["q106_signature","Signature"],["q126_date126","Date"]]],
+];
+const apTag = st => { const [l, c] = AP_STATUS[st] || [st, "var(--muted)"]; return `<span class="fu" style="color:${c};background:color-mix(in srgb,${c} 14%,transparent)">${l}</span>`; };
+const apWhen = iso => new Date(iso).toLocaleString(undefined, {weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+const telHref = p => "tel:" + String(p || "").replace(/[^\d+]/g, "");
+function apAnswers(a) {
+  const ans = a.answers || {}, used = new Set();
+  const secs = AP_SECTIONS.map(([title, qs]) => {
+    const rows = qs.filter(([k]) => ans[k]).map(([k, label]) => { used.add(k); return `<div><span class="meta">${esc(label)}</span><div class="note" style="white-space:pre-wrap">${esc(ans[k])}</div></div>`; });
+    return rows.length ? `<div style="display:flex;flex-direction:column;gap:6px"><b>${title}</b>${rows.join("")}</div>` : "";
+  }).filter(Boolean);
+  const extra = Object.keys(ans).filter(k => !used.has(k));
+  if (extra.length) secs.push(`<div style="display:flex;flex-direction:column;gap:6px"><b>Other answers</b>${extra.map(k => `<div><span class="meta">${esc(k.replace(/^q\d+_/, ""))}</span><div class="note">${esc(ans[k])}</div></div>`).join("")}</div>`);
+  return `<div class="mgr" style="display:flex;flex-direction:column;gap:14px">${secs.join("") || `<span class="meta">No answers saved.</span>`}</div>`;
+}
+function apCard(a) {
+  const open = apOpen === a.id;
+  const contact = [a.phone ? `<a class="link" href="${esc(telHref(a.phone))}">📞 ${esc(a.phone)}</a>` : "", a.email ? `<a class="link" href="mailto:${esc(a.email)}">✉️ ${esc(a.email)}</a>` : "", a.answers && a.answers.q193_instagramHandle ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle)}</span>` : ""].filter(Boolean).join(" ");
+  const log = (a.log || []).slice().reverse().map(l => `<div class="meta">• ${esc(l.what)}${l.note ? ` – ${esc(l.note)}` : ""} · ${esc(nameOf(l.by))} · ${esc(whenFull(l.at))}</div>`).join("");
+  let actions = "";
+  if (apSched === a.id) {
+    const d = a.interview_at ? isoLocal(new Date(a.interview_at)) : daysAgo(-1);
+    const t = a.interview_at ? new Date(a.interview_at).toTimeString().slice(0, 5) : "10:00";
+    actions = `<div class="fu-box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Day<input type="date" id="apD-${a.id}" value="${d}"></label><label>Time<input type="time" step="900" id="apT-${a.id}" value="${t}"></label></div><div class="actions"><button class="primary" data-ap="sched-save" data-id="${a.id}">Save interview</button><button class="link" data-ap="close">Cancel</button><span class="form-err" id="apErr"></span></div></div>`;
+  } else if (apDel === a.id) {
+    actions = `<div class="actions"><span class="meta">Delete this applicant for good?</span><button class="link del" data-ap="del-yes" data-id="${a.id}">Yes, delete</button><button class="link" data-ap="close">No</button></div>`;
+  } else {
+    const b = (st, label) => { const n = (a.log || []).filter(l => l.what === AP_STATUS[st][0]).length; return `<button class="link" data-ap="st" data-st="${st}" data-id="${a.id}">${n ? "☑" : "☐"} ${label}${n > 1 ? ` (${n})` : ""}</button>`; };
+    actions = `<div class="actions">${b("no_answer", "Called – no answer")}${b("voicemail", "Left voicemail")}${b("spoke", "Spoke to")}<button class="link" data-ap="sched" data-id="${a.id}">📅 ${a.interview_at ? "Reschedule interview" : "Schedule interview"}</button></div>
+      <div class="actions"><button class="link done" data-ap="st" data-st="hired" data-id="${a.id}">✓ Hired</button><button class="link del" data-ap="st" data-st="not_a_fit" data-id="${a.id}">Not a fit</button>${a.status !== "new" ? `<button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to New</button>` : ""}<button class="link del" data-ap="del" data-id="${a.id}">Delete</button></div>`;
+  }
+  const stripe = (AP_STATUS[a.status] || [])[1] || "var(--line)";
+  return `<article class="entry" style="--stripe:${stripe}">
+    <div class="row"><span><span class="name">${esc(a.name || "Unnamed applicant")}</span>${a.position ? ` <span class="tag">${esc(a.position)}</span>` : ""}</span>${apTag(a.status)}</div>
+    ${a.status === "interview" && a.interview_at ? `<div><b>Interview ${esc(apWhen(a.interview_at))}</b></div>` : ""}
+    <div style="display:flex;gap:12px;flex-wrap:wrap">${contact}</div>
+    <div class="meta">Applied ${esc(whenFull(a.submitted_at))}</div>
+    ${actions}
+    <div class="fu-box"><textarea id="apN-${a.id}" maxlength="2000" rows="2" placeholder="Notes (what they said, who referred them…)">${esc(a.notes || "")}</textarea><div class="actions"><button class="link" data-ap="note" data-id="${a.id}">Save notes</button></div></div>
+    ${log ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="meta"><b>History</b></span>${log}</div>` : ""}
+    <div class="actions"><button class="link" data-ap="full" data-id="${a.id}">${apFull === a.id ? "Hide application" : "View full application"}</button></div>
+    ${apFull === a.id ? apAnswers(a) : ""}
+  </article>`;
+}
+function renderApps() {
+  if (!me || !isMgr()) { $("apList").innerHTML = ""; $("apInterviews").innerHTML = ""; return; }
+  const n = applicants.filter(a => a.status === "new").length;
+  $("tab-apps").textContent = n ? `Applicants (${n})` : "Applicants";
+  const now = Date.now() - 2 * 3600e3;
+  const ups = applicants.filter(a => a.status === "interview" && a.interview_at && new Date(a.interview_at).getTime() >= now).sort((x, y) => x.interview_at.localeCompare(y.interview_at));
+  $("apInterviewsWrap").hidden = !ups.length;
+  $("apInterviews").innerHTML = ups.map(a => `<div class="todo"><div class="body"><div class="row"><b>${esc(apWhen(a.interview_at))}</b><span>${esc(a.name)}${a.position ? ` · ${esc(a.position)}` : ""}</span></div>${a.phone ? `<a class="link" href="${esc(telHref(a.phone))}">📞 ${esc(a.phone)}</a>` : ""}</div></div>`).join("");
+  $("apFilter").querySelectorAll("[data-apf]").forEach(b => b.setAttribute("aria-selected", b.dataset.apf === apFilter));
+  const q = ($("apSearch").value || "").toLowerCase().trim();
+  let list = applicants.filter(a => apFilter === "all" ? true : apFilter === "active" ? AP_ACTIVE.includes(a.status) : a.status === apFilter);
+  if (q) list = list.filter(a => [a.name, a.position, a.phone, a.email].join(" ").toLowerCase().includes(q));
+  const keepN = {}; $("apList").querySelectorAll("textarea[id^=apN-]").forEach(t => { const a0 = applicants.find(x => "apN-" + x.id === t.id); if (a0 && t.value !== (a0.notes || "")) keepN[t.id] = t.value; });
+  $("apList").innerHTML = list.length ? list.map(apCard).join("") : `<div class="empty">${applicants.length ? "Nobody here." : "<b>No applications yet</b>New Jotform applications will show up here automatically."}</div>`;
+  for (const [tid, v] of Object.entries(keepN)) { const t = $(tid); if (t) t.value = v; }
+}
+$("apFilter").addEventListener("click", e => { const b = e.target.closest("[data-apf]"); if (!b) return; apFilter = b.dataset.apf; renderApps(); });
+$("apSearch").addEventListener("input", () => renderApps());
+$("view-apps").addEventListener("click", async e => {
+  const b = e.target.closest("[data-ap]"); if (!b || !isMgr()) return;
+  const act = b.dataset.ap, id = b.dataset.id, a = applicants.find(x => x.id === id);
+  if (act === "close") { apSched = null; apDel = null; return renderApps(); }
+  if (act === "full") { apFull = apFull === id ? null : id; return renderApps(); }
+  if (act === "sched") { apSched = id; apDel = null; return renderApps(); }
+  if (act === "del") { apDel = id; apSched = null; return renderApps(); }
+  const entry = (what, note) => [...(a.log || []), { what, note: note || null, by: me.email, at: new Date().toISOString() }];
+  let row = null;
+  if (act === "st") { const st = b.dataset.st; row = { status: st, log: entry(AP_STATUS[st][0]) }; if (st === "new" || st === "not_a_fit" || st === "hired") row.interview_at = st === "hired" ? a.interview_at : null; }
+  if (act === "sched-save") {
+    const d = $("apD-" + id).value, t = $("apT-" + id).value;
+    if (!d || !t) { $("apErr").textContent = "Pick a day and a time."; return; }
+    const when = new Date(`${d}T${t}`);
+    row = { status: "interview", interview_at: when.toISOString(), log: entry("Interview scheduled", apWhen(when.toISOString())) };
+  }
+  if (act === "note") { row = { notes: $("apN-" + id).value.trim() || null }; a.notes = row.notes; }
+  if (act === "del-yes") {
+    const { error } = await sb.from("applicants").delete().eq("id", id);
+    if (error) return alert(friendly(error)); apDel = null; return loadAll();
+  }
+  if (!row) return;
+  b.disabled = true;
+  const { error } = await sb.from("applicants").update(row).eq("id", id);
+  if (error) { b.disabled = false; return alert(friendly(error)); }
+  apSched = null; if (act === "note") $("foot").textContent = "Notes saved."; loadAll();
+});
+
+/* ---------- employee handbook ---------- */
+async function latestHandbook() {
+  const { data, error } = await sb.storage.from("photos").list("handbook", { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+  if (error || !data) return null;
+  const f = data.find(x => x.name && x.name.toLowerCase().endsWith(".pdf"));
+  return f ? { path: "handbook/" + f.name, when: f.created_at } : null;
+}
+let hbUrl = null;
+async function refreshHandbookMeta() {
+  hbUrl = null;
+  const h = await latestHandbook();
+  if (h) {
+    const { data } = await sb.storage.from("photos").createSignedUrl(h.path, 60 * 60 * 12);
+    if (data) hbUrl = data.signedUrl;
+  }
+  $("hbRead").href = hbUrl || "#";
+  $("hbMeta").textContent = h ? `Updated ${new Date(h.when).toLocaleDateString()}. Read it, then sign that you received it.` : (isMgr() ? "No handbook uploaded yet. Upload the PDF below." : "The handbook isn't posted yet. Ask a manager.");
+}
+$("hbRead").addEventListener("click", e => {
+  if (hbUrl) return;
+  e.preventDefault();
+  alert(isMgr() ? "No handbook uploaded yet. Use “Upload new handbook” first." : "The handbook isn't posted yet. Ask a manager.");
+});
+$("tab-chat").addEventListener("click", () => refreshHandbookMeta());
+$("hbUpBtn").addEventListener("click", () => $("hbFile").click());
+$("hbFile").addEventListener("change", async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  if (!isMgr()) return;
+  if (file.type !== "application/pdf") { $("hbUpMsg").textContent = "That isn't a PDF. Pick the handbook PDF."; return; }
+  $("hbUpMsg").textContent = "Uploading…";
+  const path = `handbook/Salon_Saia_Handbook_${Date.now()}.pdf`;
+  const { error } = await sb.storage.from("photos").upload(path, file, { contentType: "application/pdf" });
+  $("hbUpMsg").textContent = error ? "Upload failed. Try again." : "Handbook uploaded. Staff now see this one.";
+  if (!error) sb.from("handbook_versions").insert({ path, created_by: me.email }).then(() => {});
+  refreshHandbookMeta();
+});
+
+/* ---------- team chat, announcements, reports ---------- */
+let anns = [], msgs = [], myReports = [], chatDel = null, annEdit = null;
+const whenFull = s => new Date(s).toLocaleString(undefined, {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+function postRow(p, kind) {
+  const mine = p.created_by === me.email, canDel = isMgr() || (kind === "m" && mine);
+  const key = kind + ":" + p.id;
+  const del = !canDel ? "" : chatDel === key ? `<span class="meta">Delete?</span><button class="link del" data-chat="del-yes" data-kind="${kind}" data-id="${p.id}">Yes</button><button class="link" data-chat="del-no">No</button>` : `<button class="link del" data-chat="del" data-kind="${kind}" data-id="${p.id}">Delete</button>`;
+  const edit = kind === "a" && isMgr() && chatDel !== key ? `<button class="link" data-chat="edit" data-id="${p.id}">Edit</button>` : "";
+  const bodyHtml = kind === "a" && annEdit === p.id
+    ? `<div class="fu-box"><textarea id="annEdit-${p.id}" maxlength="2000">${esc(p.body)}</textarea><div class="actions"><button class="primary" data-chat="edit-save" data-id="${p.id}">Save</button><button class="link" data-chat="edit-cancel">Cancel</button></div></div>`
+    : `<p class="note">${esc(p.body)}</p>${photoHtml(p.photo)}${(edit || del) ? `<div class="actions">${edit}${del}</div>` : ""}`;
+  return `<div class="todo"${kind === "a" ? ' style="border-left:4px solid var(--accent)"' : ""}><div class="body"><div class="row"><b>${esc(nameOf(p.created_by))}</b><span class="meta">${whenFull(p.created_at)}${p.edited_at ? " · edited" : ""}</span></div>${bodyHtml}</div></div>`;
+}
+function renderChat() {
+  if (!me) return;
+  $("annForm").hidden = !isMgr();
+  $("annFeed").innerHTML = anns.length ? anns.map(a => postRow(a, "a")).join("") : `<div class="meta">No announcements yet.</div>`;
+  $("msgFeed").innerHTML = msgs.length ? msgs.map(m => postRow(m, "m")).join("") : `<div class="meta">No messages yet. Say hi to the team.</div>`;
+  $("reportBox").hidden = isMgr();
+  $("repFeed").innerHTML = myReports.map(t => `<div class="todo${t.done ? " done" : ""}"><div class="body"><p class="note">${esc(t.task)}</p>${photoHtml(t.photo)}<span class="meta">${t.done ? "✓ Done" + (t.done_at ? " · " + whenShort(t.done_at) : "") : "Sent to managers · " + whenShort(t.created_at)}</span></div></div>`).join("");
+}
+async function quickPost(inputId, errId, table, row, phKey, folder) {
+  $(errId).textContent = "";
+  const v = $(inputId).value.trim(); if (!v) return;
+  const data = row(v);
+  if (phKey) { try { data.photo = await uploadPhoto(phKey, folder); } catch { $(errId).textContent = "Couldn't upload the photo. Try again."; return; } }
+  const { error } = await sb.from(table).insert(data);
+  if (error) { $(errId).textContent = friendly(error); return; }
+  if (phKey) clearPhoto(phKey);
+  $(inputId).value = ""; loadAll();
+}
+$("annForm").addEventListener("submit", e => { e.preventDefault(); quickPost("annText", "annErr", "announcements", body => ({ body, created_by: me.email })); });
+$("msgForm").addEventListener("submit", e => { e.preventDefault(); quickPost("msgText", "msgErr", "messages", body => ({ body, created_by: me.email }), "msg", "chat"); });
+$("repForm").addEventListener("submit", e => { e.preventDefault(); quickPost("repText", "repErr", "todos", task => ({ task, reported: true, created_by: me.email }), "rep", "reports/" + session.user.id); });
+$("view-chat").addEventListener("click", async e => {
+  const b = e.target.closest("[data-chat]"); if (!b) return;
+  const a = b.dataset.chat;
+  if (a === "edit") { annEdit = b.dataset.id; chatDel = null; return renderChat(); }
+  if (a === "edit-cancel") { annEdit = null; return renderChat(); }
+  if (a === "edit-save") {
+    const id = b.dataset.id, body = $("annEdit-" + id).value.trim(); if (!body) return;
+    const { error } = await sb.from("announcements").update({ body, edited_at: new Date().toISOString() }).eq("id", id);
+    if (error) return alert(friendly(error));
+    annEdit = null; return loadAll();
+  }
+  if (a === "del") { chatDel = b.dataset.kind + ":" + b.dataset.id; return renderChat(); }
+  if (a === "del-no") { chatDel = null; return renderChat(); }
+  if (a === "del-yes") {
+    chatDel = null;
+    const { error } = await sb.from(b.dataset.kind === "a" ? "announcements" : "messages").delete().eq("id", b.dataset.id);
+    if (error) alert(friendly(error));
+    loadAll();
+  }
+});
+
+/* ---------- manager to-do ---------- */
+let todos = [], showDone = false, todoDel = null;
+const whenShort = s => new Date(s).toLocaleDateString(undefined, {month: "short", day: "numeric"});
+function todoRow(t) {
+  const meta = t.done ? `Done by ${esc(nameOf(t.done_by))} · ${whenShort(t.done_at)}` : `${t.reported ? "Reported" : "Added"} by ${esc(nameOf(t.created_by))} · ${whenShort(t.created_at)}`;
+  const del = todoDel === t.id ? `<span class="meta">Delete?</span><button class="link del" data-todo="del-yes" data-id="${t.id}">Yes</button><button class="link" data-todo="del-no">No</button>` : `<button class="link del" data-todo="del" data-id="${t.id}">Delete</button>`;
+  return `<div class="todo${t.done ? " done" : ""}"><input type="checkbox" data-todo="toggle" data-id="${t.id}"${t.done ? " checked" : ""} aria-label="Mark done"><div class="body"><p class="note">${esc(t.task)}</p>${photoHtml(t.photo)}<div class="actions"><span class="meta">${meta}</span>${del}</div></div></div>`;
+}
+function renderTodo() {
+  if (!isMgr()) { $("todoOpen").innerHTML = ""; $("todoDone").innerHTML = ""; $("tab-team").textContent = "Managers ⚙"; return; }
+  const open = todos.filter(t => !t.done), done = todos.filter(t => t.done).sort((a, b) => (b.done_at || "").localeCompare(a.done_at || ""));
+  $("tab-team").textContent = open.length ? `Managers ⚙ (${open.length})` : "Managers ⚙";
+  $("todoOpen").innerHTML = open.length ? open.map(todoRow).join("") : `<div class="meta">Nothing on the list. Add something above.</div>`;
+  $("todoDoneToggle").hidden = !done.length;
+  $("todoDoneToggle").textContent = showDone ? "Hide done" : `Show done (${done.length})`;
+  $("todoDone").hidden = !showDone;
+  $("todoDone").innerHTML = done.map(todoRow).join("");
+}
+$("todoDoneToggle").onclick = () => { showDone = !showDone; renderTodo(); };
+$("todoForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("todoErr").textContent = "";
+  const task = $("todoText").value.trim(); if (!task) return;
+  const { error } = await sb.from("todos").insert({ task, created_by: me.email });
+  if (error) { $("todoErr").textContent = friendly(error); return; }
+  $("todoText").value = ""; loadAll();
+});
+$("view-team").addEventListener("click", async e => {
+  const b = e.target.closest("[data-todo]"); if (!b || !isMgr()) return;
+  const a = b.dataset.todo, id = b.dataset.id; let error = null;
+  if (a === "toggle") {
+    const t = todos.find(x => x.id === id); const done = !t.done;
+    t.done = done; t.done_by = me.email; t.done_at = new Date().toISOString(); renderTodo();
+    ({ error } = await sb.from("todos").update(done ? { done: true, done_by: me.email, done_at: t.done_at } : { done: false, done_by: null, done_at: null }).eq("id", id));
+  } else if (a === "del") { todoDel = id; return renderTodo(); }
+  else if (a === "del-no") { todoDel = null; return renderTodo(); }
+  else if (a === "del-yes") { todoDel = null; ({ error } = await sb.from("todos").delete().eq("id", id)); }
+  if (error) alert(friendly(error));
+  loadAll();
+});
+
+/* ---------- daily log ---------- */
+function mergedDaily() { return (rangeData.d || daily).filter(d => inRange("d", d.entry_date)).map(d => { const f = fups[d.id] || {}; return {...d, fu: !!(d.needs_followup || f.flagged), fuDone: !!f.done, fuNote: f.note || ""}; }); }
+function renderDaily() {
+  const keepRp = replyOpen && $("rp-" + replyOpen) ? $("rp-" + replyOpen).value : null;
+  renderDailyInner();
+  if (keepRp !== null && $("rp-" + replyOpen)) $("rp-" + replyOpen).value = keepRp;
+}
+function renderDailyInner() {
+  const all = mergedDaily(), q = $("d-search").value.trim().toLowerCase();
+  const waiting = all.filter(d => d.fu && !d.fuDone);
+  $("fuBar").hidden = !waiting.length && !fuOnly;
+  $("fuText").textContent = waiting.length ? `⚑ ${waiting.length} ${waiting.length === 1 ? "note needs" : "notes need"} manager follow-up` : "No open follow-ups";
+  $("fuToggle").textContent = fuOnly ? "Show everything" : "Show only these";
+  const list = all.filter(d => (!q || (d.note + " " + d.category + " " + nameOf(d.created_by) + " " + (replies[d.id] || []).map(x => x.note).join(" ")).toLowerCase().includes(q)) && (!fuOnly || (d.fu && !d.fuDone)));
+  if (!all.length && !rangeOn("d")) { $("dailyFeed").innerHTML = `<div class="empty"><b>Nothing logged yet</b>Type what happened above and tap “Add to log.” The time fills in for you.</div>`; return; }
+  if (!list.length) { $("dailyFeed").innerHTML = `<div class="empty">${rangeOn("d") && !q ? "Nothing logged between those dates." : "Nothing matches that search."}</div>`; return; }
+  const days = {}; list.forEach(d => (days[d.entry_date] = days[d.entry_date] || []).push(d));
+  $("dailyFeed").innerHTML = Object.entries(days).map(([day, items]) => `<div class="day"><h2>${esc(dayLabel(day))}<span>${items.length} ${items.length === 1 ? "note" : "notes"}</span></h2>
+    ${items.map(d => {
+      const badge = d.fu ? (d.fuDone ? `<span class="fu ok">✓ Followed up</span>` : `<span class="fu wait">⚑ Needs follow-up</span>`) : "";
+      const reply = d.fuDone && d.fuNote ? `<div class="mgr"><b>Manager follow-up</b><div class="note">${esc(d.fuNote)}</div></div>` : "";
+      let mgr = "";
+      const canEdit = isMgr() || (isDesk() && d.created_by === me.email);
+      const editBtn = canEdit ? `<button class="link" data-dedit="open" data-id="${d.id}">Edit</button>` : "";
+      const delBtn = canEdit ? `<button class="link del" data-arch="ask" data-k="d" data-id="${d.id}">Delete</button>` : "";
+      const rs = replies[d.id] || [];
+      const replyBtn = isDesk() ? `<button class="link" data-rp="open" data-id="${d.id}">Reply</button>` : "";
+      const rpHtml = rs.length ? `<div class="replies">${rs.map(x => {
+        const mine = isMgr() || x.created_by === me.email;
+        const canEditRp = x.created_by === me.email;
+        const del = !mine ? "" : rpDel === x.id ? ` · Delete reply? <button class="link del" data-rp="del-yes" data-id="${x.id}">Yes</button> <button class="link" data-rp="del-no">No</button>` : `${canEditRp ? ` · <button class="link" data-rp="edit" data-id="${x.id}">Edit</button>` : ""} · <button class="link del" data-rp="del" data-id="${x.id}">Delete</button>`;
+        if (rpEdit === x.id) return `<div class="rp"><span class="who"><b>${esc(nameOf(x.created_by))}</b> · ${esc(stamp(x.created_at))}</span><div class="fu-box"><textarea id="rpEdit-${x.id}" maxlength="2000" aria-label="Edit reply">${esc(x.note)}</textarea><div class="actions"><button class="primary" data-rp="edit-save" data-id="${x.id}">Save</button><button class="link" data-rp="edit-cancel">Cancel</button><span class="form-err" id="rpEditErr"></span></div></div></div>`;
+        return `<div class="rp"><span class="who"><b>${esc(nameOf(x.created_by))}</b> · ${esc(stamp(x.created_at))}${x.edited_at ? " · edited" : ""}${del}</span><span class="note">${esc(x.note)}</span></div>`;
+      }).join("")}</div>` : "";
+      const rpBox = replyOpen === d.id ? `<div class="fu-box"><textarea id="rp-${d.id}" maxlength="2000" placeholder="Write a reply…" aria-label="Reply to this note"></textarea><div class="actions"><button class="primary" data-rp="send" data-id="${d.id}">Send reply</button><button class="link" data-rp="cancel">Cancel</button><span class="form-err" id="rpErr"></span></div></div>` : "";
+      if (dEdit === d.id) mgr = `<div class="fu-box"><textarea id="dEdit-${d.id}" maxlength="4000" aria-label="Edit note">${esc(d.note)}</textarea><div class="actions"><button class="primary" data-dedit="save" data-id="${d.id}">Save</button><button class="link" data-dedit="cancel">Cancel</button><span class="form-err" id="dEditErr"></span></div></div>`;
+      else if (confirmDel === "d:" + d.id) mgr = `<div class="actions"><span class="meta">Move this note to deleted history?</span><button class="link del" data-arch="yes" data-k="d" data-id="${d.id}">Yes, delete</button><button class="link" data-arch="no" data-k="d">Keep it</button></div>`;
+      else if (isMgr() && fuOpen === d.id) mgr = `<div class="fu-box"><textarea id="fu-${d.id}" maxlength="4000" placeholder="What you did or decided (optional)">${esc(d.fuNote)}</textarea><div class="actions"><button class="primary" data-dact="fu-save" data-id="${d.id}">Mark followed up</button><button class="link" data-dact="fu-cancel">Cancel</button></div></div>`;
+      else if (isMgr()) mgr = `<div class="actions">${replyBtn}${d.fu && !d.fuDone ? `<button class="link" data-dact="fu-open" data-id="${d.id}">Follow up…</button>` : d.fuDone ? `<button class="link" data-dact="fu-reopen" data-id="${d.id}">Reopen</button>` : `<button class="link" data-dact="fu-flag" data-id="${d.id}">Flag for follow-up</button>`}${editBtn}${delBtn}</div>`;
+      else if (replyBtn || editBtn) mgr = `<div class="actions">${replyBtn}${editBtn}${delBtn}</div>`;
+      return `<div class="dl${d.fu && !d.fuDone ? " flag" : ""}"><time>${esc(t12(d.entry_time))}</time><div class="body"><div><span class="tag">${esc(d.category)}</span>${badge}</div><p class="note">${esc(d.note)}</p>${photoHtml(d.photo)}<span class="meta">${esc(nameOf(d.created_by))}${d.edited_at ? " · edited" : ""}</span>${reply}${rpHtml}${rpBox}${mgr}</div></div>`;
+    }).join("")}</div>`).join("");
+}
+$("d-cats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (!b) return; dcat = b.textContent; $("d-cats").querySelectorAll(".cat").forEach(c => c.setAttribute("aria-pressed", c === b)); });
+$("d-search").addEventListener("input", renderDaily);
+$("d-time").addEventListener("input", () => $("d-time").dataset.touched = "1");
+setInterval(() => { if (!$("d-time").dataset.touched && document.activeElement !== $("d-time")) $("d-time").value = nowTime(); }, 30000);
+$("fuToggle").onclick = () => { fuOnly = !fuOnly; renderDaily(); };
+$("dailyForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("d-err").textContent = "";
+  const note = $("d-note").value.trim(); if (!note) return;
+  let photo = null;
+  try { photo = await uploadPhoto("d", "daily"); } catch { $("d-err").textContent = "Couldn't upload the photo. Try again."; return; }
+  const { error } = await sb.from("daily_log").insert({ entry_date: daysAgo(0), entry_time: $("d-time").value || nowTime(), category: dcat, note, photo, needs_followup: $("d-fu").checked, created_by: me.email });
+  if (error) { $("d-err").textContent = friendly(error); return; }
+  clearPhoto("d"); $("d-note").value = ""; $("d-fu").checked = false; delete $("d-time").dataset.touched; $("d-time").value = nowTime();
+  loadAll();
+});
+$("dailyFeed").addEventListener("click", async e => {
+  const rb = e.target.closest("[data-rp]");
+  if (rb) {
+    const a = rb.dataset.rp, id = rb.dataset.id;
+    if (a === "open") { replyOpen = id; dEdit = null; confirmDel = null; fuOpen = null; renderDaily(); const t = $("rp-" + id); if (t) t.focus(); return; }
+    if (a === "cancel") { replyOpen = null; return renderDaily(); }
+    if (a === "del") { rpDel = id; rpEdit = null; return renderDaily(); }
+    if (a === "edit") { rpEdit = id; rpDel = null; replyOpen = null; dEdit = null; renderDaily(); const t = $("rpEdit-" + id); if (t) t.focus(); return; }
+    if (a === "edit-cancel") { rpEdit = null; return renderDaily(); }
+    if (a === "edit-save") {
+      const note = $("rpEdit-" + id).value.trim(); if (!note) return;
+      const { data, error } = await sb.from("log_replies").update({ note, edited_at: new Date().toISOString() }).eq("id", id).select("id");
+      if (error || !data || !data.length) { $("rpEditErr").textContent = error ? friendly(error) : "You can only edit your own replies."; return; }
+      rpEdit = null; return loadAll();
+    }
+    if (a === "del-no") { rpDel = null; return renderDaily(); }
+    if (a === "del-yes") { rpDel = null; const { error } = await sb.from("log_replies").delete().eq("id", id); if (error) alert(friendly(error)); return loadAll(); }
+    if (a === "send") {
+      const note = $("rp-" + id).value.trim(); if (!note) return;
+      rb.disabled = true;
+      const { error } = await sb.from("log_replies").insert({ log_id: id, note, created_by: me.email });
+      if (error) { rb.disabled = false; $("rpErr").textContent = friendly(error); return; }
+      replyOpen = null; return loadAll();
+    }
+    return;
+  }
+  const eb = e.target.closest("[data-dedit]");
+  if (eb) {
+    const a = eb.dataset.dedit, id = eb.dataset.id;
+    if (a === "open") { dEdit = id; fuOpen = null; confirmDel = null; return renderDaily(); }
+    if (a === "cancel") { dEdit = null; return renderDaily(); }
+    if (a === "save") {
+      const note = $("dEdit-" + id).value.trim(); if (!note) return;
+      const { data, error } = await sb.from("daily_log").update({ note, edited_at: new Date().toISOString() }).eq("id", id).select("id");
+      if (error || !data || !data.length) { $("dEditErr").textContent = error ? friendly(error) : "You can only edit your own notes."; return; }
+      dEdit = null; return loadAll();
+    }
+  }
+  const b = e.target.closest("[data-dact]"); if (!b || !isMgr()) return;
+  const a = b.dataset.dact, id = b.dataset.id, d = mergedDaily().find(x => x.id === id);
+  let error = null;
+  if (a === "fu-open") fuOpen = id;
+  else if (a === "fu-cancel") fuOpen = null;
+  else if (a === "fu-save") { const note = $("fu-" + id).value.trim(); fuOpen = null; ({ error } = await sb.from("followups").upsert({ log_id: id, flagged: true, done: true, note, updated_by: me.email, updated_at: new Date().toISOString() })); }
+  else if (a === "fu-reopen") ({ error } = await sb.from("followups").upsert({ log_id: id, flagged: true, done: false, note: d.fuNote, updated_by: me.email, updated_at: new Date().toISOString() }));
+  else if (a === "fu-flag") ({ error } = await sb.from("followups").upsert({ log_id: id, flagged: true, done: false, note: "", updated_by: me.email, updated_at: new Date().toISOString() }));
+  else if (a === "del") confirmDel = "d:" + id;
+  else if (a === "del-no") confirmDel = null;
+  else if (a === "del-yes") { confirmDel = null; ({ error } = await sb.from("daily_log").delete().eq("id", id)); }
+  if (error) alert(friendly(error));
+  if (["fu-save", "fu-reopen", "fu-flag", "del-yes"].includes(a)) loadAll(); else renderDaily();
+});
+
+/* ---------- deleted history ---------- */
+function renderArch(k) {
+  const box = $(k + "-arch"); if (!box) return;
+  const list = isDesk() ? arch[k] : [];
+  if (!list.length) { box.innerHTML = ""; return; }
+  let h = `<button class="arch-toggle" data-arch="toggle" data-k="${k}" aria-expanded="${archOpen[k]}">${archOpen[k] ? "Hide deleted history" : `🗑 Deleted history (${list.length})`}</button>`;
+  if (archOpen[k]) h += list.map(x => {
+    const canRestore = isMgr() || x.deleted_by === me.email;
+    const title = k === "d" ? `<span class="tag">${esc(x.category)}</span> <span class="meta">${esc(fmt(x.entry_date))} · ${esc(t12(x.entry_time))}</span>` : `<span class="name">${esc(x.client)}</span> <span class="meta">${esc(fmt(x.incident_date))} · ${esc(x.issue_type)}</span>`;
+    const forever = !isMgr() ? "" : archDel === x.id ? `<span class="meta">Delete forever? This can't be undone.</span><button class="link del" data-arch="forever-yes" data-k="${k}" data-id="${x.id}">Yes, delete forever</button><button class="link" data-arch="forever-no" data-k="${k}">Cancel</button>` : `<button class="link del" data-arch="forever" data-k="${k}" data-id="${x.id}">Delete forever</button>`;
+    return `<div class="arch-item"><div>${title}</div><p class="note">${esc(x.note)}</p>${photoHtml(x.photo)}<span class="meta">Written by ${esc(nameOf(x.created_by))} · deleted by ${esc(nameOf(x.deleted_by))} ${esc(stamp(x.deleted_at))}</span><div class="actions">${canRestore ? `<button class="link" data-arch="restore" data-k="${k}" data-id="${x.id}">Restore</button>` : ""}${forever}</div></div>`;
+  }).join("");
+  box.innerHTML = h;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-arch]"); if (!b) return;
+  const a = b.dataset.arch, k = b.dataset.k, id = b.dataset.id;
+  const kind = k === "d" ? "daily" : "incident", table = k === "d" ? "daily_log" : "incidents";
+  const rr = () => k === "d" ? renderDaily() : renderLog();
+  if (a === "ask") { confirmDel = (k === "d" ? "d:" : "i:") + id; openResolve = null; fuOpen = null; dEdit = null; return rr(); }
+  if (a === "no") { confirmDel = null; return rr(); }
+  if (a === "toggle") { archOpen[k] = !archOpen[k]; archDel = null; return renderArch(k); }
+  if (a === "forever") { archDel = id; return renderArch(k); }
+  if (a === "forever-no") { archDel = null; return renderArch(k); }
+  let error = null, ok = true;
+  b.disabled = true;
+  if (a === "yes") { confirmDel = null; const r = await sb.rpc("archive_entry", { p_kind: kind, p_id: id }); error = r.error; ok = !!r.data; }
+  else if (a === "restore") { const r = await sb.rpc("archive_entry", { p_kind: kind, p_id: id, p_restore: true }); error = r.error; ok = !!r.data; }
+  else if (a === "forever-yes") {
+    archDel = null;
+    const row = arch[k].find(x => x.id === id);
+    const r = await sb.from(table).delete().eq("id", id).select("id"); error = r.error; ok = !!(r.data && r.data.length);
+    if (ok && row && row.photo) sb.storage.from("photos").remove([row.photo]).catch(() => {});
+  } else return;
+  if (error || !ok) alert(error ? friendly(error) : "You don't have permission to do that.");
+  loadAll();
+});
+
+/* ---------- incidents ---------- */
+function renderLog() {
+  const q = $("l-search").value.trim().toLowerCase(), wk = daysAgo(7);
+  const count = {}; incidents.forEach(l => { const k = l.client.toLowerCase(); count[k] = (count[k] || 0) + 1; });
+  const done = l => !!res[l.id]?.done;
+  $("st-open").textContent = incidents.filter(l => !done(l)).length;
+  $("st-week").textContent = incidents.filter(l => l.incident_date >= wk).length;
+  $("st-repeat").textContent = Object.values(count).filter(n => n > 1).length;
+  const list = (rangeData.l || incidents).filter(l => {
+    if (!inRange("l", l.incident_date)) return false;
+    if (logFilter === "open" && done(l)) return false;
+    if (logFilter === "resolved" && !done(l)) return false;
+    if (logFilter === "high" && l.severity !== "high") return false;
+    if (q && !(l.client + " " + l.note + " " + l.issue_type + " " + (l.stylist || "")).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!incidents.length && !rangeOn("l")) { $("logFeed").innerHTML = `<div class="empty"><b>No incidents logged yet</b>Tap “Log a client incident” to add the first one. Everyone on the team will see it.</div>`; return; }
+  if (!list.length) { $("logFeed").innerHTML = `<div class="empty">${rangeOn("l") ? "No entries match in those dates. Try a different filter, search or date range." : "No entries match. Try a different filter or search."}</div>`; return; }
+  $("logFeed").innerHTML = list.map(l => {
+    const r = res[l.id] || {}, n = count[l.client.toLowerCase()];
+    let act = "";
+    if (isMgr()) {
+      if (openResolve === l.id) act = `<div class="resolve-box"><textarea id="rn-${l.id}" maxlength="4000" placeholder="How it was handled (optional)">${esc(r.note || "")}</textarea><div class="actions"><button class="primary" data-act="save-res" data-id="${l.id}">${r.done ? "Save note" : "Mark resolved"}</button><button class="link" data-act="cancel-res">Cancel</button></div></div>`;
+      else if (confirmDel === "i:" + l.id) act = `<div class="actions"><span class="meta">Move this entry to deleted history?</span><button class="link del" data-arch="yes" data-k="l" data-id="${l.id}">Yes, delete</button><button class="link" data-arch="no" data-k="l">Keep it</button></div>`;
+      else act = `<div class="actions">${r.done ? `<button class="link done" data-act="reopen" data-id="${l.id}">✓ Resolved · reopen</button><button class="link" data-act="resolve" data-id="${l.id}">Edit manager note</button>` : `<button class="link" data-act="resolve" data-id="${l.id}">Resolve…</button>`}<button class="link del" data-arch="ask" data-k="l" data-id="${l.id}">Delete</button></div>`;
+    } else {
+      const own = isDesk() && l.created_by === me.email;
+      if (own && confirmDel === "i:" + l.id) act = `<div class="actions"><span class="meta">Move this entry to deleted history?</span><button class="link del" data-arch="yes" data-k="l" data-id="${l.id}">Yes, delete</button><button class="link" data-arch="no" data-k="l">Keep it</button></div>`;
+      else act = (r.done ? `<div class="meta" style="color:var(--ok);font-weight:600">✓ Resolved by manager</div>` : "") + (own ? `<div class="actions"><button class="link del" data-arch="ask" data-k="l" data-id="${l.id}">Delete</button></div>` : "");
+    }
+    return `<article class="entry${r.done ? " resolved" : ""}" style="--stripe:${stripe[l.severity] || "var(--line)"}">
+      <div class="row"><span><span class="name">${esc(l.client)}</span>${n > 1 ? `<span class="repeat">${n} entries</span>` : ""}</span><span class="meta">${fmt(l.incident_date)}</span></div>
+      <div class="row"><span class="tag">${esc(l.issue_type)}</span><span class="meta">${sevName[l.severity] || ""}${l.stylist ? " · with " + esc(l.stylist) : ""}</span></div>
+      <p class="note">${esc(l.note)}</p>${photoHtml(l.photo)}
+      ${r.note ? `<div class="mgr"><b>Manager note</b><div class="note">${esc(r.note)}</div></div>` : ""}
+      <div class="meta">Logged by ${esc(nameOf(l.created_by))}</div>${act}</article>`;
+  }).join("");
+}
+$("l-chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; logFilter = b.dataset.f; $("l-chips").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); renderLog(); });
+$("l-search").addEventListener("input", renderLog);
+$("l-sev").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; sev = b.dataset.v; $("l-sev").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+$("openLog").onclick = () => { $("logForm").hidden = false; $("openLog").hidden = true; $("l-date").value = daysAgo(0); $("l-client").focus(); };
+const closeLog = () => { clearPhoto("l"); $("logForm").hidden = true; $("openLog").hidden = false; $("logForm").reset(); $("l-err").textContent = ""; };
+$("cancelLog").onclick = closeLog;
+$("logForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const row = { client: $("l-client").value.trim(), stylist: $("l-staff").value.trim() || null, issue_type: $("l-type").value, incident_date: $("l-date").value, severity: sev, note: $("l-note").value.trim(), created_by: me.email };
+  if (!row.client || !row.note) return;
+  try { row.photo = await uploadPhoto("l", "incidents"); } catch { $("l-err").textContent = "Couldn't upload the photo. Try again."; return; }
+  const { error } = await sb.from("incidents").insert(row);
+  if (error) { $("l-err").textContent = friendly(error); return; }
+  closeLog(); loadAll();
+});
+$("logFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b || !isMgr()) return;
+  const id = b.dataset.id, a = b.dataset.act; let error = null;
+  if (a === "resolve") { openResolve = id; confirmDel = null; }
+  else if (a === "cancel-res") openResolve = null;
+  else if (a === "save-res") { const note = $("rn-" + id).value.trim(); openResolve = null; ({ error } = await sb.from("resolutions").upsert({ incident_id: id, done: true, note, updated_by: me.email, updated_at: new Date().toISOString() })); }
+  else if (a === "reopen") ({ error } = await sb.from("resolutions").upsert({ incident_id: id, done: false, note: (res[id] || {}).note || "", updated_by: me.email, updated_at: new Date().toISOString() }));
+  else if (a === "del") { confirmDel = "i:" + id; openResolve = null; }
+  else if (a === "del-no") confirmDel = null;
+  else if (a === "del-yes") { confirmDel = null; ({ error } = await sb.from("incidents").delete().eq("id", id)); }
+  if (error) alert(friendly(error));
+  if (["save-res", "reopen", "del-yes"].includes(a)) loadAll(); else renderLog();
+});
+
+/* ---------- staff notes ---------- */
+function renderStaff() {
+  if (!isMgr()) { $("staffFeed").innerHTML = ""; return; }
+  const names = [...new Set([...notes.map(n => n.staff_member), ...team.map(t => t.name)])].sort((a, b) => a.localeCompare(b));
+  $("staffList").innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
+  const sel = $("s-filter"), cur = sel.value;
+  sel.innerHTML = `<option value="">All staff</option>` + [...new Set(notes.map(n => n.staff_member))].sort().map(n => `<option${n === cur ? " selected" : ""}>${esc(n)}</option>`).join("");
+  const f = sel.value, list = notes.filter(n => !f || n.staff_member === f);
+  const tally = {}; list.forEach(n => tally[n.note_type] = (tally[n.note_type] || 0) + 1);
+  $("s-tally").innerHTML = f ? Object.entries(tally).map(([k, v]) => `<span>${esc(k)}: ${v}</span>`).join("") : "";
+  if (!notes.length) { $("staffFeed").innerHTML = `<div class="empty"><b>No staff notes yet</b>Use these for lateness, early exits, call-outs, attitude, and praise. Dated, factual notes help when you need a hard conversation.</div>`; return; }
+  $("staffFeed").innerHTML = list.map(n => `<article class="entry" style="--stripe:${staffStripe[n.note_type] || "var(--private)"}">
+    <div class="row"><span class="name">${esc(n.staff_member)}</span><span class="meta">${fmt(n.note_date)}${n.note_time ? " · " + esc(t12(n.note_time)) : ""}</span></div>
+    <div><span class="tag">${esc(n.note_type)}</span></div><p class="note">${esc(n.note)}</p>
+    <div class="actions"><span class="meta">by ${esc(nameOf(n.created_by))}</span>${confirmDel === "s:" + n.id ? `<span class="meta">Delete this note?</span><button class="link del" data-sact="yes" data-id="${n.id}">Yes, delete</button><button class="link" data-sact="no">Keep it</button>` : `<button class="link del" data-sact="del" data-id="${n.id}">Delete</button>`}</div></article>`).join("");
+}
+$("s-filter").addEventListener("change", renderStaff);
+$("openStaff").onclick = () => { $("staffForm").hidden = false; $("openStaff").hidden = true; $("s-date").value = daysAgo(0); $("s-name").focus(); };
+const closeStaff = () => { $("staffForm").hidden = true; $("openStaff").hidden = false; $("staffForm").reset(); $("s-err").textContent = ""; };
+$("cancelStaff").onclick = closeStaff;
+$("staffForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const row = { staff_member: $("s-name").value.trim(), note_type: $("s-type").value, note_date: $("s-date").value, note_time: $("s-time").value || null, note: $("s-note").value.trim(), created_by: me.email };
+  if (!row.staff_member || !row.note) return;
+  const { error } = await sb.from("staff_notes").insert(row);
+  if (error) { $("s-err").textContent = friendly(error); return; }
+  closeStaff(); loadAll();
+});
+$("staffFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-sact]"); if (!b) return; const a = b.dataset.sact, id = b.dataset.id;
+  if (a === "del") confirmDel = "s:" + id; else if (a === "no") confirmDel = null;
+  else if (a === "yes") { confirmDel = null; const { error } = await sb.from("staff_notes").delete().eq("id", id); if (error) alert(friendly(error)); return loadAll(); }
+  renderStaff();
+});
+
+/* ---------- team ---------- */
+function renderTeam() {
+  if (!isMgr()) { $("teamFeed").innerHTML = ""; return; }
+  $("teamFeed").innerHTML = team.map(p => `<article class="entry" style="--stripe:${p.role === "manager" ? "var(--accent)" : "var(--line)"}">
+    <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}</span></div>
+    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select><button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
+  </article>`).join("");
+}
+$("teamFeed").addEventListener("change", async e => {
+  const sel = e.target.closest("[data-role-email]"); if (!sel || !isMgr()) return;
+  const { error } = await sb.from("staff").update({ role: sel.value }).eq("email", sel.dataset.roleEmail);
+  if (error) alert(friendly(error));
+  loadAll();
+});
+$("teamForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("t-err").textContent = "";
+  const row = { name: $("t-name").value.trim(), email: $("t-email").value.trim().toLowerCase(), role: $("t-role").value };
+  const { error } = await sb.from("staff").upsert(row);
+  if (error) { $("t-err").textContent = friendly(error); return; }
+  $("teamForm").reset(); loadAll();
+});
+$("teamFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-tact]"); if (!b) return; const a = b.dataset.tact, email = b.dataset.email; let error = null;
+  if (a === "mypw") { pwOpen = true; return renderTeam(); }
+  if (a === "mypw-cancel") { pwOpen = false; return renderTeam(); }
+  if (a === "mypw-save") {
+    const pw = $("myPw").value;
+    if (pw.length < 6) { $("myPwErr").textContent = "At least 6 characters."; return; }
+    const { error: e2 } = await sb.auth.updateUser({ password: pw });
+    if (e2) { $("myPwErr").textContent = /different/i.test(e2.message) ? "That's already your password." : "Couldn't save. Try again."; return; }
+    pwOpen = false; renderTeam(); $("foot").textContent = "Password saved."; return;
+  }
+  if (a === "reset") { confirmDel = "r:" + email; return renderTeam(); }
+  if (a === "reset-yes") { confirmDel = null; const { error: e3 } = await sb.rpc("reset_login", { p_email: email }); alert(e3 ? "Couldn't reset. Try again." : "Done. They can now tap “Create your password” on the sign-in screen."); return renderTeam(); }
+  if (a === "rm") confirmDel = "t:" + email; else if (a === "rm-no") confirmDel = null;
+  else if (a === "rm-yes") { confirmDel = null; ({ error } = await sb.from("staff").delete().eq("email", email)); }
+  else if (a === "swap") { const p = team.find(x => x.email === email); ({ error } = await sb.from("staff").update({ role: p.role === "manager" ? "front_desk" : "manager" }).eq("email", email)); }
+  if (error) alert(friendly(error));
+  if (["rm-yes", "swap"].includes(a)) loadAll(); else renderTeam();
+});
+
+/* ---------- phone notifications ---------- */
+const VAPID_PUB = "BLB6crFICGWZg6MkW7Qtuo2Wm8b8GGgaQbp-qLYaKy0orYC5kMg7AOB1O6Qc4iN9e7RMz4ZbQXQk_H1Qfj4PDfM";
+const PUSH_CATS = [
+  ["requests", "Requests and approvals", "Time off, 1:1s and issue reports", false],
+  ["incidents", "Client incidents", "When an incident is logged", true],
+  ["applicants", "New applicants", "When someone applies online", true],
+  ["announcements", "Announcements and handbook", "New announcements and handbook updates", false],
+  ["chat", "Team chat", "Every chat message (can get busy)", false],
+];
+let pushSub = null, pushPrefs = null, pushBusy = false;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const pushOK = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+function defaultPrefs() { const p = {}; PUSH_CATS.forEach(([k]) => p[k] = k !== "chat"); return p; }
+function loadPrefs() { try { return Object.assign(defaultPrefs(), JSON.parse(localStorage.getItem("loopdPushPrefs") || "{}")); } catch { return defaultPrefs(); } }
+function storePrefs() { try { localStorage.setItem("loopdPushPrefs", JSON.stringify(pushPrefs)); } catch {} }
+const b64ToU8 = b => { const p = "=".repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+async function saveSub() {
+  if (!pushSub || !me) return;
+  const j = pushSub.toJSON();
+  const { error } = await sb.rpc("save_push_sub", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_prefs: pushPrefs, p_ua: navigator.userAgent.slice(0, 200) });
+  if (error) throw error;
+}
+async function pushInit() {
+  pushPrefs = loadPrefs();
+  if (pushOK) {
+    try {
+      const reg = await navigator.serviceWorker.register("sw.js");
+      pushSub = await reg.pushManager.getSubscription();
+      if (pushSub && Notification.permission === "granted") await saveSub();
+    } catch (e) { console.warn("push init", e); }
+  }
+  renderPush();
+}
+async function pushEnable() {
+  $("pushErr").textContent = "";
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { $("pushErr").textContent = "Notifications are blocked. Turn them on for Loopd-In in your phone's Settings, then try again."; return renderPush(); }
+    const reg = await navigator.serviceWorker.ready;
+    pushSub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUB) });
+    await saveSub();
+    $("foot").textContent = "Notifications are on for this device.";
+  } catch (e) { console.warn(e); $("pushErr").textContent = "Couldn't turn on notifications. Try again."; }
+  renderPush();
+}
+async function pushDisable() {
+  try { if (pushSub) { await sb.rpc("delete_push_sub", { p_endpoint: pushSub.endpoint }); await pushSub.unsubscribe(); } } catch (e) { console.warn(e); }
+  pushSub = null; renderPush();
+}
+async function pushTest() {
+  $("pushErr").textContent = "";
+  try {
+    const r = await fetch(SUPABASE_URL + "/functions/v1/notify?test=1", { method: "POST", headers: { Authorization: "Bearer " + session.access_token } });
+    const j = await r.json().catch(() => ({}));
+    $("foot").textContent = j.sent ? "Test sent. It should pop up in a few seconds." : "Test didn't reach this device. Turn notifications off and on again.";
+  } catch { $("pushErr").textContent = "Couldn't send a test. Check your connection."; }
+}
+function renderPush() {
+  if (!me || !pushPrefs) return;
+  const st = $("pushState"), help = $("pushHelp"), btns = $("pushBtns"), prefs = $("pushPrefs");
+  const on = !!pushSub && pushOK && Notification.permission === "granted";
+  prefs.hidden = !on;
+  if (!pushOK || (isIOS && !isStandalone)) {
+    st.textContent = "Off";
+    help.innerHTML = isIOS ? "On iPhone or iPad, add Loopd-In to your home screen first: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. Open Loopd-In from the new icon and come back here." : "This browser can't show notifications. Try Chrome, or add Loopd-In to your home screen.";
+    btns.innerHTML = ""; return;
+  }
+  if (Notification.permission === "denied") { st.textContent = "Blocked"; help.textContent = "Notifications are blocked for Loopd-In. Turn them on in your phone or browser settings, then reopen the app."; btns.innerHTML = ""; return; }
+  st.textContent = on ? "On for this device ✓" : "Off";
+  help.textContent = on ? "Choose what pops up on this device." : "Get banners on this phone for requests, approvals and updates, even when Loopd-In is closed.";
+  btns.innerHTML = on ? '<button class="link" data-push="test">Send me a test</button><button class="link del" data-push="off">Turn off on this device</button>' : '<button class="primary" data-push="on">Turn on notifications</button>';
+  if (on) prefs.innerHTML = PUSH_CATS.filter(c => !c[3] || isMgr()).map(([k, label, sub]) => `<label style="flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--ink)"><input type="checkbox" data-pref="${k}" ${pushPrefs[k] !== false ? "checked" : ""} style="width:20px;height:20px"><span>${label}<br><span class="meta">${sub}</span></span></label>`).join("");
+}
+$("pushBox").addEventListener("click", async e => {
+  const b = e.target.closest("[data-push]"); if (!b || pushBusy) return;
+  pushBusy = true; b.disabled = true;
+  try { const a = b.dataset.push; if (a === "on") await pushEnable(); if (a === "off") await pushDisable(); if (a === "test") await pushTest(); }
+  finally { pushBusy = false; b.disabled = false; }
+});
+$("pushBox").addEventListener("change", async e => {
+  const k = e.target.dataset && e.target.dataset.pref; if (!k) return;
+  pushPrefs[k] = e.target.checked; storePrefs();
+  try { await saveSub(); $("foot").textContent = "Notification settings saved."; } catch { $("pushErr").textContent = "Couldn't save. Try again."; }
+});
+
+document.addEventListener("click", e => { if (e.target.closest("[data-demo-sign]")) { e.preventDefault(); alert("In your salon, this opens your own handbook sign-off form, and you can see who has signed."); } });
+async function pushInit() {}
+/* ---------- boot ---------- */
+async function start(s) {
+  session = s;
+  if (!session) { $("who").hidden = true; show("view-login"); $("foot").textContent = ""; return; }
+  const email = (session.user.email || "").toLowerCase();
+  const { data: role } = await sb.rpc("my_role");
+  $("who").hidden = false; $("whoName").textContent = ""; $("avatar").textContent = (email[0] || "?").toUpperCase();
+  if (!role) { show("view-noaccess"); $("noaccessMsg").textContent = `${email} isn't on the team yet. Ask a manager to add you, then sign in again.`; $("roleBadge").textContent = ""; $("foot").textContent = ""; return; }
+  me = { email, role };
+  const { data: row } = await sb.from("staff").select("name").eq("email", email).maybeSingle();
+  me.name = row?.name || email.split("@")[0];
+  $("whoName").textContent = me.name; $("avatar").textContent = me.name[0].toUpperCase();
+  show("app"); $("d-time").value = nowTime();
+  const want = new URLSearchParams(location.search).get("tab");
+  if (want && TABS.includes(want)) current = want;
+  applyRole();
+  await loadAll();
+  pushInit();
+  sb.channel("salon").on("postgres_changes", { event: "*", schema: "public" }, scheduleReload).subscribe();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
+}
+(async () => {
+  $("foot").textContent = "Loading…";
+  const { data } = await sb.auth.getSession();
+  await start(data.session);
+  sb.auth.onAuthStateChange((ev, s) => { if (ev === "SIGNED_IN" && !session) start(s); if (ev === "SIGNED_OUT") location.reload(); });
+})();
+</script>
+</body>
+</html>
