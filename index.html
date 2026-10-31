@@ -713,11 +713,11 @@ $("logout").onclick = logout; $("logout2").onclick = logout;
 const PLAN_ORDER = ["front_desk", "team", "owner"];
 const PLAN_INFO = {
   front_desk: { price: "$29", blurb: "The digital logbook for the front desk.", items: ["Daily log with manager follow-ups", "Client incidents", "Supplies shopping list", "Team chat, announcements, issue reports", "Phone notifications"] },
-  team: { price: "$59", blurb: "Everything to run your team.", items: ["Everything in Front Desk", "Time off requests with your own limits", "1:1s with goal sheets and goal files", "Employee handbook with sign-off", "Staff notes, manager log, write-ups with signatures"] },
-  owner: { price: "$99", blurb: "For owners who are growing and hiring.", items: ["Everything in Team", "Applicant tracking with call checkoffs and interviews", "Your salon's logo in the app", "Personal setup call"] },
+  team: { price: "$59", blurb: "Everything to run your team.", items: ["Everything in Front Desk", "Time off requests with your own limits", "1:1s with goal sheets and goal files", "Employee handbook with sign-off", "Write-ups with signatures"] },
+  owner: { price: "$99", blurb: "For owners who are growing and hiring.", items: ["Everything in Team", "Private staff notes and manager log", "Applicant tracking with call checkoffs and interviews", "Your salon's logo in the app", "Personal setup call"] },
 };
 const planAtLeast = p => !!SALON && PLAN_ORDER.indexOf(SALON.plan) >= PLAN_ORDER.indexOf(p);
-const TAB_PLAN = { time: "team", oo: "team", staff: "team", apps: "owner" };
+const TAB_PLAN = { time: "team", oo: "team", staff: "owner", apps: "owner" };
 const tabAllowed = t => !TAB_PLAN[t] || planAtLeast(TAB_PLAN[t]);
 async function loadSalon() {
   const { data } = await sbRaw.rpc("lp_my_salon_info");
@@ -790,7 +790,7 @@ function applyRole() {
   $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk();
   $("tab-staff").hidden = !isMgr() || !tabAllowed("staff"); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr() || !tabAllowed("apps");
   $("tab-time").hidden = !tabAllowed("time"); $("tab-oo").hidden = !tabAllowed("oo");
-  $("hbBox").hidden = !planAtLeast("team"); $("mlBox").hidden = !planAtLeast("team"); $("wuBox").hidden = !planAtLeast("team");
+  $("hbBox").hidden = !planAtLeast("team"); $("mlBox").hidden = !planAtLeast("owner"); $("wuBox").hidden = !planAtLeast("team");
   const lim = (SALON && SALON.settings && SALON.settings.timeoff_limit) || 2;
   $("toRule").textContent = `No more than ${lim} ${lim === 1 ? "stylist" : "stylists"} (or ${lim} front desk) out at the same time. A request is just a request: it isn't time off until a manager approves it.`;
   const signUrl = SALON && SALON.settings && SALON.settings.handbook_sign_url;
