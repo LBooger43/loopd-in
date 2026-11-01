@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apply · Loopd-In</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<!--DATA-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<!--/DATA-->
+<style>
+:root{
+  --navy:#16213e; --blue:#2f6be0; --peri:#5a56d6; --lav:#ecebfc; --lav2:#f6f5fe;
+  --bg:#f5f6fb; --card:#ffffff; --ink:#16213e; --muted:#5f6b85; --line:#dfe3ef; --ok:#1f8a5b; --err:#c0392b;
+  --display:"Poppins",system-ui,sans-serif; --body:"Figtree",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+body.embed{background:transparent}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 40px}
+body.embed .wrap{padding:4px 2px 8px;max-width:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 22px;box-shadow:0 1px 2px rgba(22,33,62,.04),0 8px 30px rgba(22,33,62,.06)}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.top img{height:54px;max-width:140px;object-fit:contain}
+.mono{width:54px;height:54px;border-radius:14px;background:var(--lav);color:var(--peri);font:700 1.4rem var(--display);display:grid;place-items:center;flex:none}
+.eyebrow{display:inline-block;background:var(--lav);color:var(--peri);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px}
+h1{font:700 1.6rem/1.2 var(--display);margin:6px 0 2px}
+.city{color:var(--muted);margin:0}
+.intro{margin:14px 0 0;white-space:pre-wrap}
+form{display:flex;flex-direction:column;gap:18px;margin-top:22px}
+fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:14px}
+legend{font:600 1.02rem var(--display);padding:0;margin-bottom:12px;color:var(--navy)}
+.sec{border-top:1px solid var(--line);padding-top:20px}
+label,.lbl{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.93rem}
+.opt{font-weight:500;color:var(--muted);font-size:.85rem}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;width:100%;min-height:48px}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--peri);box-shadow:0 0 0 3px rgba(90,86,214,.16)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{flex-direction:row;align-items:center;gap:0;font-weight:600}
+.chips input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.chips span{border:1.5px solid var(--line);border-radius:999px;padding:10px 16px;background:#fff;cursor:pointer;transition:all .15s}
+.chips input:checked+span{background:var(--peri);border-color:var(--peri);color:#fff}
+.chips input:focus-visible+span{box-shadow:0 0 0 3px rgba(90,86,214,.25)}
+.drop{border:2px dashed #c9cbef;background:var(--lav2);border-radius:16px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.drop:hover,.drop.over{border-color:var(--peri);background:var(--lav)}
+.drop svg{color:var(--peri)}
+.drop b{font-size:1rem}
+.drop .hint{color:var(--muted);font-size:.85rem;font-weight:500}
+.file{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.file .ico{width:40px;height:40px;border-radius:10px;background:var(--lav);color:var(--peri);display:grid;place-items:center;font:700 .72rem var(--display);flex:none}
+.file .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .sz{color:var(--muted);font-weight:500;font-size:.82rem}
+.x{background:none;border:0;color:var(--muted);font:600 .9rem var(--body);cursor:pointer;padding:8px;text-decoration:underline}
+.trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+button.go{font:600 1.05rem var(--display);background:linear-gradient(135deg,var(--blue),var(--peri));color:#fff;border:0;border-radius:14px;padding:15px 18px;min-height:54px;cursor:pointer;box-shadow:0 6px 18px rgba(90,86,214,.28)}
+button.go:disabled{opacity:.6;cursor:default}
+.err{color:var(--err);font-weight:600;font-size:.92rem;min-height:1.2em}
+.fine{color:var(--muted);font-size:.8rem;text-align:center;margin:0}
+.done{text-align:center;padding:18px 4px}
+.done .tick{width:64px;height:64px;border-radius:50%;background:#e6f4ed;color:var(--ok);display:grid;place-items:center;margin:0 auto 10px;font-size:2rem}
+.done h2{font:700 1.4rem var(--display);margin:0 0 6px}
+.done p{color:var(--muted);margin:0}
+.foot{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:.78rem;margin-top:16px}
+.foot img{height:16px}
+.foot a{color:inherit}
+.closed{text-align:center;color:var(--muted);padding:12px 0}
+.demo-bar{background:var(--peri);color:#fff;font-size:.85rem;text-align:center;padding:9px 14px}
+.demo-bar a{color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="demo-bar" id="demoBar" hidden><b>Loopd-In demo.</b> Fill this out like an applicant, then <a href="./?tab=apps">open the demo's Applicants tab</a> to see it arrive.</div>
+<div class="wrap">
+  <div class="card" id="card">
+    <p class="closed" id="loading">Loading…</p>
+  </div>
+  <div class="foot"><span>Applications powered by</span><a href="https://lbooger43.github.io/loopd-in/pricing.html" target="_blank" rel="noopener"><b>Loopd-In</b></a></div>
+</div>
+
+<script>
+const DEMO = false;
+const SUPABASE_URL = "https://nalechcrehlzgghtcnog.supabase.co";
+const SUPABASE_KEY = "sb_publishable_3RlAz9h8qeYt5lE1uIgOug_c9z6bFVn";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const params = new URLSearchParams(location.search);
+const slug = (params.get("s") || "").trim();
+if (params.get("embed") === "1") document.body.classList.add("embed");
+if (DEMO) $("demoBar").hidden = false;
+const started = Date.now();
+let SALON = null, FILE = null;
+const MAX = 10 * 1024 * 1024;
+const OK_TYPES = /^(application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|image\/(jpeg|png|webp|heic))$/;
+
+/* keep an embedded copy the right height on the salon's website */
+const sendHeight = () => { if (parent !== window) parent.postMessage({ loopdinHeight: document.documentElement.scrollHeight }, "*"); };
+new ResizeObserver(sendHeight).observe(document.body);
+
+function closed(msg) {
+  $("card").innerHTML = `<div class="closed"><div class="mono" style="margin:0 auto 10px">✂︎</div><b style="color:var(--ink)">${esc(msg)}</b><p style="margin:6px 0 0">Please check with the salon directly.</p></div>`;
+}
+
+const icon = `<svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/></svg>`;
+
+function render(logoUrl) {
+  const s = SALON, pos = (s.positions && s.positions.length ? s.positions : ["Stylist", "Assistant", "Front desk"]);
+  const head = `<div class="top">${logoUrl ? `<img src="${esc(logoUrl)}" alt="${esc(s.name)}">` : `<div class="mono">${esc((s.name || "S")[0].toUpperCase())}</div>`}
+      <div><span class="eyebrow">We're hiring</span><h1>Join the ${esc(s.name)} team</h1>${s.city ? `<p class="city">${esc(s.city)}</p>` : ""}</div></div>
+    ${s.intro ? `<p class="intro">${esc(s.intro)}</p>` : ""}`;
+  $("card").innerHTML = head + `
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>What job are you applying for?</legend>
+      <div class="chips" role="radiogroup" aria-label="Position">${pos.map((p, i) => `<label><input type="radio" name="position" value="${esc(p)}" ${pos.length === 1 ? "checked" : ""}><span>${esc(p)}</span></label>`).join("")}</div>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>About you</legend>
+      <label>Full name<input name="name" autocomplete="name" maxlength="100" required></label>
+      <div class="two">
+        <label>Phone<input name="phone" type="tel" autocomplete="tel" maxlength="40" required></label>
+        <label>Email<input name="email" type="email" autocomplete="email" maxlength="120" required></label>
+      </div>
+      <label>Instagram <span class="opt">optional, so we can see your work</span><input name="instagram" maxlength="100" placeholder="@yourhandle" autocapitalize="off"></label>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Your experience</legend>
+      <div class="two">
+        <label>License<select name="license">
+          <option value="">Choose one</option><option>Licensed</option><option>Licensed in another state</option><option>In cosmetology school</option><option>Not licensed (not needed for this job)</option>
+        </select></label>
+        <label>Years in the industry<select name="experience">
+          <option value="">Choose one</option><option>New to the industry</option><option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
+        </select></label>
+      </div>
+      <label>Which days and hours can you work?<textarea name="availability" maxlength="500" style="min-height:72px" placeholder="e.g. Tue–Sat, can stay until 8pm"></textarea></label>
+      <div class="two">
+        <label>When could you start?<input name="start" maxlength="100" placeholder="e.g. 2 weeks' notice"></label>
+        <label>How did you hear about us?<select name="heard">
+          <option value="">Choose one</option><option>Instagram</option><option>Facebook</option><option>Indeed</option><option>Our website</option><option>A friend or someone who works here</option><option>Cosmetology school</option><option>Walked by / saw a sign</option><option>Other</option>
+        </select></label>
+      </div>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Résumé <span class="opt" style="font-family:var(--body)">optional</span></legend>
+      <div id="dropWrap"></div>
+      <input type="file" id="fileIn" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" hidden>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Anything else?</legend>
+      <label><span>Tell us about yourself <span class="opt">optional</span></span><textarea name="about" maxlength="3000" placeholder="Your specialties, what you're looking for, why you'd like to work here…"></textarea></label>
+    </fieldset>
+    <div class="trap" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="err" id="err" role="alert"></div>
+    <button class="go" type="submit" id="go">Send my application</button>
+    <p class="fine">Your application goes only to ${esc(s.name)}'s managers.</p>
+  </form>`;
+  drawDrop();
+  const fi = $("fileIn");
+  fi.addEventListener("change", () => { if (fi.files[0]) pick(fi.files[0]); fi.value = ""; });
+  $("f").addEventListener("submit", send);
+  sendHeight();
+}
+
+function drawDrop() {
+  const w = $("dropWrap");
+  if (FILE) {
+    const ext = (FILE.name.split(".").pop() || "").slice(0, 4).toUpperCase();
+    const kb = FILE.size < 1024 * 1024 ? Math.max(1, Math.round(FILE.size / 1024)) + " KB" : (FILE.size / 1024 / 1024).toFixed(1) + " MB";
+    w.innerHTML = `<div class="file"><div class="ico">${esc(ext || "FILE")}</div><div class="nm">${esc(FILE.name)}<div class="sz">${kb} · ready to send</div></div><button type="button" class="x" id="rm">Remove</button></div>`;
+    $("rm").onclick = () => { FILE = null; drawDrop(); };
+  } else {
+    w.innerHTML = `<div class="drop" id="drop" role="button" tabindex="0" aria-label="Add your résumé">${icon}<b>Drop your résumé here</b><span class="hint">or tap to choose a file · PDF, Word or a photo · up to 10 MB</span></div>`;
+    const d = $("drop");
+    d.onclick = () => $("fileIn").click();
+    d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fileIn").click(); } };
+    ["dragenter", "dragover"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.remove("over"); }));
+    d.addEventListener("drop", e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) pick(f); });
+  }
+  sendHeight();
+}
+/* a file dropped anywhere on the page counts too */
+["dragover", "drop"].forEach(ev => window.addEventListener(ev, e => { e.preventDefault(); if (ev === "drop" && !FILE && e.dataTransfer.files[0] && $("dropWrap")) pick(e.dataTransfer.files[0]); }));
+
+function typeOf(f) {
+  if (f.type) return f.type;
+  const ext = (f.name.split(".").pop() || "").toLowerCase();
+  return { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", heic: "image/heic", webp: "image/webp" }[ext] || "";
+}
+function pick(f) {
+  $("err").textContent = "";
+  if (!OK_TYPES.test(typeOf(f))) { $("err").textContent = "That file type won't work. Please use a PDF, a Word document or a photo."; return; }
+  if (f.size > MAX) { $("err").textContent = "That file is over 10 MB. Try a smaller PDF or a photo."; return; }
+  FILE = f; drawDrop();
+}
+
+async function send(e) {
+  e.preventDefault();
+  const f = e.target, v = n => (f.elements[n] ? f.elements[n].value : "").trim(), err = t => { $("err").textContent = t; sendHeight(); };
+  err("");
+  const position = (f.querySelector("input[name=position]:checked") || {}).value || "";
+  if (!position) return err("Pick the job you're applying for.");
+  if (!v("name")) { f.elements.name.focus(); return err("Please add your name."); }
+  if (!v("phone")) { f.elements.phone.focus(); return err("Please add your phone number."); }
+  if (!/^\S+@\S+\.\S+$/.test(v("email"))) { f.elements.email.focus(); return err("Please check your email address."); }
+  if (v("website")) return thanks(v("name"));   // a bot filled the hidden box
+  const go = $("go"); go.disabled = true; go.textContent = FILE ? "Uploading your résumé…" : "Sending…";
+  let resume_file = null;
+  if (FILE) {
+    const ext = ((FILE.name.split(".").pop() || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf").slice(0, 5);
+    const rel = `resumes/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 13)}.${ext}`;
+    const up = await db.storage.from("lp-files").upload(DEMO ? rel : SALON.id + "/" + rel, FILE, { contentType: typeOf(FILE), upsert: false });
+    if (up.error) { go.disabled = false; go.textContent = "Send my application"; return err("Your résumé didn't upload. Check your connection and try again, or remove it and send without it."); }
+    resume_file = rel;
+    go.textContent = "Sending…";
+  }
+  const p = { position, name: v("name"), phone: v("phone"), email: v("email"), instagram: v("instagram"), license: v("license"), experience: v("experience"),
+    availability: v("availability"), start: v("start"), heard: v("heard"), about: v("about"), resume_file, resume_name: FILE ? FILE.name : null, ms: Date.now() - started };
+  const { error } = await db.rpc("lp_apply", { p_slug: slug, p });
+  if (error) {
+    go.disabled = false; go.textContent = "Send my application";
+    const m = String(error.message || "");
+    if (/ALREADY/.test(m)) return thanks(v("name"), true);
+    if (/TOO_FAST/.test(m)) return err("That was quick! Take a second to look it over, then send it again.");
+    if (/BUSY/.test(m)) return err("We're getting a lot of applications right now. Please try again in an hour.");
+    if (/APPLY_CLOSED/.test(m)) return err("This salon isn't taking applications online right now.");
+    return err("Something went wrong sending your application. Please try again.");
+  }
+  thanks(v("name"));
+}
+function thanks(name, again) {
+  const first = String(name || "").split(" ")[0];
+  $("card").innerHTML = `<div class="done"><div class="tick">✓</div><h2>Thanks${first ? ", " + esc(first) : ""}!</h2>
+    <p>${again ? "We already have your application from today, so you're all set." : `${esc(SALON.name)} got your application${FILE ? " and résumé" : ""}.`} A manager will reach out if it looks like a fit.</p></div>`;
+  scrollTo({ top: 0, behavior: "smooth" }); sendHeight();
+}
+
+(async function boot() {
+  if (!slug && !DEMO) return closed("This apply link is missing the salon's name.");
+  const { data, error } = await db.rpc("lp_apply_info", { p_slug: slug });
+  if (error || !data) return closed("This salon isn't taking applications online right now.");
+  SALON = data;
+  document.title = "Apply · " + SALON.name;
+  let logoUrl = null;
+  if (SALON.logo && !DEMO) {
+    const { data: u } = await db.storage.from("lp-files").createSignedUrl(SALON.id + "/" + SALON.logo, 3600);
+    logoUrl = u && u.signedUrl;
+  }
+  render(logoUrl);
+})();
+</script>
+</body>
+</html>

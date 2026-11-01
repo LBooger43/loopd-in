@@ -406,6 +406,17 @@ window.__demoSeed = function (ME) {
     rpc: async (name, a) => {
       if (name === "my_role") return { data: roleOf(DEMO_EMAIL), error: null };
       if (name === "is_invited") return { data: true, error: null };
+      if (name === "lp_apply_info") {
+        const ap = applyGet(); if (!ap.open) return { data: null, error: null };
+        return { data: { id: "demo", name: "Demo Salon", city: "Sample data", logo: null, positions: ap.positions, intro: ap.intro || null }, error: null };
+      }
+      if (name === "lp_apply") {
+        const p = a.p || {}; if (!applyGet().open) return { data: null, error: { message: "APPLY_CLOSED" } };
+        const ans = {}; ["license", "experience", "availability", "start", "instagram", "heard", "about", "resume_file", "resume_name"].forEach(k => { if (p[k]) ans[k] = p[k]; });
+        DB.applicants = DB.applicants || [];
+        DB.applicants.push(withDefaults("applicants", { name: p.name, position: p.position || null, phone: p.phone || null, email: p.email || null, answers: ans, submission_id: "web-" + uid(), created_by: null }));
+        setTimeout(fire, 0); return { data: true, error: null };
+      }
       if (name === "archive_entry") {
         const t = a.p_kind === "d" ? "daily_log" : "incidents";
         const r = (DB[t] || []).find(x => x.id === a.p_id);
@@ -426,6 +437,10 @@ window.__demoSeed = function (ME) {
       from: () => ({
         upload: async (path, blob) => {
           fileUrls[path] = URL.createObjectURL(blob);
+          if (path.startsWith("resumes/") && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
+            const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(blob); });
+            if (url) { DB._fileMap = DB._fileMap || {}; DB._fileMap[path] = url; save(); }
+          }
           if (path.startsWith("handbook/")) { DB._handbooks = DB._handbooks || []; DB._handbooks.unshift({ name: path.slice(9), created_at: now() }); save(); }
           return { data: { path }, error: null };
         },
@@ -437,11 +452,21 @@ window.__demoSeed = function (ME) {
     },
     channel: () => { const ch = { on(_e, _f, cb) { if (cb) listeners.push(cb); return ch; }, subscribe() { return ch; } }; return ch; },
   };
+  const applyGet = () => Object.assign({ open: true, positions: ["Stylist", "Assistant", "Front desk"], intro: "" }, DB._apply || {});
+  window.__demoApplyGet = applyGet;
+  window.__demoApplySet = v => { DB._apply = v; save(); };
+  // the demo apply page (another tab) adds applicants: show them here right away
+  window.addEventListener("storage", e => {
+    if (e.key !== KEY || !e.newValue) return;
+    try { DB = JSON.parse(e.newValue); } catch { return; }
+    listeners.forEach(f => { try { f({}); } catch {} });
+  });
   window.supabase = { createClient: () => client };
   window.__demoReset = () => { try { localStorage.removeItem(KEY); } catch {} location.reload(); };
 })();
 
 </script>
+<script src="qrcode.js" defer></script>
 </head>
 <body>
 <div id="demoBar" style="background:var(--accent);color:var(--accent-ink);font-size:.85rem;padding:9px 16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center">
@@ -679,7 +704,42 @@ window.__demoSeed = function (ME) {
 
     <!-- APPLICANTS (managers only; fed by the Jotform application form) -->
     <section id="view-apps" hidden style="display:flex;flex-direction:column;gap:16px">
-      <div class="banner">Managers only. New applications from the online job application show up here automatically.</div>
+      <div class="banner">Managers only. Share your apply page below and applications land here automatically, résumés included.</div>
+      <style>.apl-wait > :not(.row):not(p){display:none!important}</style>
+      <div class="quick" id="applyBox">
+        <div class="row"><h2 class="h2">🌐 Your apply page</h2><span class="fu" id="apl-state"></span></div>
+        <p class="meta" style="margin:0">Put it on your website, Instagram or a “Now hiring” sign. Applications and résumés land right here, and managers get a phone alert.</p>
+        <div style="display:flex;gap:8px"><input id="apl-url" readonly aria-label="Your apply page link" style="flex:1;min-width:0;font-size:.85rem"><button type="button" class="primary" id="apl-copy">Copy link</button></div>
+        <div class="actions" style="flex-wrap:wrap">
+          <a class="link" id="apl-open" target="_blank" rel="noopener">Open page ↗</a>
+          <button type="button" class="link" data-apl="embed">Add to your website</button>
+          <button type="button" class="link" data-apl="qr">QR code and hiring sign</button>
+          <button type="button" class="link" data-apl="set">Page settings</button>
+        </div>
+        <div id="apl-embed" class="fu-box" hidden style="display:flex;flex-direction:column;gap:8px">
+          <b>Put the form on your website</b>
+          <p class="meta" style="margin:0">Copy this code and paste it where you want the form to show:</p>
+          <ul class="meta" style="margin:0;padding-left:18px">
+            <li><b>Wix:</b> Add (+) → Embed code → Embed HTML, then paste and stretch it full width.</li>
+            <li><b>Squarespace:</b> add a Code block.</li>
+            <li><b>WordPress:</b> add a Custom HTML block.</li>
+            <li><b>GoDaddy:</b> add an HTML section.</li>
+          </ul>
+          <textarea id="apl-code" readonly rows="4" style="font-family:ui-monospace,Menlo,monospace;font-size:.75rem"></textarea>
+          <div class="actions"><button type="button" class="primary" id="apl-copyCode">Copy code</button><span class="meta">Or simply add a “Join our team” button that opens your link.</span></div>
+        </div>
+        <div id="apl-qr" class="fu-box" hidden style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+          <b>Scan to apply</b>
+          <div id="apl-qrImg" style="width:180px;height:180px;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)"></div>
+          <div class="actions"><button type="button" class="primary" id="apl-sign">Print a “Now hiring” sign</button><a class="link" id="apl-qrDl" download="apply-qr-code.png">Download QR code</a></div>
+        </div>
+        <form id="apl-set" class="fu-box" hidden style="display:flex;flex-direction:column;gap:10px">
+          <label style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="apl-openChk" style="width:22px;height:22px;min-height:0"> <span><b>Taking applications</b><br><span class="meta">Turn off when you're not hiring. The page will say you aren't taking applications.</span></span></label>
+          <label>Jobs people can apply for<input id="apl-pos" maxlength="300" placeholder="Stylist, Assistant, Front desk"><span class="meta">Separate with commas.</span></label>
+          <label>Message at the top <span class="meta">(optional)</span><textarea id="apl-intro" maxlength="600" rows="3" placeholder="e.g. We're a team-first salon with paid education, flexible schedules and a full book waiting."></textarea></label>
+          <div class="actions"><span class="form-err" id="apl-err"></span><button type="submit" class="primary">Save</button></div>
+        </form>
+      </div>
       <div id="apInterviewsWrap" style="display:flex;flex-direction:column;gap:10px">
         <h2 class="h2">📅 Upcoming interviews</h2>
         <div class="feed" id="apInterviews"></div>
@@ -1648,6 +1708,7 @@ const AP_STATUS = {
 };
 const AP_ACTIVE = ["new", "no_answer", "voicemail", "spoke", "interview"];
 const AP_SECTIONS = [
+  ["Application", [["license","License"],["experience","Years in the industry"],["availability","Days and hours they can work"],["start","Could start"],["instagram","Instagram"],["heard","Heard about us from"],["about","About them"]]],
   ["Contact", [["q3_positionsApplied","Position(s) applied for"],["q189_date189","Date"],["q5_name","Name"],["q8_address","Address"],["q6_telephoneNumbers","Telephone"],["q191_email","Email"],["q193_instagramHandle","Instagram"],["q7_home","Home phone"],["q9_cell","Cell phone"],["q11_other11","Other phone"]]],
   ["Availability and background", [["q10_areYou10","Available to work"],["q190_ifTemporary","If temporary, date available"],["q14_haveYou","Previously employed by us?"],["q15_ifYes","If yes, when"],["q16_areYou","Employed now?"],["q17_whatLanguages","Other languages"],["q174_doYou","Valid driver's license?"],["q21_expirationDate","License expiration"],["q175_doYou175","Own transportation?"],["q176_isIt","Reliable?"],["q177_haveYou177","Ever convicted of a crime?"],["q27_ifYes27","If yes, offense"],["q29_date","Date"],["q179_doYou179","Controlled substances affecting job performance?"]]],
   ["Skills and education", [["q32_typingSpeed","Typing speed"],["q33_shorthandSpeed","Shorthand speed"],["q34_otherSkills","Other skills"],["q35_listSoftware","Software / computer skills"],["q121_highSchool","High school"],["q107_from","From"],["q180_to","To"],["q181_graduatedyesno","Graduated"],["q122_colleges122","College or other"],["q182_from182","From"],["q183_to183","To"],["q184_graduatedyesno184","Graduated"],["q123_cosmetologySchool","Cosmetology school"],["q185_from185","From"],["q186_to186","To"],["q187_graduatedyesno187","Graduated"],["q47_1","Training 1"],["q110_2110","Training 2"],["q111_3111","Training 3"],["q49_4","Training 4"]]],
@@ -1667,13 +1728,13 @@ function apAnswers(a) {
     const rows = qs.filter(([k]) => ans[k]).map(([k, label]) => { used.add(k); return `<div><span class="meta">${esc(label)}</span><div class="note" style="white-space:pre-wrap">${esc(ans[k])}</div></div>`; });
     return rows.length ? `<div style="display:flex;flex-direction:column;gap:6px"><b>${title}</b>${rows.join("")}</div>` : "";
   }).filter(Boolean);
-  const extra = Object.keys(ans).filter(k => !used.has(k));
+  const extra = Object.keys(ans).filter(k => !used.has(k) && !/^resume_/.test(k));
   if (extra.length) secs.push(`<div style="display:flex;flex-direction:column;gap:6px"><b>Other answers</b>${extra.map(k => `<div><span class="meta">${esc(k.replace(/^q\d+_/, ""))}</span><div class="note">${esc(ans[k])}</div></div>`).join("")}</div>`);
   return `<div class="mgr" style="display:flex;flex-direction:column;gap:14px">${secs.join("") || `<span class="meta">No answers saved.</span>`}</div>`;
 }
 function apCard(a) {
   const open = apOpen === a.id;
-  const contact = [a.phone ? `<a class="link" href="${esc(telHref(a.phone))}">📞 ${esc(a.phone)}</a>` : "", a.email ? `<a class="link" href="mailto:${esc(a.email)}">✉️ ${esc(a.email)}</a>` : "", a.answers && a.answers.q193_instagramHandle ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle)}</span>` : ""].filter(Boolean).join(" ");
+  const contact = [a.phone ? `<a class="link" href="${esc(telHref(a.phone))}">📞 ${esc(a.phone)}</a>` : "", a.email ? `<a class="link" href="mailto:${esc(a.email)}">✉️ ${esc(a.email)}</a>` : "", a.answers && (a.answers.q193_instagramHandle || a.answers.instagram) ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle || a.answers.instagram)}</span>` : "", aplResumeBtn(a)].filter(Boolean).join(" ");
   const log = (a.log || []).slice().reverse().map(l => `<div class="meta">• ${esc(l.what)}${l.note ? ` – ${esc(l.note)}` : ""} · ${esc(nameOf(l.by))} · ${esc(whenFull(l.at))}</div>`).join("");
   let actions = "";
   if (apSched === a.id) {
@@ -1713,8 +1774,9 @@ function renderApps() {
   let list = applicants.filter(a => apFilter === "all" ? true : apFilter === "active" ? AP_ACTIVE.includes(a.status) : a.status === apFilter);
   if (q) list = list.filter(a => [a.name, a.position, a.phone, a.email].join(" ").toLowerCase().includes(q));
   const keepN = {}; $("apList").querySelectorAll("textarea[id^=apN-]").forEach(t => { const a0 = applicants.find(x => "apN-" + x.id === t.id); if (a0 && t.value !== (a0.notes || "")) keepN[t.id] = t.value; });
-  $("apList").innerHTML = list.length ? list.map(apCard).join("") : `<div class="empty">${applicants.length ? "Nobody here." : "<b>No applications yet</b>New Jotform applications will show up here automatically."}</div>`;
+  $("apList").innerHTML = list.length ? list.map(apCard).join("") : `<div class="empty">${applicants.length ? "Nobody here." : "<b>No applications yet</b>Share your apply page and new applications show up here automatically."}</div>`;
   for (const [tid, v] of Object.entries(keepN)) { const t = $(tid); if (t) t.value = v; }
+  renderApplyCard(); aplResumeLinks();
 }
 $("apFilter").addEventListener("click", e => { const b = e.target.closest("[data-apf]"); if (!b) return; apFilter = b.dataset.apf; renderApps(); });
 $("apSearch").addEventListener("input", () => renderApps());
@@ -1745,6 +1807,104 @@ $("view-apps").addEventListener("click", async e => {
   if (error) { b.disabled = false; return alert(friendly(error)); }
   apSched = null; if (act === "note") $("foot").textContent = "Notes saved."; loadAll();
 });
+
+const APPLY_HOST = {
+  url: () => new URL("apply.html", location.href.split(/[?#]/)[0]).href,
+  name: () => "Demo Salon",
+  get: () => window.__demoApplyGet(),
+  save: async v => { window.__demoApplySet(v); return null; },
+};
+/* ---------- apply page (shared by Loopd-In and the demo; APPLY_HOST says where settings live) ---------- */
+let aplPanel = null, aplQrUrl = null;
+const resumeUrls = {}, resumeAsked = {};
+function aplLink(embed) { return APPLY_HOST.url() + (embed ? (APPLY_HOST.url().includes("?") ? "&" : "?") + "embed=1" : ""); }
+function aplEmbedCode() {
+  return `<iframe id="loopdin-apply" src="${aplLink(true)}" title="Apply to ${esc(APPLY_HOST.name())}" style="width:100%;min-height:1500px;border:0" loading="lazy"></iframe>\n<script>addEventListener("message",function(e){if(e.data&&e.data.loopdinHeight){document.getElementById("loopdin-apply").style.minHeight=e.data.loopdinHeight+"px"}})<\/script>`;
+}
+function aplQrSvg(cell) {
+  if (!window.qrcode) return "";
+  const q = qrcode(0, "M"); q.addData(aplLink(false)); q.make();
+  return q.createSvgTag({ cellSize: cell || 6, margin: 0, scalable: true });
+}
+function renderApplyCard() {
+  if (!$("applyBox")) return;
+  const ready = !!APPLY_HOST.url();
+  $("applyBox").classList.toggle("apl-wait", !ready);
+  if (!ready) { $("apl-state").textContent = "Setting up"; $("apl-state").className = "fu"; return; }
+  const st = APPLY_HOST.get();
+  $("apl-state").textContent = st.open ? "Taking applications" : "Not taking applications";
+  $("apl-state").className = "fu" + (st.open ? " ok" : "");
+  $("apl-url").value = aplLink(false); $("apl-open").href = aplLink(false);
+  ["embed", "qr", "set"].forEach(k => $("apl-" + k).hidden = aplPanel !== k);
+  $("applyBox").querySelectorAll("[data-apl]").forEach(b => b.setAttribute("aria-expanded", aplPanel === b.dataset.apl));
+  if (aplPanel === "embed") $("apl-code").value = aplEmbedCode();
+  if (aplPanel === "qr") {
+    $("apl-qrImg").innerHTML = aplQrSvg(6);
+    const svg = $("apl-qrImg").querySelector("svg"); if (svg) { svg.style.width = "100%"; svg.style.height = "100%"; }
+    if (window.qrcode) { const q = qrcode(0, "M"); q.addData(aplLink(false)); q.make(); $("apl-qrDl").href = q.createDataURL(12, 16); }
+  }
+  if (aplPanel === "set" && !$("apl-set").dataset.filled) {
+    $("apl-openChk").checked = st.open; $("apl-pos").value = st.positions.join(", "); $("apl-intro").value = st.intro || "";
+    $("apl-set").dataset.filled = "1";
+  }
+}
+async function aplCopy(text, btn, label) {
+  try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  btn.textContent = "Copied ✓"; setTimeout(() => btn.textContent = label, 1600);
+}
+$("apl-copy").onclick = e => aplCopy(aplLink(false), e.currentTarget, "Copy link");
+$("apl-copyCode").onclick = e => aplCopy(aplEmbedCode(), e.currentTarget, "Copy code");
+$("applyBox").addEventListener("click", e => {
+  const b = e.target.closest("[data-apl]"); if (!b) return;
+  aplPanel = aplPanel === b.dataset.apl ? null : b.dataset.apl;
+  if (aplPanel === "set") delete $("apl-set").dataset.filled;
+  renderApplyCard();
+});
+$("apl-set").addEventListener("submit", async e => {
+  e.preventDefault(); $("apl-err").textContent = "";
+  const positions = $("apl-pos").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 12);
+  if (!positions.length) { $("apl-err").textContent = "Add at least one job."; return; }
+  const err = await APPLY_HOST.save({ open: $("apl-openChk").checked, positions, intro: $("apl-intro").value.trim() || null });
+  if (err) { $("apl-err").textContent = err; return; }
+  aplPanel = null; renderApplyCard(); $("foot").textContent = "Apply page saved.";
+});
+$("apl-sign").onclick = () => {
+  const st = APPLY_HOST.get(), logo = $("salonLogo") && !$("salonLogo").hidden ? $("salonLogo").src : "";
+  const w = window.open("", "_blank"); if (!w) return;
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Now hiring · ${esc(APPLY_HOST.name())}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Figtree:wght@500;600&display=swap">
+  <style>@page{size:letter;margin:0.5in}body{margin:0;font-family:Figtree,system-ui,sans-serif;color:#16213e;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .s{border:3px solid #5a56d6;border-radius:28px;padding:44px 40px;max-width:7in;margin:0 auto}
+  .k{display:inline-block;background:#ecebfc;color:#5a56d6;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:6px 18px;font-size:14px}
+  h1{font:700 64px/1.05 Poppins,sans-serif;margin:18px 0 6px;background:linear-gradient(135deg,#2f6be0,#5a56d6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font:600 26px Poppins,sans-serif;margin:0 0 6px}.p{font-size:20px;color:#5f6b85;margin:0 0 26px}
+  .q{width:3.3in;height:3.3in;margin:0 auto 18px}.q svg{width:100%;height:100%}.u{font-size:13px;color:#5f6b85;word-break:break-all}
+  img{max-height:90px;max-width:2.6in;object-fit:contain;margin-bottom:6px}.b{margin-top:22px;font-size:12px;color:#8a93ab}
+  .bar{position:fixed;top:10px;right:10px}@media print{.bar{display:none}}</style></head><body>
+  <div class="bar"><button onclick="print()" style="font:600 15px Figtree;padding:10px 16px;border-radius:10px;border:0;background:#5a56d6;color:#fff">Print</button></div>
+  <div class="s">${logo ? `<img src="${esc(logo)}" alt="">` : ""}<div class="k">${esc(APPLY_HOST.name())}</div><h1>We're hiring!</h1>
+  <h2>${esc(st.positions.join(" · "))}</h2><p class="p">Scan with your phone camera to apply in 2 minutes.</p>
+  <div class="q">${aplQrSvg(10)}</div><div class="u">${esc(aplLink(false))}</div><div class="b">Ask the front desk for details</div></div>
+  <script>window.onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
+  w.document.close();
+};
+
+/* résumés: signed links made ahead of time so they open on iPhone */
+async function aplResumeLinks() {
+  const need = (applicants || []).map(a => a.answers && a.answers.resume_file).filter(p => p && !resumeUrls[p] && !resumeAsked[p]);
+  if (!need.length) return;
+  need.forEach(p => resumeAsked[p] = 1);
+  const { data } = await sb.storage.from("photos").createSignedUrls(need, 60 * 60 * 6);
+  (data || []).forEach(x => { if (x.signedUrl) resumeUrls[x.path] = x.signedUrl; });
+  need.forEach(p => resumeAsked[p] = 2);
+  renderApps();
+}
+function aplResumeBtn(a) {
+  const p = a.answers && a.answers.resume_file; if (!p) return "";
+  const u = resumeUrls[p], nm = a.answers.resume_name || "Résumé";
+  if (u) return `<a class="link" href="${esc(u)}" target="_blank" rel="noopener" title="${esc(nm)}">📄 View résumé</a>`;
+  return resumeAsked[p] === 2 ? `<span class="meta">📄 Résumé: ${esc(nm)}</span>` : `<span class="meta">📄 Loading résumé…</span>`;
+}
 
 /* ---------- employee handbook ---------- */
 async function latestHandbook() {

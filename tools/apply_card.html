@@ -1,0 +1,35 @@
+      <style>.apl-wait > :not(.row):not(p){display:none!important}</style>
+      <div class="quick" id="applyBox">
+        <div class="row"><h2 class="h2">🌐 Your apply page</h2><span class="fu" id="apl-state"></span></div>
+        <p class="meta" style="margin:0">Put it on your website, Instagram or a “Now hiring” sign. Applications and résumés land right here, and managers get a phone alert.</p>
+        <div style="display:flex;gap:8px"><input id="apl-url" readonly aria-label="Your apply page link" style="flex:1;min-width:0;font-size:.85rem"><button type="button" class="primary" id="apl-copy">Copy link</button></div>
+        <div class="actions" style="flex-wrap:wrap">
+          <a class="link" id="apl-open" target="_blank" rel="noopener">Open page ↗</a>
+          <button type="button" class="link" data-apl="embed">Add to your website</button>
+          <button type="button" class="link" data-apl="qr">QR code and hiring sign</button>
+          <button type="button" class="link" data-apl="set">Page settings</button>
+        </div>
+        <div id="apl-embed" class="fu-box" hidden style="display:flex;flex-direction:column;gap:8px">
+          <b>Put the form on your website</b>
+          <p class="meta" style="margin:0">Copy this code and paste it where you want the form to show:</p>
+          <ul class="meta" style="margin:0;padding-left:18px">
+            <li><b>Wix:</b> Add (+) → Embed code → Embed HTML, then paste and stretch it full width.</li>
+            <li><b>Squarespace:</b> add a Code block.</li>
+            <li><b>WordPress:</b> add a Custom HTML block.</li>
+            <li><b>GoDaddy:</b> add an HTML section.</li>
+          </ul>
+          <textarea id="apl-code" readonly rows="4" style="font-family:ui-monospace,Menlo,monospace;font-size:.75rem"></textarea>
+          <div class="actions"><button type="button" class="primary" id="apl-copyCode">Copy code</button><span class="meta">Or simply add a “Join our team” button that opens your link.</span></div>
+        </div>
+        <div id="apl-qr" class="fu-box" hidden style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+          <b>Scan to apply</b>
+          <div id="apl-qrImg" style="width:180px;height:180px;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)"></div>
+          <div class="actions"><button type="button" class="primary" id="apl-sign">Print a “Now hiring” sign</button><a class="link" id="apl-qrDl" download="apply-qr-code.png">Download QR code</a></div>
+        </div>
+        <form id="apl-set" class="fu-box" hidden style="display:flex;flex-direction:column;gap:10px">
+          <label style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="apl-openChk" style="width:22px;height:22px;min-height:0"> <span><b>Taking applications</b><br><span class="meta">Turn off when you're not hiring. The page will say you aren't taking applications.</span></span></label>
+          <label>Jobs people can apply for<input id="apl-pos" maxlength="300" placeholder="Stylist, Assistant, Front desk"><span class="meta">Separate with commas.</span></label>
+          <label>Message at the top <span class="meta">(optional)</span><textarea id="apl-intro" maxlength="600" rows="3" placeholder="e.g. We're a team-first salon with paid education, flexible schedules and a full book waiting."></textarea></label>
+          <div class="actions"><span class="form-err" id="apl-err"></span><button type="submit" class="primary">Save</button></div>
+        </form>
+      </div>

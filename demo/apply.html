@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apply · Loopd-In Demo Salon</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<script>
+/* Sample data for the Loopd-In demo. Dates are relative to today so the demo always looks current. */
+window.__demoSeed = function (ME) {
+  const pad = n => String(n).padStart(2, "0");
+  const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const day = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };      // n days ago (negative = future)
+  const ts = (n, h, m) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m || 0, 0, 0); return d.toISOString(); };
+  const ym = n => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - n); return d.getFullYear() + "-" + pad(d.getMonth() + 1); };
+  const yr = String(new Date().getFullYear());
+  const E = n => n + "@demosalon.example";
+  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
+  let i = 0; const id = p => p + "-" + (++i);
+
+  const staff = [
+    { email: ME, name: "Jordan Lee", role: "manager" },
+    { email: SAM, name: "Sam Patel", role: "manager" },
+    { email: RILEY, name: "Riley Brooks", role: "front_desk" },
+    { email: CASEY, name: "Casey Nguyen", role: "front_desk" },
+    { email: MAYA, name: "Maya Torres", role: "stylist" },
+    { email: AVA, name: "Ava Johnson", role: "stylist" },
+    { email: LILY, name: "Lily Chen", role: "stylist" },
+    { email: NOAH, name: "Noah Kim", role: "stylist" },
+    { email: EMMA, name: "Emma Davis", role: "stylist" },
+  ];
+
+  const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
+  const dryer = dl(0, "11:15", "Maintenance", "Dryer #2 is making a grinding noise again. Unplugged it for now so nobody uses it.", CASEY, { needs_followup: true });
+  const rep = dl(0, "14:10", "Visitor", "Product rep stopped by with new gloss samples. Left her card at the desk for Jordan.", CASEY);
+  const windows = dl(1, "16:45", "Reminder", "Window cleaners are coming Friday at 8am. Someone needs to be here to open.", CASEY, { needs_followup: true });
+  const daily_log = [
+    dl(0, "09:05", "Delivery", "Color order arrived (2 boxes). Checked against the packing slip and shelved in the back.", RILEY),
+    dl(0, "09:40", "Phone call", "Mrs. Alvarez called to move her Saturday color to next Thursday. Rebooked with Maya at 10am.", RILEY),
+    dryer, rep,
+    dl(1, "10:20", "Supplies", "Out of large foils and low on 20 vol developer. Added both to the Supplies list.", RILEY),
+    windows,
+    dl(1, "18:55", "General", "Busy close: 3 walk-ins, all booked with Noah and Lily. Drawer balanced.", RILEY),
+    dl(2, "12:30", "Phone call", "Bridal party of 5 asked about a Saturday in June. Took their info; Sam to call back with a quote.", CASEY),
+    dl(3, "17:20", "General", "Gift card balance issue for a guest. Looked it up in the booking system and fixed it.", RILEY),
+  ];
+  const followups = [
+    { log_id: dryer.id, flagged: true, done: false, note: "", updated_by: CASEY, updated_at: ts(0, 11, 16) },
+    { log_id: windows.id, flagged: true, done: true, note: "Sam will open Friday at 7:45.", updated_by: SAM, updated_at: ts(1, 17, 30) },
+  ];
+  const log_replies = [{ id: id("rp"), log_id: rep.id, note: "Thanks! I'll call her back tomorrow morning.", created_by: ME, created_at: ts(0, 14, 40) }];
+
+  const inc = (n, client, stylist, issue_type, severity, note, by) => ({ id: id("in"), client, stylist, issue_type, incident_date: day(n), severity, note, created_by: by, created_at: ts(n, 15, 0), deleted_at: null });
+  const i1 = inc(1, "Karen M.", "Ava Johnson", "Unhappy with result", "med", "Said her blonde came out too warm. Offered a toner refresh within our 7-day fix window; booked for Thursday.", RILEY);
+  const i2 = inc(5, "Tom R.", "Noah Kim", "No-show / late cancel", "low", "Third no-show this year. Front desk will ask for a card on file next time he books.", CASEY);
+  const i3 = inc(9, "Denise P.", "Maya Torres", "Refund / redo request", "high", "Asked for a full refund on a partial highlight. Sam spoke with her; free redo scheduled.", SAM);
+  const incidents = [i1, i2, i3];
+  const resolutions = [
+    { incident_id: i2.id, done: true, note: "Card-on-file note added to his profile.", updated_by: CASEY, updated_at: ts(4, 10, 0) },
+    { incident_id: i3.id, done: true, note: "Redo done; she was happy and rebooked.", updated_by: SAM, updated_at: ts(6, 13, 0) },
+  ];
+
+  const staff_notes = [
+    { id: id("sn"), staff_member: "Noah Kim", note_type: "Late arrival", note_date: day(2), note_time: "09:20", note: "Arrived 20 minutes late; first guest was at 9:30. Said traffic. Second time this month.", created_by: ME, created_at: ts(2, 9, 25) },
+    { id: id("sn"), staff_member: "Ava Johnson", note_type: "Praise", note_date: day(4), note_time: null, note: "A guest left a 5-star review naming Ava for her balayage.", created_by: SAM, created_at: ts(4, 12, 0) },
+    { id: id("sn"), staff_member: "Lily Chen", note_type: "Called out / sick", note_date: day(6), note_time: "07:45", note: "Called Sam before her shift. Guests moved to Maya and Emma.", created_by: SAM, created_at: ts(6, 7, 50) },
+  ];
+
+  const items = [["Color", "20 vol developer"], ["Color", "30 vol developer"], ["Color", "Lightener"], ["Color", "Large foils"], ["Color", "Gloss / toner"],
+    ["Back bar", "Shampoo (gallon)"], ["Back bar", "Conditioner (gallon)"], ["Back bar", "Neck strips"],
+    ["Front desk", "Receipt paper"], ["Front desk", "Coffee pods"], ["Front desk", "Bottled water"],
+    ["Cleaning", "Disinfectant"], ["Cleaning", "Paper towels"], ["Cleaning", "Trash bags"]];
+  const supply_items = items.map(([category, name], k) => ({ id: id("si"), category, name, sort: k + 1, active: true }));
+  const item = n => supply_items.find(s => s.name === n);
+  const need = (n, by, d, bought) => { const it = item(n); return { id: id("sn"), item_id: it.id, item_name: it.name, category: it.category, requested_by: by, requested_at: ts(d, 10, 0), bought: !!bought, bought_by: bought ? SAM : null, bought_at: bought ? ts(d - 1, 15, 0) : null }; };
+  const supply_needs = [need("Large foils", RILEY, 1), need("20 vol developer", RILEY, 1), need("Coffee pods", CASEY, 0), need("Paper towels", MAYA, 4, true)];
+
+  const todos = [
+    { id: id("td"), task: "Call the repair company about dryer #2", done: false, created_by: ME, created_at: ts(0, 11, 30) },
+    { id: id("td"), task: "Sink 3 faucet drips when it's off", reported: true, done: false, created_by: MAYA, created_at: ts(1, 13, 0) },
+    { id: id("td"), task: "Order new front door mat", done: true, done_by: SAM, done_at: ts(3, 12, 0), created_by: SAM, created_at: ts(5, 9, 0) },
+  ];
+  const manager_log = [
+    { id: id("ml"), note: "Talked to the landlord about the parking lot lights. They're fixing them next week.", created_by: ME, created_at: ts(1, 15, 0) },
+    { id: id("ml"), note: "November promo approved: 15% off glosses with any haircut, starting the 1st.", created_by: SAM, created_at: ts(3, 11, 0) },
+  ];
+  const announcements = [
+    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0) },
+    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0) },
+  ];
+  const messages = [
+    { id: id("ms"), body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2) },
+    { id: id("ms"), body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4) },
+    { id: id("ms"), body: "Yep, send her my way 👍", created_by: LILY, created_at: ts(0, 10, 6) },
+    { id: id("ms"), body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
+    { id: id("ms"), body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33) },
+  ];
+
+  const time_off = [
+    { id: id("to"), off_from: day(-10), back_on: day(-14), note: "Family wedding in Charleston", created_by: AVA, role: "stylist", status: "pending", created_at: ts(2, 9, 0) },
+    { id: id("to"), off_from: day(-11), back_on: day(-13), note: "Long weekend", created_by: EMMA, role: "stylist", status: "pending", created_at: ts(1, 9, 0) },
+    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "stylist", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
+  ];
+
+  const oMaya = { id: id("oo"), created_by: MAYA, with_manager: ME, req_date: day(-2), req_time: "10:00:00", meet_date: day(-2), meet_time: "10:00:00", topic: "Moving up to Level 3", status: "confirmed", decided_by: ME, decided_at: ts(1, 9, 0), created_at: ts(2, 8, 0) };
+  const oNoah = { id: id("oo"), created_by: NOAH, with_manager: SAM, req_date: day(25), req_time: "15:00:00", meet_date: day(25), meet_time: "15:00:00", topic: "Building my book", status: "done", decided_by: SAM, decided_at: ts(27, 9, 0), created_at: ts(28, 9, 0) };
+  const one_on_ones = [
+    oMaya,
+    { id: id("oo"), created_by: LILY, with_manager: null, req_date: day(-4), req_time: "14:00:00", topic: "Ideas for growing my color clients", status: "pending", created_at: ts(0, 8, 30) },
+    { id: id("oo"), created_by: EMMA, with_manager: SAM, req_date: day(-1), req_time: "09:00:00", meet_date: day(-3), meet_time: "15:30:00", topic: "Schedule change", manager_note: "Tomorrow is booked solid. Does this time work?", status: "proposed", decided_by: SAM, decided_at: ts(0, 13, 0), created_at: ts(1, 11, 0) },
+    oNoah,
+  ];
+  const goal_sheets = [
+    { id: id("gs"), created_by: MAYA, kind: "monthly", period: ym(0), one_on_one_id: oMaya.id, updated_at: ts(0, 21, 0), data: { professional: "Rebook 70% of my guests\nTake the advanced balayage class", personal: "Run 3 times a week", days: "4", service_month: "9000", service_week: "2250", service_day: "563", retail_month: "1100", retail_week: "275", retail_day: "69", notes: "Want to talk about what Level 3 needs." } },
+    { id: id("gs"), created_by: MAYA, kind: "smart", period: yr, one_on_one_id: oMaya.id, updated_at: ts(0, 21, 5), data: { m3: "Build my book to 40 regular guests", m6: "Move up to Level 3", m12: "Average ticket over $160" } },
+    { id: id("gs"), created_by: MAYA, kind: "monthly", period: ym(1), one_on_one_id: null, updated_at: ts(32, 20, 0), data: { professional: "Post 3 reels a week", service_month: "8200", service_week: "2050", retail_month: "900", notes: "Hit 104% of goal!" } },
+    { id: id("gs"), created_by: NOAH, kind: "monthly", period: ym(1), one_on_one_id: oNoah.id, updated_at: ts(26, 20, 0), data: { professional: "Arrive by 8:45 every shift", personal: "Start a savings plan", days: "5", service_month: "6000", service_week: "1500", service_day: "300", retail_month: "500", retail_week: "125", retail_day: "25" } },
+  ];
+
+  const ans = o => o;
+  const applicants = [
+    { id: id("ap"), submission_id: "demo-1", name: "Jasmine Ortiz", position: "Stylist", phone: "(919) 555-0142", email: "jasmine@example.com", status: "new", submitted_at: ts(0, 8, 50), log: [], answers: ans({ q3_positionsApplied: "Stylist", q5_name: "Jasmine Ortiz", q191_email: "jasmine@example.com", q9_cell: "(919) 555-0142", q193_instagramHandle: "@jas.hair", q10_areYou10: "Full Time", q123_cosmetologySchool: "Aveda Institute", q187_graduatedyesno187: "Yes", q55_employer: "Studio 9", q159_jobTitle159: "Stylist", q136_reasonFor136: "Looking for more education" }) },
+    { id: id("ap"), submission_id: "demo-2", name: "Brooke Lane", position: "Front desk", phone: "(919) 555-0177", email: "brooke@example.com", status: "no_answer", submitted_at: ts(3, 13, 0), answers: ans({ q3_positionsApplied: "Front desk", q5_name: "Brooke Lane", q10_areYou10: "Part Time", q17_whatLanguages: "Spanish" }),
+      log: [{ what: "Called – no answer", by: RILEY, at: ts(2, 14, 15) }, { what: "Called – no answer", by: ME, at: ts(1, 10, 5) }] },
+    { id: id("ap"), submission_id: "demo-3", name: "Mia Chen", position: "Stylist, Assistant", phone: "(984) 555-0110", email: "mia@example.com", status: "interview", interview_at: ts(-2, 11, 0), submitted_at: ts(5, 18, 0), notes: "Graduated in May. Great color portfolio on Instagram.",
+      answers: ans({ q3_positionsApplied: "Stylist, Assistant", q5_name: "Mia Chen", q10_areYou10: "Full Time", q123_cosmetologySchool: "Paul Mitchell", q187_graduatedyesno187: "Yes", q55_employer: "Great Clips", q159_jobTitle159: "Stylist", q136_reasonFor136: "Want a boutique salon" }),
+      log: [{ what: "Spoke to", by: ME, at: ts(4, 16, 0) }, { what: "Interview scheduled", by: ME, at: ts(4, 16, 2) }] },
+    { id: id("ap"), submission_id: "demo-4", name: "Daniel Reyes", position: "Assistant", phone: "(919) 555-0188", email: "daniel@example.com", status: "hired", submitted_at: ts(20, 12, 0), answers: ans({ q3_positionsApplied: "Assistant", q5_name: "Daniel Reyes" }), log: [{ what: "Spoke to", by: SAM, at: ts(19, 10, 0) }, { what: "Hired", by: SAM, at: ts(12, 16, 0) }] },
+  ];
+
+  const staff_writeups = [
+    { id: id("wu"), staff_member: "Noah Kim", incident_date: day(2), category: "Attendance", level: "Documented verbal warning", policy: "Punctuality (p. 7)",
+      description: "Arrived at 9:20 for a 9:00 shift; first guest was booked at 9:30. Second late arrival this month (also on the 3rd).",
+      notes: "Noah said traffic on I-40. We talked about leaving earlier.", action_plan: "Arrive by 8:45 for every shift for the next 30 days. Another late arrival in that time moves to a written warning.",
+      actions: [{ task: "Arrive by 8:45 every shift for 30 days", due: day(-28), done: false }, { task: "Check in with Jordan at 2 weeks", due: day(-12), done: false }],
+      review_date: day(-28), witnesses: null, created_by: ME, created_at: ts(2, 17, 0) },
+  ];
+
+  return {
+    staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
+    announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
+    _handbooks: [{ name: "Demo_Salon_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
+  };
+};
+
+</script>
+<script>
+/* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
+   Nothing leaves this browser. "Reset demo" puts the sample data back. */
+(function () {
+  const KEY = "loopdDemoDB_v2";
+  const DEMO_EMAIL = "jordan@demosalon.example";
+  const now = () => new Date().toISOString();
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+  let DB = null;
+  try { DB = JSON.parse(localStorage.getItem(KEY) || "null"); } catch { DB = null; }
+  if (!DB) DB = window.__demoSeed(DEMO_EMAIL);
+  const fileUrls = {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch {} };
+  const listeners = [];
+  const fire = () => { save(); listeners.forEach(f => { try { f({}); } catch {} }); };
+  const CONFLICT = { followups: "log_id", resolutions: "incident_id", staff: "email" };
+  const roleOf = e => (DB.staff.find(s => s.email === e) || {}).role || "stylist";
+  const cmp = (a, b) => (a === b ? 0 : a == null ? -1 : b == null ? 1 : a < b ? -1 : 1);
+  const lit = v => { v = String(v).replace(/^"|"$/g, ""); return v === "true" ? true : v === "false" ? false : v === "null" ? null : v; };
+
+  function withDefaults(t, r) {
+    r.id = r.id || uid();
+    r.created_at = r.created_at || now();
+    if (!("created_by" in r) && t !== "staff" && t !== "supply_items") r.created_by = DEMO_EMAIL;
+    if (t === "time_off") { r.status = r.status || "pending"; r.role = r.role || roleOf(r.created_by); }
+    if (t === "one_on_ones") r.status = r.status || "pending";
+    if (t === "todos") r.done = r.done || false;
+    if (t === "supply_needs") { r.requested_at = r.requested_at || now(); r.bought = r.bought || false; }
+    if (t === "supply_items") r.active = r.active !== false;
+    if (t === "goal_sheets") r.updated_at = r.updated_at || now();
+    if (t === "daily_log" || t === "incidents") r.deleted_at = r.deleted_at || null;
+    if (t === "staff_writeups") r.actions = r.actions || [];
+    if (t === "applicants") { r.status = r.status || "new"; r.log = r.log || []; r.submitted_at = r.submitted_at || now(); }
+    return r;
+  }
+
+  class Q {
+    constructor(t) { this.t = t; this.fs = []; this.os = []; this.lim = null; this.op = "select"; this.val = null; this.ret = false; this.one = null; this.opts = {}; }
+    select() { if (this.op !== "select") this.ret = true; return this; }
+    eq(c, v) { this.fs.push(r => r[c] === v); return this; }
+    neq(c, v) { this.fs.push(r => r[c] !== v); return this; }
+    gte(c, v) { this.fs.push(r => r[c] != null && r[c] >= v); return this; }
+    lte(c, v) { this.fs.push(r => r[c] != null && r[c] <= v); return this; }
+    gt(c, v) { this.fs.push(r => r[c] != null && r[c] > v); return this; }
+    lt(c, v) { this.fs.push(r => r[c] != null && r[c] < v); return this; }
+    in(c, a) { this.fs.push(r => a.includes(r[c])); return this; }
+    is(c, v) { this.fs.push(r => (v === null ? r[c] == null : r[c] === v)); return this; }
+    not(c, op, v) { if (op === "is" && v === null) this.fs.push(r => r[c] != null); return this; }
+    or(s) {
+      const parts = s.split(",").map(p => {
+        const m = p.match(/^(\w+)\.(eq|gte|lte|is)\.(.*)$/); if (!m) return () => false;
+        const [, c, op, raw] = m, v = lit(raw);
+        return r => op === "eq" ? r[c] === v : op === "is" ? (v === null ? r[c] == null : r[c] === v) : op === "gte" ? r[c] != null && r[c] >= v : r[c] != null && r[c] <= v;
+      });
+      this.fs.push(r => parts.some(f => f(r))); return this;
+    }
+    order(c, o) { this.os.push([c, !(o && o.ascending === false)]); return this; }
+    limit(n) { this.lim = n; return this; }
+    range() { return this; }
+    single() { this.one = "single"; return this; }
+    maybeSingle() { this.one = "maybe"; return this; }
+    insert(v) { this.op = "insert"; this.val = v; return this; }
+    update(v) { this.op = "update"; this.val = v; return this; }
+    upsert(v, o) { this.op = "upsert"; this.val = v; this.opts = o || {}; return this; }
+    delete() { this.op = "delete"; return this; }
+    then(res, rej) { let out; try { out = this.run(); } catch (e) { out = { data: null, error: { message: String(e && e.message || e) } }; } return Promise.resolve(out).then(res, rej); }
+    run() {
+      const T = (DB[this.t] = DB[this.t] || []);
+      const match = r => this.fs.every(f => f(r));
+      let data = null;
+      if (this.op === "select") {
+        data = T.filter(match).map(r => JSON.parse(JSON.stringify(r)));
+        for (const [c, asc] of [...this.os].reverse()) data.sort((a, b) => (asc ? cmp(a[c], b[c]) : cmp(b[c], a[c])));
+        if (this.lim != null) data = data.slice(0, this.lim);
+      } else if (this.op === "insert") {
+        const rows = (Array.isArray(this.val) ? this.val : [this.val]).map(r => withDefaults(this.t, JSON.parse(JSON.stringify(r))));
+        T.push(...rows); data = rows.map(r => ({ ...r }));
+      } else if (this.op === "update") {
+        data = [];
+        T.forEach(r => { if (match(r)) { Object.assign(r, JSON.parse(JSON.stringify(this.val))); data.push({ ...r }); } });
+      } else if (this.op === "upsert") {
+        const key = this.opts.onConflict || CONFLICT[this.t] || "id";
+        data = [];
+        (Array.isArray(this.val) ? this.val : [this.val]).forEach(row => {
+          const ex = T.find(x => x[key] === row[key]);
+          if (ex) { if (!this.opts.ignoreDuplicates) Object.assign(ex, row); data.push({ ...ex }); }
+          else { const r = withDefaults(this.t, { ...row }); T.push(r); data.push({ ...r }); }
+        });
+      } else if (this.op === "delete") {
+        data = T.filter(match); DB[this.t] = T.filter(r => !match(r));
+      }
+      if (this.op !== "select") setTimeout(fire, 0);
+      if (this.one) {
+        if (!data || !data.length) return this.one === "single" ? { data: null, error: { message: "not found" } } : { data: null, error: null };
+        return { data: data[0], error: null };
+      }
+      return { data: this.op === "select" || this.ret ? data : null, error: null };
+    }
+  }
+
+  const session = { user: { email: DEMO_EMAIL, id: "demo-user" }, access_token: "demo" };
+  const client = {
+    from: t => new Q(t),
+    rpc: async (name, a) => {
+      if (name === "my_role") return { data: roleOf(DEMO_EMAIL), error: null };
+      if (name === "is_invited") return { data: true, error: null };
+      if (name === "lp_apply_info") {
+        const ap = applyGet(); if (!ap.open) return { data: null, error: null };
+        return { data: { id: "demo", name: "Demo Salon", city: "Sample data", logo: null, positions: ap.positions, intro: ap.intro || null }, error: null };
+      }
+      if (name === "lp_apply") {
+        const p = a.p || {}; if (!applyGet().open) return { data: null, error: { message: "APPLY_CLOSED" } };
+        const ans = {}; ["license", "experience", "availability", "start", "instagram", "heard", "about", "resume_file", "resume_name"].forEach(k => { if (p[k]) ans[k] = p[k]; });
+        DB.applicants = DB.applicants || [];
+        DB.applicants.push(withDefaults("applicants", { name: p.name, position: p.position || null, phone: p.phone || null, email: p.email || null, answers: ans, submission_id: "web-" + uid(), created_by: null }));
+        setTimeout(fire, 0); return { data: true, error: null };
+      }
+      if (name === "archive_entry") {
+        const t = a.p_kind === "d" ? "daily_log" : "incidents";
+        const r = (DB[t] || []).find(x => x.id === a.p_id);
+        if (r) r.deleted_at = a.p_restore ? null : now();
+        setTimeout(fire, 0); return { data: !!r, error: null };
+      }
+      return { data: null, error: null };
+    },
+    auth: {
+      getSession: async () => ({ data: { session } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signOut: async () => ({ error: null }),
+      updateUser: async () => ({ data: {}, error: null }),
+      signInWithPassword: async () => ({ data: { session }, error: null }),
+      signUp: async () => ({ data: { session }, error: null }),
+    },
+    storage: {
+      from: () => ({
+        upload: async (path, blob) => {
+          fileUrls[path] = URL.createObjectURL(blob);
+          if (path.startsWith("resumes/") && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
+            const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(blob); });
+            if (url) { DB._fileMap = DB._fileMap || {}; DB._fileMap[path] = url; save(); }
+          }
+          if (path.startsWith("handbook/")) { DB._handbooks = DB._handbooks || []; DB._handbooks.unshift({ name: path.slice(9), created_at: now() }); save(); }
+          return { data: { path }, error: null };
+        },
+        createSignedUrls: async paths => ({ data: paths.map(p => ({ path: p, signedUrl: fileUrls[p] || (DB._fileMap || {})[p] || null })), error: null }),
+        createSignedUrl: async p => ({ data: { signedUrl: fileUrls[p] || (DB._fileMap || {})[p] || "demo-handbook.pdf" }, error: null }),
+        list: async folder => ({ data: folder === "handbook" ? (DB._handbooks || []).filter(h => fileUrls["handbook/" + h.name] || h.seed) : [], error: null }),
+        remove: async () => ({ data: [], error: null }),
+      }),
+    },
+    channel: () => { const ch = { on(_e, _f, cb) { if (cb) listeners.push(cb); return ch; }, subscribe() { return ch; } }; return ch; },
+  };
+  const applyGet = () => Object.assign({ open: true, positions: ["Stylist", "Assistant", "Front desk"], intro: "" }, DB._apply || {});
+  window.__demoApplyGet = applyGet;
+  window.__demoApplySet = v => { DB._apply = v; save(); };
+  // the demo apply page (another tab) adds applicants: show them here right away
+  window.addEventListener("storage", e => {
+    if (e.key !== KEY || !e.newValue) return;
+    try { DB = JSON.parse(e.newValue); } catch { return; }
+    listeners.forEach(f => { try { f({}); } catch {} });
+  });
+  window.supabase = { createClient: () => client };
+  window.__demoReset = () => { try { localStorage.removeItem(KEY); } catch {} location.reload(); };
+})();
+
+</script>
+<style>
+:root{
+  --navy:#16213e; --blue:#2f6be0; --peri:#5a56d6; --lav:#ecebfc; --lav2:#f6f5fe;
+  --bg:#f5f6fb; --card:#ffffff; --ink:#16213e; --muted:#5f6b85; --line:#dfe3ef; --ok:#1f8a5b; --err:#c0392b;
+  --display:"Poppins",system-ui,sans-serif; --body:"Figtree",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+body.embed{background:transparent}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 40px}
+body.embed .wrap{padding:4px 2px 8px;max-width:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 22px;box-shadow:0 1px 2px rgba(22,33,62,.04),0 8px 30px rgba(22,33,62,.06)}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.top img{height:54px;max-width:140px;object-fit:contain}
+.mono{width:54px;height:54px;border-radius:14px;background:var(--lav);color:var(--peri);font:700 1.4rem var(--display);display:grid;place-items:center;flex:none}
+.eyebrow{display:inline-block;background:var(--lav);color:var(--peri);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px}
+h1{font:700 1.6rem/1.2 var(--display);margin:6px 0 2px}
+.city{color:var(--muted);margin:0}
+.intro{margin:14px 0 0;white-space:pre-wrap}
+form{display:flex;flex-direction:column;gap:18px;margin-top:22px}
+fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:14px}
+legend{font:600 1.02rem var(--display);padding:0;margin-bottom:12px;color:var(--navy)}
+.sec{border-top:1px solid var(--line);padding-top:20px}
+label,.lbl{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.93rem}
+.opt{font-weight:500;color:var(--muted);font-size:.85rem}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;width:100%;min-height:48px}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--peri);box-shadow:0 0 0 3px rgba(90,86,214,.16)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{flex-direction:row;align-items:center;gap:0;font-weight:600}
+.chips input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.chips span{border:1.5px solid var(--line);border-radius:999px;padding:10px 16px;background:#fff;cursor:pointer;transition:all .15s}
+.chips input:checked+span{background:var(--peri);border-color:var(--peri);color:#fff}
+.chips input:focus-visible+span{box-shadow:0 0 0 3px rgba(90,86,214,.25)}
+.drop{border:2px dashed #c9cbef;background:var(--lav2);border-radius:16px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.drop:hover,.drop.over{border-color:var(--peri);background:var(--lav)}
+.drop svg{color:var(--peri)}
+.drop b{font-size:1rem}
+.drop .hint{color:var(--muted);font-size:.85rem;font-weight:500}
+.file{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.file .ico{width:40px;height:40px;border-radius:10px;background:var(--lav);color:var(--peri);display:grid;place-items:center;font:700 .72rem var(--display);flex:none}
+.file .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .sz{color:var(--muted);font-weight:500;font-size:.82rem}
+.x{background:none;border:0;color:var(--muted);font:600 .9rem var(--body);cursor:pointer;padding:8px;text-decoration:underline}
+.trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+button.go{font:600 1.05rem var(--display);background:linear-gradient(135deg,var(--blue),var(--peri));color:#fff;border:0;border-radius:14px;padding:15px 18px;min-height:54px;cursor:pointer;box-shadow:0 6px 18px rgba(90,86,214,.28)}
+button.go:disabled{opacity:.6;cursor:default}
+.err{color:var(--err);font-weight:600;font-size:.92rem;min-height:1.2em}
+.fine{color:var(--muted);font-size:.8rem;text-align:center;margin:0}
+.done{text-align:center;padding:18px 4px}
+.done .tick{width:64px;height:64px;border-radius:50%;background:#e6f4ed;color:var(--ok);display:grid;place-items:center;margin:0 auto 10px;font-size:2rem}
+.done h2{font:700 1.4rem var(--display);margin:0 0 6px}
+.done p{color:var(--muted);margin:0}
+.foot{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:.78rem;margin-top:16px}
+.foot img{height:16px}
+.foot a{color:inherit}
+.closed{text-align:center;color:var(--muted);padding:12px 0}
+.demo-bar{background:var(--peri);color:#fff;font-size:.85rem;text-align:center;padding:9px 14px}
+.demo-bar a{color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="demo-bar" id="demoBar" hidden><b>Loopd-In demo.</b> Fill this out like an applicant, then <a href="./?tab=apps">open the demo's Applicants tab</a> to see it arrive.</div>
+<div class="wrap">
+  <div class="card" id="card">
+    <p class="closed" id="loading">Loading…</p>
+  </div>
+  <div class="foot"><span>Applications powered by</span><a href="https://lbooger43.github.io/loopd-in/pricing.html" target="_blank" rel="noopener"><b>Loopd-In</b></a></div>
+</div>
+
+<script>
+const DEMO = true;
+const SUPABASE_URL = "https://nalechcrehlzgghtcnog.supabase.co";
+const SUPABASE_KEY = "sb_publishable_3RlAz9h8qeYt5lE1uIgOug_c9z6bFVn";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const params = new URLSearchParams(location.search);
+const slug = (params.get("s") || "").trim();
+if (params.get("embed") === "1") document.body.classList.add("embed");
+if (DEMO) $("demoBar").hidden = false;
+const started = Date.now();
+let SALON = null, FILE = null;
+const MAX = 10 * 1024 * 1024;
+const OK_TYPES = /^(application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|image\/(jpeg|png|webp|heic))$/;
+
+/* keep an embedded copy the right height on the salon's website */
+const sendHeight = () => { if (parent !== window) parent.postMessage({ loopdinHeight: document.documentElement.scrollHeight }, "*"); };
+new ResizeObserver(sendHeight).observe(document.body);
+
+function closed(msg) {
+  $("card").innerHTML = `<div class="closed"><div class="mono" style="margin:0 auto 10px">✂︎</div><b style="color:var(--ink)">${esc(msg)}</b><p style="margin:6px 0 0">Please check with the salon directly.</p></div>`;
+}
+
+const icon = `<svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/></svg>`;
+
+function render(logoUrl) {
+  const s = SALON, pos = (s.positions && s.positions.length ? s.positions : ["Stylist", "Assistant", "Front desk"]);
+  const head = `<div class="top">${logoUrl ? `<img src="${esc(logoUrl)}" alt="${esc(s.name)}">` : `<div class="mono">${esc((s.name || "S")[0].toUpperCase())}</div>`}
+      <div><span class="eyebrow">We're hiring</span><h1>Join the ${esc(s.name)} team</h1>${s.city ? `<p class="city">${esc(s.city)}</p>` : ""}</div></div>
+    ${s.intro ? `<p class="intro">${esc(s.intro)}</p>` : ""}`;
+  $("card").innerHTML = head + `
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>What job are you applying for?</legend>
+      <div class="chips" role="radiogroup" aria-label="Position">${pos.map((p, i) => `<label><input type="radio" name="position" value="${esc(p)}" ${pos.length === 1 ? "checked" : ""}><span>${esc(p)}</span></label>`).join("")}</div>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>About you</legend>
+      <label>Full name<input name="name" autocomplete="name" maxlength="100" required></label>
+      <div class="two">
+        <label>Phone<input name="phone" type="tel" autocomplete="tel" maxlength="40" required></label>
+        <label>Email<input name="email" type="email" autocomplete="email" maxlength="120" required></label>
+      </div>
+      <label>Instagram <span class="opt">optional, so we can see your work</span><input name="instagram" maxlength="100" placeholder="@yourhandle" autocapitalize="off"></label>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Your experience</legend>
+      <div class="two">
+        <label>License<select name="license">
+          <option value="">Choose one</option><option>Licensed</option><option>Licensed in another state</option><option>In cosmetology school</option><option>Not licensed (not needed for this job)</option>
+        </select></label>
+        <label>Years in the industry<select name="experience">
+          <option value="">Choose one</option><option>New to the industry</option><option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
+        </select></label>
+      </div>
+      <label>Which days and hours can you work?<textarea name="availability" maxlength="500" style="min-height:72px" placeholder="e.g. Tue–Sat, can stay until 8pm"></textarea></label>
+      <div class="two">
+        <label>When could you start?<input name="start" maxlength="100" placeholder="e.g. 2 weeks' notice"></label>
+        <label>How did you hear about us?<select name="heard">
+          <option value="">Choose one</option><option>Instagram</option><option>Facebook</option><option>Indeed</option><option>Our website</option><option>A friend or someone who works here</option><option>Cosmetology school</option><option>Walked by / saw a sign</option><option>Other</option>
+        </select></label>
+      </div>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Résumé <span class="opt" style="font-family:var(--body)">optional</span></legend>
+      <div id="dropWrap"></div>
+      <input type="file" id="fileIn" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" hidden>
+    </fieldset>
+    <fieldset class="sec">
+      <legend>Anything else?</legend>
+      <label><span>Tell us about yourself <span class="opt">optional</span></span><textarea name="about" maxlength="3000" placeholder="Your specialties, what you're looking for, why you'd like to work here…"></textarea></label>
+    </fieldset>
+    <div class="trap" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="err" id="err" role="alert"></div>
+    <button class="go" type="submit" id="go">Send my application</button>
+    <p class="fine">Your application goes only to ${esc(s.name)}'s managers.</p>
+  </form>`;
+  drawDrop();
+  const fi = $("fileIn");
+  fi.addEventListener("change", () => { if (fi.files[0]) pick(fi.files[0]); fi.value = ""; });
+  $("f").addEventListener("submit", send);
+  sendHeight();
+}
+
+function drawDrop() {
+  const w = $("dropWrap");
+  if (FILE) {
+    const ext = (FILE.name.split(".").pop() || "").slice(0, 4).toUpperCase();
+    const kb = FILE.size < 1024 * 1024 ? Math.max(1, Math.round(FILE.size / 1024)) + " KB" : (FILE.size / 1024 / 1024).toFixed(1) + " MB";
+    w.innerHTML = `<div class="file"><div class="ico">${esc(ext || "FILE")}</div><div class="nm">${esc(FILE.name)}<div class="sz">${kb} · ready to send</div></div><button type="button" class="x" id="rm">Remove</button></div>`;
+    $("rm").onclick = () => { FILE = null; drawDrop(); };
+  } else {
+    w.innerHTML = `<div class="drop" id="drop" role="button" tabindex="0" aria-label="Add your résumé">${icon}<b>Drop your résumé here</b><span class="hint">or tap to choose a file · PDF, Word or a photo · up to 10 MB</span></div>`;
+    const d = $("drop");
+    d.onclick = () => $("fileIn").click();
+    d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fileIn").click(); } };
+    ["dragenter", "dragover"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.remove("over"); }));
+    d.addEventListener("drop", e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) pick(f); });
+  }
+  sendHeight();
+}
+/* a file dropped anywhere on the page counts too */
+["dragover", "drop"].forEach(ev => window.addEventListener(ev, e => { e.preventDefault(); if (ev === "drop" && !FILE && e.dataTransfer.files[0] && $("dropWrap")) pick(e.dataTransfer.files[0]); }));
+
+function typeOf(f) {
+  if (f.type) return f.type;
+  const ext = (f.name.split(".").pop() || "").toLowerCase();
+  return { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", heic: "image/heic", webp: "image/webp" }[ext] || "";
+}
+function pick(f) {
+  $("err").textContent = "";
+  if (!OK_TYPES.test(typeOf(f))) { $("err").textContent = "That file type won't work. Please use a PDF, a Word document or a photo."; return; }
+  if (f.size > MAX) { $("err").textContent = "That file is over 10 MB. Try a smaller PDF or a photo."; return; }
+  FILE = f; drawDrop();
+}
+
+async function send(e) {
+  e.preventDefault();
+  const f = e.target, v = n => (f.elements[n] ? f.elements[n].value : "").trim(), err = t => { $("err").textContent = t; sendHeight(); };
+  err("");
+  const position = (f.querySelector("input[name=position]:checked") || {}).value || "";
+  if (!position) return err("Pick the job you're applying for.");
+  if (!v("name")) { f.elements.name.focus(); return err("Please add your name."); }
+  if (!v("phone")) { f.elements.phone.focus(); return err("Please add your phone number."); }
+  if (!/^\S+@\S+\.\S+$/.test(v("email"))) { f.elements.email.focus(); return err("Please check your email address."); }
+  if (v("website")) return thanks(v("name"));   // a bot filled the hidden box
+  const go = $("go"); go.disabled = true; go.textContent = FILE ? "Uploading your résumé…" : "Sending…";
+  let resume_file = null;
+  if (FILE) {
+    const ext = ((FILE.name.split(".").pop() || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf").slice(0, 5);
+    const rel = `resumes/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 13)}.${ext}`;
+    const up = await db.storage.from("lp-files").upload(DEMO ? rel : SALON.id + "/" + rel, FILE, { contentType: typeOf(FILE), upsert: false });
+    if (up.error) { go.disabled = false; go.textContent = "Send my application"; return err("Your résumé didn't upload. Check your connection and try again, or remove it and send without it."); }
+    resume_file = rel;
+    go.textContent = "Sending…";
+  }
+  const p = { position, name: v("name"), phone: v("phone"), email: v("email"), instagram: v("instagram"), license: v("license"), experience: v("experience"),
+    availability: v("availability"), start: v("start"), heard: v("heard"), about: v("about"), resume_file, resume_name: FILE ? FILE.name : null, ms: Date.now() - started };
+  const { error } = await db.rpc("lp_apply", { p_slug: slug, p });
+  if (error) {
+    go.disabled = false; go.textContent = "Send my application";
+    const m = String(error.message || "");
+    if (/ALREADY/.test(m)) return thanks(v("name"), true);
+    if (/TOO_FAST/.test(m)) return err("That was quick! Take a second to look it over, then send it again.");
+    if (/BUSY/.test(m)) return err("We're getting a lot of applications right now. Please try again in an hour.");
+    if (/APPLY_CLOSED/.test(m)) return err("This salon isn't taking applications online right now.");
+    return err("Something went wrong sending your application. Please try again.");
+  }
+  thanks(v("name"));
+}
+function thanks(name, again) {
+  const first = String(name || "").split(" ")[0];
+  $("card").innerHTML = `<div class="done"><div class="tick">✓</div><h2>Thanks${first ? ", " + esc(first) : ""}!</h2>
+    <p>${again ? "We already have your application from today, so you're all set." : `${esc(SALON.name)} got your application${FILE ? " and résumé" : ""}.`} A manager will reach out if it looks like a fit.</p></div>`;
+  scrollTo({ top: 0, behavior: "smooth" }); sendHeight();
+}
+
+(async function boot() {
+  if (!slug && !DEMO) return closed("This apply link is missing the salon's name.");
+  const { data, error } = await db.rpc("lp_apply_info", { p_slug: slug });
+  if (error || !data) return closed("This salon isn't taking applications online right now.");
+  SALON = data;
+  document.title = "Apply · " + SALON.name;
+  let logoUrl = null;
+  if (SALON.logo && !DEMO) {
+    const { data: u } = await db.storage.from("lp-files").createSignedUrl(SALON.id + "/" + SALON.logo, 3600);
+    logoUrl = u && u.signedUrl;
+  }
+  render(logoUrl);
+})();
+</script>
+</body>
+</html>
