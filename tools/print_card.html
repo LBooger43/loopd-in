@@ -1,0 +1,22 @@
+      <div class="quick" id="prBox" hidden>
+        <div class="row"><h2 class="h2" id="prHead">🖨 To print</h2><button type="button" class="link" id="prNew" hidden>+ Send to print</button></div>
+        <form id="prForm" hidden style="display:flex;flex-direction:column;gap:10px">
+          <p class="meta" style="margin:0">From Canva: Share → Download → <b>PDF Print</b>, then attach it here. A PDF or a picture both work.</p>
+          <label class="pr-drop" id="pr-drop">
+            <input type="file" id="pr-file" accept="application/pdf,image/*" style="position:absolute;opacity:0;width:1px;height:1px">
+            <span id="pr-fileTxt"><b>Choose the file to print</b><br><span class="meta">or drag it here · PDF or image · up to 10 MB</span></span>
+          </label>
+          <label>What is it?<input id="pr-title" maxlength="120" placeholder="e.g. November color special flyer"></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label>Copies<input id="pr-copies" type="number" min="1" max="1000" value="1" inputmode="numeric"></label>
+            <label>Paper<select id="pr-paper"><option>Regular paper</option><option>Cardstock</option><option>Color paper</option><option>Photo paper</option><option>Label / sticker sheets</option></select></label>
+          </div>
+          <label>Needed<select id="pr-when"><option value="open_tomorrow">Before we open tomorrow</option><option value="open_today">Before we open today</option><option value="day">By a certain day</option><option value="any">Whenever</option></select></label>
+          <label id="pr-dateWrap" hidden>Day<input id="pr-date" type="date"></label>
+          <label>Note for the front desk <span class="meta">(optional)</span><input id="pr-note" maxlength="1000" placeholder="e.g. Cut in half; put a stack at checkout and in the shampoo area"></label>
+          <div class="form-actions"><span class="form-err" id="pr-err"></span><button type="button" class="ghost" id="pr-cancel">Cancel</button><button type="submit" class="primary" id="pr-send">Send to front desk</button></div>
+        </form>
+        <div class="feed" id="prList"></div>
+        <button type="button" class="link" id="prDoneToggle" hidden></button>
+        <div class="feed" id="prDone" hidden></div>
+      </div>

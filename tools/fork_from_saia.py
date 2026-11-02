@@ -112,7 +112,7 @@ $("startForm").addEventListener("submit", async e => {
 rep('''/* ---------- tabs & preview ---------- */''', r'''/* ---------- plans ---------- */
 const PLAN_ORDER = ["front_desk", "team", "owner"];
 const PLAN_INFO = {
-  front_desk: { price: "$29", blurb: "The digital logbook for the front desk.", items: ["Daily log with manager follow-ups", "Client incidents", "Supplies shopping list", "Team chat, announcements, issue reports", "Phone notifications"] },
+  front_desk: { price: "$29", blurb: "The digital logbook for the front desk.", items: ["Daily log with manager follow-ups", "Client incidents", "Supplies shopping list", "Print queue for flyers and ads", "Team chat, announcements, issue reports", "Phone notifications"] },
   team: { price: "$59", blurb: "Everything to run your team.", items: ["Everything in Front Desk", "Time off requests with your own limits", "1:1s with goal sheets and goal files", "Employee handbook with sign-off", "Write-ups with signatures"] },
   owner: { price: "$99", blurb: "For owners who are growing and hiring.", items: ["Everything in Team", "Private staff notes and manager log", "Applicant tracking with call checkoffs and interviews", "Your salon's logo in the app", "Personal setup call"] },
 };

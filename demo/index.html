@@ -159,6 +159,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 .wu-sec{display:flex;flex-direction:column;gap:2px}.wu-sec b{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 #printArea{display:none}
 @media print{body{background:#fff}.wrap{display:none!important}#printArea{display:block!important;color:#000;font-family:Figtree,sans-serif;padding:24px}#printArea img{max-width:240px;max-height:100px}#printArea h1{font-size:22px;margin:0 0 4px}#printArea h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 4px}#printArea p{margin:0;white-space:pre-wrap}#printArea table{border-collapse:collapse;width:100%}#printArea td{border:1px solid #999;padding:4px 6px;font-size:12px;vertical-align:top}#printArea .gp{font-family:Georgia,"Times New Roman",serif;font-size:14px;max-width:640px;margin:0 auto}#printArea .gp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}#printArea .gp-head img{width:76px;height:76px}#printArea .gp-head>div{min-width:180px}#printArea .gp-head>div:last-child{text-align:right}#printArea .gp-title{font-family:inherit;text-align:center;font-weight:400;font-size:18px;margin:4px 0 22px}#printArea .gp-sec{margin-bottom:18px}#printArea .gp-ln{border-bottom:1px solid #888;min-height:28px;line-height:20px;padding-top:8px;white-space:pre-wrap}#printArea .gp-row{display:flex;gap:40px;margin:0 0 16px}#printArea .gp-row>div{flex:1}#printArea .gp-line{display:inline-block;min-width:150px;border-bottom:1px solid #888}#printArea .gp-help{margin-top:26px;font-size:12.5px;line-height:1.6}}
+.pr-drop{position:relative;display:block;border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:var(--accent-soft, #f4f3fe)}.pr-drop.over{border-color:var(--accent)}
 #pushBox{display:none!important}#logout{display:none!important}
 </style>
 <script>
@@ -292,10 +293,20 @@ window.__demoSeed = function (ME) {
       review_date: day(-28), witnesses: null, created_by: ME, created_at: ts(2, 17, 0) },
   ];
 
+  const print_jobs = [
+    { id: id("pr"), title: "Fall color special flyer", file_path: "print/demo-flyer.png", file_name: "Fall color special.png", file_type: "image/png", copies: 25, paper: "Cardstock",
+      due_kind: "open", due_date: day(0), note: "Put a stack at checkout and a few in the shampoo area.", status: "pending", created_by: ME, created_at: ts(1, 20, 15) },
+    { id: id("pr"), title: "Holiday gift card sign", file_path: "print/demo-sign.png", file_name: "Gift card sign.png", file_type: "image/png", copies: 2, paper: "Color paper",
+      due_kind: "day", due_date: day(-2), note: "One for the front window, one for the desk.", status: "pending", created_by: ME, created_at: ts(0, 7, 40) },
+    { id: id("pr"), title: "Referral cards", file_path: "print/demo-flyer.png", file_name: "Referral cards.png", file_type: "image/png", copies: 50, paper: "Cardstock",
+      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: RILEY, printed_at: ts(2, 9, 10), created_by: ME, created_at: ts(3, 21, 0) },
+  ];
+
   return {
-    staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
+    print_jobs, staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
     announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
     _handbooks: [{ name: "Demo_Salon_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
+    _fileMap: { "print/demo-flyer.png": "demo-flyer.png", "print/demo-sign.png": "demo-sign.png" },
   };
 };
 
@@ -304,7 +315,7 @@ window.__demoSeed = function (ME) {
 /* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
    Nothing leaves this browser. "Reset demo" puts the sample data back. */
 (function () {
-  const KEY = "loopdDemoDB_v2";
+  const KEY = "loopdDemoDB_v3";
   const DEMO_EMAIL = "jordan@demosalon.example";
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
@@ -437,7 +448,7 @@ window.__demoSeed = function (ME) {
       from: () => ({
         upload: async (path, blob) => {
           fileUrls[path] = URL.createObjectURL(blob);
-          if (path.startsWith("resumes/") && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
+          if ((path.startsWith("resumes/") || path.startsWith("print/")) && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
             const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(blob); });
             if (url) { DB._fileMap = DB._fileMap || {}; DB._fileMap[path] = url; save(); }
           }
@@ -530,6 +541,28 @@ window.__demoSeed = function (ME) {
 
     <!-- DAILY LOG -->
     <section id="view-daily" style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick" id="prBox" hidden>
+        <div class="row"><h2 class="h2" id="prHead">🖨 To print</h2><button type="button" class="link" id="prNew" hidden>+ Send to print</button></div>
+        <form id="prForm" hidden style="display:flex;flex-direction:column;gap:10px">
+          <p class="meta" style="margin:0">From Canva: Share → Download → <b>PDF Print</b>, then attach it here. A PDF or a picture both work.</p>
+          <label class="pr-drop" id="pr-drop">
+            <input type="file" id="pr-file" accept="application/pdf,image/*" style="position:absolute;opacity:0;width:1px;height:1px">
+            <span id="pr-fileTxt"><b>Choose the file to print</b><br><span class="meta">or drag it here · PDF or image · up to 10 MB</span></span>
+          </label>
+          <label>What is it?<input id="pr-title" maxlength="120" placeholder="e.g. November color special flyer"></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label>Copies<input id="pr-copies" type="number" min="1" max="1000" value="1" inputmode="numeric"></label>
+            <label>Paper<select id="pr-paper"><option>Regular paper</option><option>Cardstock</option><option>Color paper</option><option>Photo paper</option><option>Label / sticker sheets</option></select></label>
+          </div>
+          <label>Needed<select id="pr-when"><option value="open_tomorrow">Before we open tomorrow</option><option value="open_today">Before we open today</option><option value="day">By a certain day</option><option value="any">Whenever</option></select></label>
+          <label id="pr-dateWrap" hidden>Day<input id="pr-date" type="date"></label>
+          <label>Note for the front desk <span class="meta">(optional)</span><input id="pr-note" maxlength="1000" placeholder="e.g. Cut in half; put a stack at checkout and in the shampoo area"></label>
+          <div class="form-actions"><span class="form-err" id="pr-err"></span><button type="button" class="ghost" id="pr-cancel">Cancel</button><button type="submit" class="primary" id="pr-send">Send to front desk</button></div>
+        </form>
+        <div class="feed" id="prList"></div>
+        <button type="button" class="link" id="prDoneToggle" hidden></button>
+        <div class="feed" id="prDone" hidden></div>
+      </div>
       <form class="quick" id="dailyForm" style="display:flex">
         <label for="d-note">What happened?</label>
         <div class="pbox"><textarea id="d-note" required maxlength="4000" placeholder="e.g. UPS dropped off 3 boxes, driver needed a signature"></textarea><button type="button" class="cam" data-ph="d" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-d" accept="image/*" hidden></div>
@@ -1087,13 +1120,15 @@ async function loadAll() {
   arch = { d: rad.data || [], l: ral.data || [] };
   anns = ra.data || []; msgs = rm.data || []; timeOff = rt.data || []; oos = roo.data || []; goals = rgs.data || []; applicants = rap.data || []; myReports = rr.data || []; supItems = rsi.data || []; supNeeds = rsn.data || [];
   await Promise.all([fetchRange("d"), fetchRange("l")]);
-  await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
+  const rpj = me && (me.role === "manager" || me.role === "front_desk") ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
+  prJobs = rpj.data || []; prReady = !rpj.error;
+  await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
   renderAll();
 }
 let reloadTimer = null;
 const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 400); };
 
-function renderAll() { renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
+function renderAll() { renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
 
 /* ---------- staff write-ups ---------- */
 let writeups = [], wuOpen = null, wuSign = null, wuDel = null, wuPad = null;
@@ -1808,6 +1843,125 @@ $("view-apps").addEventListener("click", async e => {
   apSched = null; if (act === "note") $("foot").textContent = "Notes saved."; loadAll();
 });
 
+/* ---------- print queue: managers send flyers and ads; front desk prints and checks them off ---------- */
+let prJobs = [], prReady = false, prDoneOpen = false, prDel = null, prFile = null, prCleaned = false;
+const PR_MAX = 10 * 1024 * 1024;
+const prCanSee = () => isDesk();
+const prToday = () => daysAgo(0), prTomorrow = () => daysAgo(-1);
+function prDueText(j) {
+  if (j.due_kind === "any" || !j.due_date) return "Whenever";
+  const d = j.due_date === prToday() ? "today" : j.due_date === prTomorrow() ? "tomorrow" : new Date(j.due_date + "T12:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return j.due_kind === "open" ? `Before we open ${d}` : `By ${d}`;
+}
+function prLate(j) {
+  if (j.status !== "pending" || j.due_kind === "any" || !j.due_date) return false;
+  return j.due_date < prToday() || (j.due_kind === "open" && j.due_date === prToday() && new Date().getHours() >= 11);
+}
+const prRank = j => j.due_kind === "any" || !j.due_date ? "9999-12-31" : j.due_date + (j.due_kind === "open" ? "a" : "b");
+function prCard(j) {
+  const url = photoUrls[j.file_path], isImg = /^image\//.test(j.file_type || "");
+  const late = prLate(j), done = j.status === "printed";
+  const head = `<div class="row"><span><span class="name">${esc(j.title)}</span> <span class="tag">${esc(j.copies)} ${j.copies === 1 ? "copy" : "copies"}</span>${j.paper && j.paper !== "Regular paper" ? ` <span class="tag">${esc(j.paper)}</span>` : ""}</span>${done ? `<span class="fu ok">✓ Printed</span>` : late ? `<span class="fu wait">Late</span>` : `<span class="fu">${esc(prDueText(j))}</span>`}</div>`;
+  const thumb = isImg && url ? `<a href="${esc(url)}" target="_blank" rel="noopener"><img class="photo" src="${esc(url)}" alt="${esc(j.title)}" loading="lazy" style="max-height:140px;object-fit:contain;background:#fff"></a>` : "";
+  const meta = done ? `<div class="meta">Printed by ${esc(nameOf(j.printed_by))} · ${esc(stamp(j.printed_at))} · sent by ${esc(nameOf(j.created_by))}</div>`
+    : `<div class="meta">${late ? esc(prDueText(j)) + " · " : ""}Sent by ${esc(nameOf(j.created_by))} · ${esc(stamp(j.created_at))}${j.file_name ? ` · ${esc(j.file_name)}` : ""}</div>`;
+  let acts = "";
+  if (prDel === j.id) acts = `<div class="actions"><span class="meta">Remove this for good?</span><button class="link del" data-pr="del-yes" data-id="${j.id}">Yes, remove</button><button class="link" data-pr="close">No</button></div>`;
+  else if (!done) acts = `<div class="actions">${url ? `<a class="primary" style="text-decoration:none;padding:10px 14px;border-radius:10px" href="${esc(url)}" target="_blank" rel="noopener">🖨 Open to print</a>` : `<span class="meta">Getting the file…</span>`}<button class="link done" data-pr="printed" data-id="${j.id}">✓ Printed</button>${isMgr() ? `<button class="link del" data-pr="del" data-id="${j.id}">Cancel</button>` : ""}</div>`;
+  else acts = `<div class="actions">${url ? `<a class="link" href="${esc(url)}" target="_blank" rel="noopener">Open file</a>` : ""}${isMgr() ? `<button class="link" data-pr="again" data-id="${j.id}">Print again</button><button class="link del" data-pr="del" data-id="${j.id}">Remove</button>` : ""}</div>`;
+  return `<article class="entry" style="--stripe:${done ? "var(--ok)" : late ? "var(--crit)" : "var(--accent)"}">${head}${j.note ? `<div class="note">${esc(j.note)}</div>` : ""}${thumb}${meta}${acts}</article>`;
+}
+function renderPrint() {
+  const box = $("prBox"); if (!box) return;
+  box.hidden = !me || !prCanSee() || !prReady;
+  if (box.hidden) return;
+  $("prNew").hidden = !isMgr() || !$("prForm").hidden;
+  const open = prJobs.filter(j => j.status === "pending").sort((a, b) => prRank(a).localeCompare(prRank(b)) || a.created_at.localeCompare(b.created_at));
+  const done = prJobs.filter(j => j.status === "printed").sort((a, b) => (b.printed_at || "").localeCompare(a.printed_at || ""));
+  const late = open.filter(prLate).length;
+  $("prHead").textContent = open.length ? `🖨 To print (${open.length})${late ? ` · ${late} late` : ""}` : "🖨 To print";
+  $("prList").innerHTML = open.length ? open.map(prCard).join("") : `<div class="meta">Nothing to print right now.${isMgr() ? " Tap “+ Send to print” to send a flyer or ad to the front desk." : ""}</div>`;
+  $("prDoneToggle").hidden = !done.length;
+  $("prDoneToggle").textContent = prDoneOpen ? "Hide printed" : `Printed recently (${done.length})`;
+  $("prDone").hidden = !prDoneOpen;
+  $("prDone").innerHTML = prDoneOpen ? done.slice(0, 30).map(prCard).join("") : "";
+  if (realMgr() && !prCleaned) { prCleaned = true; prCleanup(); }
+}
+/* printed or cancelled more than 30 days ago: remove the job, and its file once nothing else uses it */
+async function prCleanup() {
+  const cut = new Date(Date.now() - 30 * 864e5).toISOString();
+  const old = prJobs.filter(j => j.status !== "pending" && (j.printed_at || j.created_at) < cut);
+  if (!old.length) return;
+  const keep = new Set(prJobs.filter(j => !old.includes(j)).map(j => j.file_path));
+  const files = [...new Set(old.map(j => j.file_path))].filter(p => !keep.has(p));
+  await sb.from("print_jobs").delete().in("id", old.map(j => j.id));
+  if (files.length) await sb.storage.from("photos").remove(files);
+}
+function prSetWhen() {
+  $("pr-dateWrap").hidden = $("pr-when").value !== "day";
+  if ($("pr-when").value === "day" && !$("pr-date").value) $("pr-date").value = prTomorrow();
+}
+function prPick(f) {
+  $("pr-err").textContent = "";
+  if (!f) return;
+  if (!/^(application\/pdf|image\/)/.test(f.type || "")) { $("pr-err").textContent = "Pick a PDF or a picture."; return; }
+  if (f.size > PR_MAX) { $("pr-err").textContent = "That file is over 10 MB. In Canva, try PDF Standard instead of PDF Print."; return; }
+  prFile = f;
+  $("pr-fileTxt").innerHTML = `<b>📄 ${esc(f.name)}</b><br><span class="meta">${(f.size / 1024 / 1024).toFixed(1)} MB · tap to choose a different file</span>`;
+  if (!$("pr-title").value.trim()) $("pr-title").value = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 120);
+}
+$("prNew").onclick = () => {
+  $("prForm").hidden = false; $("prNew").hidden = true; prFile = null; $("prForm").reset();
+  $("pr-fileTxt").innerHTML = `<b>Choose the file to print</b><br><span class="meta">or drag it here · PDF or image · up to 10 MB</span>`;
+  $("pr-when").value = new Date().getHours() >= 12 ? "open_tomorrow" : "open_today"; prSetWhen();
+};
+$("pr-cancel").onclick = () => { $("prForm").hidden = true; prFile = null; renderPrint(); };
+$("pr-when").onchange = prSetWhen;
+$("pr-file").onchange = e => prPick(e.target.files[0]);
+["dragenter", "dragover"].forEach(ev => $("pr-drop").addEventListener(ev, e => { e.preventDefault(); $("pr-drop").classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => $("pr-drop").addEventListener(ev, e => { e.preventDefault(); $("pr-drop").classList.remove("over"); }));
+$("pr-drop").addEventListener("drop", e => prPick(e.dataTransfer.files && e.dataTransfer.files[0]));
+$("prForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = t => $("pr-err").textContent = t; err("");
+  if (!prFile) return err("Choose the file to print first.");
+  const copies = Math.max(1, Math.min(1000, parseInt($("pr-copies").value, 10) || 1));
+  const w = $("pr-when").value;
+  if (w === "day" && !$("pr-date").value) return err("Pick the day it's needed.");
+  const btn = $("pr-send"); btn.disabled = true; btn.textContent = "Sending…";
+  const ext = ((prFile.name.split(".").pop() || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf").slice(0, 5);
+  const path = `print/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 8)}.${ext}`;
+  const up = await sb.storage.from("photos").upload(path, prFile, { contentType: prFile.type });
+  if (up.error) { btn.disabled = false; btn.textContent = "Send to front desk"; return err("The file didn't upload. Check your connection and try again."); }
+  const row = { title: $("pr-title").value.trim() || prFile.name, file_path: path, file_name: prFile.name.slice(0, 150), file_type: prFile.type, copies, paper: $("pr-paper").value,
+    due_kind: w === "any" ? "any" : w === "day" ? "day" : "open", due_date: w === "any" ? null : w === "day" ? $("pr-date").value : w === "open_today" ? prToday() : prTomorrow(), note: $("pr-note").value.trim() || null, status: "pending" };
+  const { error } = await sb.from("print_jobs").insert(row);
+  btn.disabled = false; btn.textContent = "Send to front desk";
+  if (error) return err(friendly(error));
+  $("prForm").hidden = true; prFile = null; $("foot").textContent = "Sent to the front desk to print."; loadAll();
+});
+$("prDoneToggle").onclick = () => { prDoneOpen = !prDoneOpen; renderPrint(); };
+$("prBox").addEventListener("click", async e => {
+  const b = e.target.closest("[data-pr]"); if (!b) return;
+  const act = b.dataset.pr, id = b.dataset.id, j = prJobs.find(x => x.id === id);
+  if (act === "close") { prDel = null; return renderPrint(); }
+  if (act === "del") { prDel = id; return renderPrint(); }
+  b.disabled = true;
+  let error = null;
+  if (act === "printed") ({ error } = await sb.from("print_jobs").update({ status: "printed", printed_by: me.email, printed_at: new Date().toISOString() }).eq("id", id));
+  if (act === "again" && j) ({ error } = await sb.from("print_jobs").insert({ title: j.title, file_path: j.file_path, file_name: j.file_name, file_type: j.file_type, copies: j.copies, paper: j.paper,
+    due_kind: "open", due_date: new Date().getHours() >= 12 ? prTomorrow() : prToday(), note: j.note, status: "pending" }));
+  if (act === "del-yes" && j) {
+    ({ error } = await sb.from("print_jobs").delete().eq("id", id));
+    if (!error && !prJobs.some(x => x.id !== id && x.file_path === j.file_path)) await sb.storage.from("photos").remove([j.file_path]);
+    prDel = null;
+  }
+  if (error) { b.disabled = false; return alert(friendly(error)); }
+  if (act === "printed") $("foot").textContent = "Marked printed.";
+  if (act === "again") $("foot").textContent = "Sent to print again.";
+  loadAll();
+});
+
 const APPLY_HOST = {
   url: () => new URL("apply.html", location.href.split(/[?#]/)[0]).href,
   name: () => "Demo Salon",
@@ -2337,6 +2491,7 @@ const PUSH_CATS = [
   ["requests", "Requests and approvals", "Time off, 1:1s and issue reports", false],
   ["incidents", "Client incidents", "When an incident is logged", true],
   ["applicants", "New applicants", "When someone applies online", true],
+  ["print", "Things to print", "When a manager sends a flyer or ad to print", false],
   ["announcements", "Announcements and handbook", "New announcements and handbook updates", false],
   ["chat", "Team chat", "Every chat message (can get busy)", false],
 ];
@@ -2403,7 +2558,7 @@ function renderPush() {
   st.textContent = on ? "On for this device ✓" : "Off";
   help.textContent = on ? "Choose what pops up on this device." : "Get banners on this phone for requests, approvals and updates, even when Loopd-In is closed.";
   btns.innerHTML = on ? '<button class="link" data-push="test">Send me a test</button><button class="link del" data-push="off">Turn off on this device</button>' : '<button class="primary" data-push="on">Turn on notifications</button>';
-  if (on) prefs.innerHTML = PUSH_CATS.filter(c => !c[3] || isMgr()).map(([k, label, sub]) => `<label style="flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--ink)"><input type="checkbox" data-pref="${k}" ${pushPrefs[k] !== false ? "checked" : ""} style="width:20px;height:20px"><span>${label}<br><span class="meta">${sub}</span></span></label>`).join("");
+  if (on) prefs.innerHTML = PUSH_CATS.filter(c => (!c[3] || isMgr()) && (c[0] !== "print" || isDesk())).map(([k, label, sub]) => `<label style="flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--ink)"><input type="checkbox" data-pref="${k}" ${pushPrefs[k] !== false ? "checked" : ""} style="width:20px;height:20px"><span>${label}<br><span class="meta">${sub}</span></span></label>`).join("");
 }
 $("pushBox").addEventListener("click", async e => {
   const b = e.target.closest("[data-push]"); if (!b || pushBusy) return;

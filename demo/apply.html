@@ -138,10 +138,20 @@ window.__demoSeed = function (ME) {
       review_date: day(-28), witnesses: null, created_by: ME, created_at: ts(2, 17, 0) },
   ];
 
+  const print_jobs = [
+    { id: id("pr"), title: "Fall color special flyer", file_path: "print/demo-flyer.png", file_name: "Fall color special.png", file_type: "image/png", copies: 25, paper: "Cardstock",
+      due_kind: "open", due_date: day(0), note: "Put a stack at checkout and a few in the shampoo area.", status: "pending", created_by: ME, created_at: ts(1, 20, 15) },
+    { id: id("pr"), title: "Holiday gift card sign", file_path: "print/demo-sign.png", file_name: "Gift card sign.png", file_type: "image/png", copies: 2, paper: "Color paper",
+      due_kind: "day", due_date: day(-2), note: "One for the front window, one for the desk.", status: "pending", created_by: ME, created_at: ts(0, 7, 40) },
+    { id: id("pr"), title: "Referral cards", file_path: "print/demo-flyer.png", file_name: "Referral cards.png", file_type: "image/png", copies: 50, paper: "Cardstock",
+      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: RILEY, printed_at: ts(2, 9, 10), created_by: ME, created_at: ts(3, 21, 0) },
+  ];
+
   return {
-    staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
+    print_jobs, staff, daily_log, followups, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
     announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
     _handbooks: [{ name: "Demo_Salon_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
+    _fileMap: { "print/demo-flyer.png": "demo-flyer.png", "print/demo-sign.png": "demo-sign.png" },
   };
 };
 
@@ -150,7 +160,7 @@ window.__demoSeed = function (ME) {
 /* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
    Nothing leaves this browser. "Reset demo" puts the sample data back. */
 (function () {
-  const KEY = "loopdDemoDB_v2";
+  const KEY = "loopdDemoDB_v3";
   const DEMO_EMAIL = "jordan@demosalon.example";
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
@@ -283,7 +293,7 @@ window.__demoSeed = function (ME) {
       from: () => ({
         upload: async (path, blob) => {
           fileUrls[path] = URL.createObjectURL(blob);
-          if (path.startsWith("resumes/") && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
+          if ((path.startsWith("resumes/") || path.startsWith("print/")) && blob.size <= 1.5 * 1024 * 1024) {   // small enough to keep in this browser
             const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(blob); });
             if (url) { DB._fileMap = DB._fileMap || {}; DB._fileMap[path] = url; save(); }
           }
