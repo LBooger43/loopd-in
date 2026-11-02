@@ -694,7 +694,7 @@ let dcat = "General", fuOnly = false, fuOpen = null, logFilter = "all", sev = "m
 const realMgr = () => me && me.role === "manager";
 const effRole = () => previewRole || (me && me.role);
 const isMgr = () => effRole() === "manager";
-const isDesk = () => effRole() === "manager" || effRole() === "front_desk";
+const isDesk = () => effRole() === "manager" || effRole() === "front_desk" || (!previewRole && !!me && me.role === "stylist" && !!me.also_desk);
 const nameOf = email => { const p = team.find(x => x.email === (email || "").toLowerCase()); return p ? p.name : (email || "Someone").split("@")[0]; };
 function show(view) { ["view-login", "view-start", "view-noaccess", "app"].forEach(v => $(v).hidden = v !== view); }
 function friendly(err) {
@@ -955,6 +955,7 @@ async function loadAll() {
   if (realMgr()) q.push(sb.from("staff_writeups").select("*").order("incident_date", {ascending: false}).order("created_at", {ascending: false}).limit(500));
   const r = await Promise.all(q);
   team = r[0].data || []; daily = r[1].data || [];
+  { const mine = team.find(x => x.email === me.email); if (mine && !!mine.also_desk !== !!me.also_desk) { me.also_desk = !!mine.also_desk; applyRole(); } }
   fups = {}; (r[2].data || []).forEach(f => fups[f.log_id] = f);
   incidents = r[3].data || [];
   res = {}; (r[4].data || []).forEach(x => res[x.incident_id] = x);
@@ -981,7 +982,7 @@ async function loadAll() {
   arch = { d: rad.data || [], l: ral.data || [] };
   anns = ra.data || []; msgs = rm.data || []; timeOff = rt.data || []; oos = roo.data || []; goals = rgs.data || []; applicants = rap.data || []; myReports = rr.data || []; supItems = rsi.data || []; supNeeds = rsn.data || [];
   await Promise.all([fetchRange("d"), fetchRange("l")]);
-  const rpj = me && (me.role === "manager" || me.role === "front_desk") ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
+  const rpj = me && (me.role === "manager" || me.role === "front_desk" || me.also_desk) ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
   prJobs = rpj.data || []; prReady = !rpj.error;
   await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
   renderAll();
@@ -2376,11 +2377,18 @@ $("staffFeed").addEventListener("click", async e => {
 function renderTeam() {
   if (!isMgr()) { $("teamFeed").innerHTML = ""; return; }
   $("teamFeed").innerHTML = team.map(p => `<article class="entry" style="--stripe:${p.role === "manager" ? "var(--accent)" : "var(--line)"}">
-    <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}</span></div>
-    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select><button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
+    <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}${p.role === "stylist" && p.also_desk ? " + Front desk" : ""}</span></div>
+    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select>${p.role === "stylist" ? `<label style="flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:.85rem;color:var(--ink)"><input type="checkbox" data-also="${esc(p.email)}" ${p.also_desk ? "checked" : ""} style="width:18px;height:18px;min-height:0"> Also works front desk</label>` : ""}<button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
   </article>`).join("");
 }
 $("teamFeed").addEventListener("change", async e => {
+  const also = e.target.closest("[data-also]");
+  if (also && isMgr()) {
+    const { error } = await sb.from("staff").update({ also_desk: also.checked }).eq("email", also.dataset.also);
+    if (error) { also.checked = !also.checked; return alert(friendly(error)); }
+    $("foot").textContent = also.checked ? "They'll see the front desk tabs next time they open the app." : "Front desk tabs removed for them.";
+    return loadAll();
+  }
   const sel = e.target.closest("[data-role-email]"); if (!sel || !isMgr()) return;
   const { error } = await sb.from("staff").update({ role: sel.value }).eq("email", sel.dataset.roleEmail);
   if (error) alert(friendly(error));
@@ -2522,7 +2530,8 @@ async function start(s) {
   if (!role) { show("view-noaccess"); $("noaccessMsg").textContent = ` ${email} isn't on a salon team yet. If you work at a salon, ask your manager to add this email. If you own one, start it here.`; $("roleBadge").textContent = ""; $("foot").textContent = ""; return; }
   await loadSalon();
   me = { email, role };
-  const { data: row } = await sb.from("staff").select("name").eq("email", email).maybeSingle();
+  const { data: row } = await sb.from("staff").select("name,also_desk").eq("email", email).maybeSingle();
+  me.also_desk = !!(row && row.also_desk);
   me.name = row?.name || email.split("@")[0];
   $("whoName").textContent = me.name; $("avatar").textContent = me.name[0].toUpperCase();
   show("app"); $("d-time").value = nowTime();

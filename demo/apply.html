@@ -26,7 +26,7 @@ window.__demoSeed = function (ME) {
     { email: RILEY, name: "Riley Brooks", role: "front_desk" },
     { email: CASEY, name: "Casey Nguyen", role: "front_desk" },
     { email: MAYA, name: "Maya Torres", role: "stylist" },
-    { email: AVA, name: "Ava Johnson", role: "stylist" },
+    { email: AVA, name: "Ava Johnson", role: "stylist", also_desk: true },
     { email: LILY, name: "Lily Chen", role: "stylist" },
     { email: NOAH, name: "Noah Kim", role: "stylist" },
     { email: EMMA, name: "Emma Davis", role: "stylist" },
@@ -161,7 +161,7 @@ window.__demoSeed = function (ME) {
 /* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
    Nothing leaves this browser. "Reset demo" puts the sample data back. */
 (function () {
-  const KEY = "loopdDemoDB_v4";
+  const KEY = "loopdDemoDB_v5";
   const DEMO_EMAIL = "jordan@demosalon.example";
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
