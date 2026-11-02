@@ -87,15 +87,16 @@ window.__demoSeed = function (ME) {
     { id: id("ml"), note: "November promo approved: 15% off glosses with any haircut, starting the 1st.", created_by: SAM, created_at: ts(3, 11, 0) },
   ];
   const announcements = [
-    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0) },
-    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0) },
+    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0), reactions: { "👍": [MAYA, RILEY, LILY], "🎉": [NOAH] } },
+    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0), reactions: { "🎉": [MAYA, EMMA, AVA], "❤️": [RILEY] } },
   ];
+  const m1 = id("ms"), m2 = id("ms"), m3 = id("ms"), m4 = id("ms"), m5 = id("ms");
   const messages = [
-    { id: id("ms"), body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2) },
-    { id: id("ms"), body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4) },
-    { id: id("ms"), body: "Yep, send her my way 👍", created_by: LILY, created_at: ts(0, 10, 6) },
-    { id: id("ms"), body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
-    { id: id("ms"), body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33) },
+    { id: m1, body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2), reactions: { "🙏": [RILEY] } },
+    { id: m2, body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4), reply_to: m1 },
+    { id: m3, body: "Yep, send her my way", created_by: LILY, created_at: ts(0, 10, 6), reply_to: m2, reactions: { "👍": [MAYA, RILEY] } },
+    { id: m4, body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
+    { id: m5, body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33), reply_to: m4, reactions: { "😂": [EMMA, MAYA] } },
   ];
 
   const time_off = [
@@ -160,7 +161,7 @@ window.__demoSeed = function (ME) {
 /* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
    Nothing leaves this browser. "Reset demo" puts the sample data back. */
 (function () {
-  const KEY = "loopdDemoDB_v3";
+  const KEY = "loopdDemoDB_v4";
   const DEMO_EMAIL = "jordan@demosalon.example";
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
@@ -171,6 +172,8 @@ window.__demoSeed = function (ME) {
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch {} };
   const listeners = [];
   const fire = () => { save(); listeners.forEach(f => { try { f({}); } catch {} }); };
+  const SWEAR = new RegExp(String.raw`(f[u*@]+c?k\w*|\bsh[i1!*]t\w*|bullshit\w*|dipshit\w*|horseshit|\bbitch\w*|\bass(hole|holes|hat|es)\b|\bass\b(?!')|jackass\w*|dumbass\w*|smartass\w*|\bbastards?\b|\b(god)?damn(ed|it)?\b|\bdickheads?\b|\bcocks?\b|\bpuss(y|ies)\b|\bcunts?\b|\bpiss(ed|ing|es)?\b|\bcrap(py|s)?\b|\bsluts?\b|\bwhores?\b|\bwtf\b|\bstfu\b)`, "i");
+  const CLEAN = { messages: "body", announcements: "body", daily_log: "note", log_replies: "note" };
   const CONFLICT = { followups: "log_id", resolutions: "incident_id", staff: "email" };
   const roleOf = e => (DB.staff.find(s => s.email === e) || {}).role || "stylist";
   const cmp = (a, b) => (a === b ? 0 : a == null ? -1 : b == null ? 1 : a < b ? -1 : 1);
@@ -224,6 +227,10 @@ window.__demoSeed = function (ME) {
     then(res, rej) { let out; try { out = this.run(); } catch (e) { out = { data: null, error: { message: String(e && e.message || e) } }; } return Promise.resolve(out).then(res, rej); }
     run() {
       const T = (DB[this.t] = DB[this.t] || []);
+      const field = CLEAN[this.t];
+      if (field && this.op !== "select" && this.op !== "delete") {
+        for (const r of (Array.isArray(this.val) ? this.val : [this.val])) { const m = r && SWEAR.exec(String(r[field] || "")); if (m) return { data: null, error: { message: "NO_SWEARING: " + m[1] } }; }
+      }
       const match = r => this.fs.every(f => f(r));
       let data = null;
       if (this.op === "select") {
@@ -262,6 +269,14 @@ window.__demoSeed = function (ME) {
     rpc: async (name, a) => {
       if (name === "my_role") return { data: roleOf(DEMO_EMAIL), error: null };
       if (name === "is_invited") return { data: true, error: null };
+      if (name === "chat_react") {
+        const t = a.p_kind === "a" ? "announcements" : "messages", r = (DB[t] || []).find(x => x.id === a.p_id);
+        if (!r) return { data: null, error: { message: "Message not found." } };
+        const who = (window.__demoMe && window.__demoMe()) || DEMO_EMAIL, rx = r.reactions = r.reactions || {}, l = rx[a.p_emoji] = rx[a.p_emoji] || [];
+        if (l.includes(who)) rx[a.p_emoji] = l.filter(e => e !== who); else l.push(who);
+        if (!rx[a.p_emoji].length) delete rx[a.p_emoji];
+        setTimeout(fire, 0); return { data: null, error: null };
+      }
       if (name === "lp_apply_info") {
         const ap = applyGet(); if (!ap.open) return { data: null, error: null };
         return { data: { id: "demo", name: "Demo Salon", city: "Sample data", logo: null, positions: ap.positions, intro: ap.intro || null }, error: null };

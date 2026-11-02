@@ -160,6 +160,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 #printArea{display:none}
 @media print{body{background:#fff}.wrap{display:none!important}#printArea{display:block!important;color:#000;font-family:Figtree,sans-serif;padding:24px}#printArea img{max-width:240px;max-height:100px}#printArea h1{font-size:22px;margin:0 0 4px}#printArea h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 4px}#printArea p{margin:0;white-space:pre-wrap}#printArea table{border-collapse:collapse;width:100%}#printArea td{border:1px solid #999;padding:4px 6px;font-size:12px;vertical-align:top}#printArea .gp{font-family:Georgia,"Times New Roman",serif;font-size:14px;max-width:640px;margin:0 auto}#printArea .gp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}#printArea .gp-head img{width:76px;height:76px}#printArea .gp-head>div{min-width:180px}#printArea .gp-head>div:last-child{text-align:right}#printArea .gp-title{font-family:inherit;text-align:center;font-weight:400;font-size:18px;margin:4px 0 22px}#printArea .gp-sec{margin-bottom:18px}#printArea .gp-ln{border-bottom:1px solid #888;min-height:28px;line-height:20px;padding-top:8px;white-space:pre-wrap}#printArea .gp-row{display:flex;gap:40px;margin:0 0 16px}#printArea .gp-row>div{flex:1}#printArea .gp-line{display:inline-block;min-width:150px;border-bottom:1px solid #888}#printArea .gp-help{margin-top:26px;font-size:12.5px;line-height:1.6}}
 .pr-drop{position:relative;display:block;border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:var(--accent-soft, #f4f3fe)}.pr-drop.over{border-color:var(--accent)}
+.rx{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}.rx button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:.85rem;line-height:1.3;cursor:pointer;color:var(--ink)}.rx button.mine{border-color:var(--accent);background:var(--accent-soft,#ecebfc)}.rx .pick{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:1px 4px;background:var(--surface)}.rx .pick button{border:0;background:transparent;font-size:1.1rem;padding:3px 5px}.quoteline{border-left:3px solid var(--accent);background:var(--accent-soft,#ecebfc);border-radius:6px;padding:4px 8px;font-size:.85rem;color:var(--muted);margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.replybar{display:flex;align-items:center;gap:8px;justify-content:space-between}
 #pushBox{display:none!important}#logout{display:none!important}
 </style>
 <script>
@@ -242,15 +243,16 @@ window.__demoSeed = function (ME) {
     { id: id("ml"), note: "November promo approved: 15% off glosses with any haircut, starting the 1st.", created_by: SAM, created_at: ts(3, 11, 0) },
   ];
   const announcements = [
-    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0) },
-    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0) },
+    { id: id("an"), body: "Team meeting Monday at 9am. Breakfast is on me! We'll go over holiday hours and the November promo.", created_by: ME, created_at: ts(1, 19, 0), reactions: { "👍": [MAYA, RILEY, LILY], "🎉": [NOAH] } },
+    { id: id("an"), body: "Great week, everyone: we hit 112% of our service goal. Thank you!", created_by: SAM, created_at: ts(4, 18, 0), reactions: { "🎉": [MAYA, EMMA, AVA], "❤️": [RILEY] } },
   ];
+  const m1 = id("ms"), m2 = id("ms"), m3 = id("ms"), m4 = id("ms"), m5 = id("ms");
   const messages = [
-    { id: id("ms"), body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2) },
-    { id: id("ms"), body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4) },
-    { id: id("ms"), body: "Yep, send her my way 👍", created_by: LILY, created_at: ts(0, 10, 6) },
-    { id: id("ms"), body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
-    { id: id("ms"), body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33) },
+    { id: m1, body: "Anyone have a 2pm opening Thursday for a quick bang trim?", created_by: MAYA, created_at: ts(0, 10, 2), reactions: { "🙏": [RILEY] } },
+    { id: m2, body: "Lily has 2:15!", created_by: RILEY, created_at: ts(0, 10, 4), reply_to: m1 },
+    { id: m3, body: "Yep, send her my way", created_by: LILY, created_at: ts(0, 10, 6), reply_to: m2, reactions: { "👍": [MAYA, RILEY] } },
+    { id: m4, body: "Who borrowed my round brush? 😅", created_by: EMMA, created_at: ts(0, 12, 30) },
+    { id: m5, body: "Guilty. It's back on your station!", created_by: NOAH, created_at: ts(0, 12, 33), reply_to: m4, reactions: { "😂": [EMMA, MAYA] } },
   ];
 
   const time_off = [
@@ -315,7 +317,7 @@ window.__demoSeed = function (ME) {
 /* Loopd-In demo: an in-browser stand-in for the database, so every button works on sample data.
    Nothing leaves this browser. "Reset demo" puts the sample data back. */
 (function () {
-  const KEY = "loopdDemoDB_v3";
+  const KEY = "loopdDemoDB_v4";
   const DEMO_EMAIL = "jordan@demosalon.example";
   const now = () => new Date().toISOString();
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
@@ -326,6 +328,8 @@ window.__demoSeed = function (ME) {
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch {} };
   const listeners = [];
   const fire = () => { save(); listeners.forEach(f => { try { f({}); } catch {} }); };
+  const SWEAR = new RegExp(String.raw`(f[u*@]+c?k\w*|\bsh[i1!*]t\w*|bullshit\w*|dipshit\w*|horseshit|\bbitch\w*|\bass(hole|holes|hat|es)\b|\bass\b(?!')|jackass\w*|dumbass\w*|smartass\w*|\bbastards?\b|\b(god)?damn(ed|it)?\b|\bdickheads?\b|\bcocks?\b|\bpuss(y|ies)\b|\bcunts?\b|\bpiss(ed|ing|es)?\b|\bcrap(py|s)?\b|\bsluts?\b|\bwhores?\b|\bwtf\b|\bstfu\b)`, "i");
+  const CLEAN = { messages: "body", announcements: "body", daily_log: "note", log_replies: "note" };
   const CONFLICT = { followups: "log_id", resolutions: "incident_id", staff: "email" };
   const roleOf = e => (DB.staff.find(s => s.email === e) || {}).role || "stylist";
   const cmp = (a, b) => (a === b ? 0 : a == null ? -1 : b == null ? 1 : a < b ? -1 : 1);
@@ -379,6 +383,10 @@ window.__demoSeed = function (ME) {
     then(res, rej) { let out; try { out = this.run(); } catch (e) { out = { data: null, error: { message: String(e && e.message || e) } }; } return Promise.resolve(out).then(res, rej); }
     run() {
       const T = (DB[this.t] = DB[this.t] || []);
+      const field = CLEAN[this.t];
+      if (field && this.op !== "select" && this.op !== "delete") {
+        for (const r of (Array.isArray(this.val) ? this.val : [this.val])) { const m = r && SWEAR.exec(String(r[field] || "")); if (m) return { data: null, error: { message: "NO_SWEARING: " + m[1] } }; }
+      }
       const match = r => this.fs.every(f => f(r));
       let data = null;
       if (this.op === "select") {
@@ -417,6 +425,14 @@ window.__demoSeed = function (ME) {
     rpc: async (name, a) => {
       if (name === "my_role") return { data: roleOf(DEMO_EMAIL), error: null };
       if (name === "is_invited") return { data: true, error: null };
+      if (name === "chat_react") {
+        const t = a.p_kind === "a" ? "announcements" : "messages", r = (DB[t] || []).find(x => x.id === a.p_id);
+        if (!r) return { data: null, error: { message: "Message not found." } };
+        const who = (window.__demoMe && window.__demoMe()) || DEMO_EMAIL, rx = r.reactions = r.reactions || {}, l = rx[a.p_emoji] = rx[a.p_emoji] || [];
+        if (l.includes(who)) rx[a.p_emoji] = l.filter(e => e !== who); else l.push(who);
+        if (!rx[a.p_emoji].length) delete rx[a.p_emoji];
+        setTimeout(fire, 0); return { data: null, error: null };
+      }
       if (name === "lp_apply_info") {
         const ap = applyGet(); if (!ap.open) return { data: null, error: null };
         return { data: { id: "demo", name: "Demo Salon", city: "Sample data", logo: null, positions: ap.positions, intro: ap.intro || null }, error: null };
@@ -724,6 +740,7 @@ window.__demoSeed = function (ME) {
       </div>
       <div class="quick">
         <h2 class="h2">💬 Team chat</h2>
+        <div class="replybar" id="replyBar" hidden></div>
         <form id="msgForm" class="todo-add plain" style="flex-direction:row">
           <button type="button" class="cam inline" data-ph="msg" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-msg" accept="image/*" hidden>
           <input id="msgText" required maxlength="1000" autocomplete="off" placeholder="Message the whole team">
@@ -939,7 +956,10 @@ const isMgr = () => effRole() === "manager";
 const isDesk = () => effRole() === "manager" || effRole() === "front_desk";
 const nameOf = email => { const p = team.find(x => x.email === (email || "").toLowerCase()); return p ? p.name : (email || "Someone").split("@")[0]; };
 function show(view) { ["view-login", "view-noaccess", "app"].forEach(v => $(v).hidden = v !== view); }
-function friendly(err) { return err && /row-level security|permission/i.test(err.message || "") ? "You don't have permission to do that." : "Couldn't save. Check your connection and try again."; }
+function friendly(err) {
+  const sw = err && /NO_SWEARING:?\s*(.*)/.exec(err.message || "");
+  if (sw) return `Let's keep it professional: please reword${sw[1] ? " “" + sw[1].trim() + "”" : " that"}. No swearing in team chat or notes.`;
+ return err && /row-level security|permission/i.test(err.message || "") ? "You don't have permission to do that." : "Couldn't save. Check your connection and try again."; }
 
 /* ---------- sign in / out ---------- */
 let signupMode = false;
@@ -986,6 +1006,7 @@ function setTab(t) {
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
 }
 TABS.forEach(k => $("tab-" + k).onclick = () => setTab(k));
+window.__demoMe = () => me && me.email;
 window.__demoPersona = () => {
   if (!me) return;
   const r = effRole(), p = r === "stylist" ? ["maya@demosalon.example", "Maya Torres"] : r === "front_desk" ? ["riley@demosalon.example", "Riley Brooks"] : ["jordan@demosalon.example", "Jordan Lee"];
@@ -1962,6 +1983,35 @@ $("prBox").addEventListener("click", async e => {
   loadAll();
 });
 
+
+/* ---------- team chat: replies and reactions ---------- */
+let chatReplyTo = null, chatPick = null;
+const CHAT_EMOJI = ["👍", "❤️", "😂", "🎉", "🙏", "👀"];
+const snip = (s, n) => { s = String(s || "").replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+function chatExtras(p, kind) {
+  const rx = p.reactions || {}, key = kind + ":" + p.id;
+  const chips = Object.keys(rx).filter(e => (rx[e] || []).length).map(e => {
+    const who = rx[e], mine = who.includes(me.email);
+    return `<button type="button" class="${mine ? "mine" : ""}" data-chat="react" data-kind="${kind}" data-id="${p.id}" data-e="${esc(e)}" title="${esc(who.map(nameOf).join(", "))}">${e} ${who.length}</button>`;
+  }).join("");
+  const pick = chatPick === key ? `<span class="pick">${CHAT_EMOJI.map(e => `<button type="button" data-chat="react" data-kind="${kind}" data-id="${p.id}" data-e="${e}" aria-label="React ${e}">${e}</button>`).join("")}</span>`
+    : `<button type="button" data-chat="pick" data-key="${key}" aria-label="Add a reaction">☺︎ +</button>`;
+  const reply = kind === "m" ? `<button type="button" data-chat="reply" data-id="${p.id}">↩ Reply</button>` : "";
+  return `<div class="rx">${chips}${pick}${reply}</div>`;
+}
+function chatQuote(p) {
+  if (!p.reply_to) return "";
+  const o = msgs.find(x => x.id === p.reply_to);
+  return `<div class="quoteline">↩ ${o ? `<b>${esc(nameOf(o.created_by))}</b>: ${esc(snip(o.body, 90))}` : "Replying to an earlier message"}</div>`;
+}
+function renderReplyBar() {
+  const o = chatReplyTo && msgs.find(x => x.id === chatReplyTo);
+  if (chatReplyTo && !o) chatReplyTo = null;
+  $("replyBar").hidden = !o;
+  if (o) $("replyBar").innerHTML = `<div class="quoteline" style="flex:1;margin:0">↩ Replying to <b>${esc(nameOf(o.created_by))}</b>: ${esc(snip(o.body, 70))}</div><button type="button" class="link" data-chat="reply-cancel">Cancel</button>`;
+  $("msgText").placeholder = o ? `Reply to ${nameOf(o.created_by)}` : "Message the whole team";
+}
+
 const APPLY_HOST = {
   url: () => new URL("apply.html", location.href.split(/[?#]/)[0]).href,
   name: () => "Demo Salon",
@@ -2108,7 +2158,7 @@ function postRow(p, kind) {
   const edit = kind === "a" && isMgr() && chatDel !== key ? `<button class="link" data-chat="edit" data-id="${p.id}">Edit</button>` : "";
   const bodyHtml = kind === "a" && annEdit === p.id
     ? `<div class="fu-box"><textarea id="annEdit-${p.id}" maxlength="2000">${esc(p.body)}</textarea><div class="actions"><button class="primary" data-chat="edit-save" data-id="${p.id}">Save</button><button class="link" data-chat="edit-cancel">Cancel</button></div></div>`
-    : `<p class="note">${esc(p.body)}</p>${photoHtml(p.photo)}${(edit || del) ? `<div class="actions">${edit}${del}</div>` : ""}`;
+    : `${kind === "m" ? chatQuote(p) : ""}<p class="note">${esc(p.body)}</p>${photoHtml(p.photo)}${chatExtras(p, kind)}${(edit || del) ? `<div class="actions">${edit}${del}</div>` : ""}`;
   return `<div class="todo"${kind === "a" ? ' style="border-left:4px solid var(--accent)"' : ""}><div class="body"><div class="row"><b>${esc(nameOf(p.created_by))}</b><span class="meta">${whenFull(p.created_at)}${p.edited_at ? " · edited" : ""}</span></div>${bodyHtml}</div></div>`;
 }
 function renderChat() {
@@ -2116,6 +2166,7 @@ function renderChat() {
   $("annForm").hidden = !isMgr();
   $("annFeed").innerHTML = anns.length ? anns.map(a => postRow(a, "a")).join("") : `<div class="meta">No announcements yet.</div>`;
   $("msgFeed").innerHTML = msgs.length ? msgs.map(m => postRow(m, "m")).join("") : `<div class="meta">No messages yet. Say hi to the team.</div>`;
+  renderReplyBar();
   $("reportBox").hidden = isMgr();
   $("repFeed").innerHTML = myReports.map(t => `<div class="todo${t.done ? " done" : ""}"><div class="body"><p class="note">${esc(t.task)}</p>${photoHtml(t.photo)}<span class="meta">${t.done ? "✓ Done" + (t.done_at ? " · " + whenShort(t.done_at) : "") : "Sent to managers · " + whenShort(t.created_at)}</span></div></div>`).join("");
 }
@@ -2130,11 +2181,25 @@ async function quickPost(inputId, errId, table, row, phKey, folder) {
   $(inputId).value = ""; loadAll();
 }
 $("annForm").addEventListener("submit", e => { e.preventDefault(); quickPost("annText", "annErr", "announcements", body => ({ body, created_by: me.email })); });
-$("msgForm").addEventListener("submit", e => { e.preventDefault(); quickPost("msgText", "msgErr", "messages", body => ({ body, created_by: me.email }), "msg", "chat"); });
+$("msgForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const rt = chatReplyTo;
+  await quickPost("msgText", "msgErr", "messages", body => ({ body, created_by: me.email, ...(rt ? { reply_to: rt } : {}) }), "msg", "chat");
+  if (!$("msgText").value) { chatReplyTo = null; renderReplyBar(); }
+});
 $("repForm").addEventListener("submit", e => { e.preventDefault(); quickPost("repText", "repErr", "todos", task => ({ task, reported: true, created_by: me.email }), "rep", "reports/" + session.user.id); });
 $("view-chat").addEventListener("click", async e => {
   const b = e.target.closest("[data-chat]"); if (!b) return;
   const a = b.dataset.chat;
+  if (a === "pick") { chatPick = chatPick === b.dataset.key ? null : b.dataset.key; return renderChat(); }
+  if (a === "reply") { chatReplyTo = b.dataset.id; chatPick = null; renderChat(); $("msgText").focus(); return; }
+  if (a === "reply-cancel") { chatReplyTo = null; return renderChat(); }
+  if (a === "react") {
+    chatPick = null; b.disabled = true;
+    const { error } = await sb.rpc("chat_react", { p_kind: b.dataset.kind === "a" ? "a" : "m", p_id: b.dataset.id, p_emoji: b.dataset.e });
+    if (error) { b.disabled = false; return alert(friendly(error)); }
+    return loadAll();
+  }
   if (a === "edit") { annEdit = b.dataset.id; chatDel = null; return renderChat(); }
   if (a === "edit-cancel") { annEdit = null; return renderChat(); }
   if (a === "edit-save") {
@@ -2493,6 +2558,7 @@ const PUSH_CATS = [
   ["applicants", "New applicants", "When someone applies online", true],
   ["print", "Things to print", "When a manager sends a flyer or ad to print", false],
   ["announcements", "Announcements and handbook", "New announcements and handbook updates", false],
+  ["replies", "Replies to me", "When someone replies to your chat message", false],
   ["chat", "Team chat", "Every chat message (can get busy)", false],
 ];
 let pushSub = null, pushPrefs = null, pushBusy = false;
