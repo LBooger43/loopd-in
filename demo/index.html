@@ -161,6 +161,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 @media print{body{background:#fff}.wrap{display:none!important}#printArea{display:block!important;color:#000;font-family:Figtree,sans-serif;padding:24px}#printArea img{max-width:240px;max-height:100px}#printArea h1{font-size:22px;margin:0 0 4px}#printArea h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 4px}#printArea p{margin:0;white-space:pre-wrap}#printArea table{border-collapse:collapse;width:100%}#printArea td{border:1px solid #999;padding:4px 6px;font-size:12px;vertical-align:top}#printArea .gp{font-family:Georgia,"Times New Roman",serif;font-size:14px;max-width:640px;margin:0 auto}#printArea .gp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}#printArea .gp-head img{width:76px;height:76px}#printArea .gp-head>div{min-width:180px}#printArea .gp-head>div:last-child{text-align:right}#printArea .gp-title{font-family:inherit;text-align:center;font-weight:400;font-size:18px;margin:4px 0 22px}#printArea .gp-sec{margin-bottom:18px}#printArea .gp-ln{border-bottom:1px solid #888;min-height:28px;line-height:20px;padding-top:8px;white-space:pre-wrap}#printArea .gp-row{display:flex;gap:40px;margin:0 0 16px}#printArea .gp-row>div{flex:1}#printArea .gp-line{display:inline-block;min-width:150px;border-bottom:1px solid #888}#printArea .gp-help{margin-top:26px;font-size:12.5px;line-height:1.6}}
 .pr-drop{position:relative;display:block;border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:var(--accent-soft, #f4f3fe)}.pr-drop.over{border-color:var(--accent)}
 .rx{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}.rx button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:.85rem;line-height:1.3;cursor:pointer;color:var(--ink)}.rx button.mine{border-color:var(--accent);background:var(--accent-soft,#ecebfc)}.rx .pick{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:1px 4px;background:var(--surface)}.rx .pick button{border:0;background:transparent;font-size:1.1rem;padding:3px 5px}.quoteline{border-left:3px solid var(--accent);background:var(--accent-soft,#ecebfc);border-radius:6px;padding:4px 8px;font-size:.85rem;color:var(--muted);margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.replybar{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.wi-btn{position:relative;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;background:var(--surface);color:var(--ink)}.wi-btn input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
 #pushBox{display:none!important}#logout{display:none!important}
 </style>
 <script>
@@ -808,7 +809,13 @@ window.__demoSeed = function (ME) {
             <label>How they reached us<select id="wi-src"><option value="walk-in">Walked in</option><option value="phone">Called</option><option value="referral">Referred by someone</option><option value="other">Other</option></select></label>
           </div>
           <label>Notes<textarea id="wi-notes" rows="3" maxlength="2000" placeholder="e.g. Licensed 4 years, free Tue–Sat, wants to bring clients, great energy"></textarea></label>
-          <label>Paper application or résumé <span class="meta">(optional: snap a photo or attach a file)</span><input type="file" id="wi-file" accept="image/*,application/pdf,.doc,.docx"></label>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-weight:600;font-size:.9rem;color:var(--muted)">Paper application or résumé <span class="meta">(optional)</span></span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="wi-pickBtns">
+              <label class="wi-btn">📷 Take a photo<input type="file" id="wi-cam" accept="image/*" capture="environment"></label>
+              <label class="wi-btn">📎 Choose a file<input type="file" id="wi-file" accept="image/*,application/pdf,.doc,.docx"></label>
+            </div>
+            <div id="wi-picked" hidden style="display:flex;align-items:center;gap:10px"></div>
+          </div>
           <div class="form-actions"><span class="form-err" id="wi-err"></span><button type="button" class="ghost" id="wi-cancel">Cancel</button><button type="submit" class="primary" id="wi-save">Save applicant</button></div>
         </form>
       </div>
@@ -2054,7 +2061,18 @@ async function wiSign() {
   renderApps();
 }
 $("wiToggle").onclick = () => { $("wiForm").hidden = false; $("wiToggle").hidden = true; $("wi-name").focus(); };
-$("wi-cancel").onclick = () => { $("wiForm").reset(); $("wiForm").hidden = true; $("wiToggle").hidden = false; $("wi-err").textContent = ""; };
+let wiPick = null;
+function wiShowPick() {
+  $("wi-pickBtns").hidden = !!wiPick; $("wi-picked").hidden = !wiPick;
+  $("wi-picked").innerHTML = wiPick ? `${/^image\//.test(wiPick.type) ? `<img src="${URL.createObjectURL(wiPick)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">` : "📄"}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(wiPick.name || "Photo")}</span><button type="button" class="link" id="wi-unpick">Remove</button>` : "";
+  if (wiPick) $("wi-unpick").onclick = () => { wiPick = null; wiShowPick(); };
+}
+["wi-cam", "wi-file"].forEach(id => $(id).addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  if (f.size > 10 * 1024 * 1024) { $("wi-err").textContent = "That file is over 10 MB. A phone photo works fine."; return; }
+  $("wi-err").textContent = ""; wiPick = f; wiShowPick();
+}));
+$("wi-cancel").onclick = () => { $("wiForm").reset(); wiPick = null; wiShowPick(); $("wiForm").hidden = true; $("wiToggle").hidden = false; $("wi-err").textContent = ""; };
 $("wiForm").addEventListener("submit", async e => {
   e.preventDefault();
   const err = t => $("wi-err").textContent = t; err("");
@@ -2063,10 +2081,10 @@ $("wiForm").addEventListener("submit", async e => {
   if (!phone && !email) return err("Add a phone number or email so you can reach them.");
   const src = $("wi-src").value, btn = $("wi-save"); btn.disabled = true; btn.textContent = "Saving…";
   const answers = { source: src };
-  const f = $("wi-file").files[0];
+  const f = wiPick;
   if (f) {
     if (f.size > 10 * 1024 * 1024) { btn.disabled = false; btn.textContent = "Save applicant"; return err("That file is over 10 MB. A phone photo works fine."); }
-    const ext = ((f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg").slice(0, 5);
+    const ext = ((f.name.includes(".") ? f.name.split(".").pop() : (f.type.split("/")[1] || "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg").slice(0, 5);
     const path = `resumes/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 8)}.${ext}`;
     const up = await sb.storage.from("photos").upload(path, f, { contentType: f.type || undefined });
     if (up.error) { btn.disabled = false; btn.textContent = "Save applicant"; return err("The file didn't upload. Try a photo instead."); }
@@ -2079,7 +2097,7 @@ $("wiForm").addEventListener("submit", async e => {
   const { error } = await sb.from("applicants").insert(row);
   btn.disabled = false; btn.textContent = "Save applicant";
   if (error) return err(friendly(error));
-  $("wiForm").reset(); $("wiForm").hidden = true; $("wiToggle").hidden = false;
+  $("wiForm").reset(); wiPick = null; wiShowPick(); $("wiForm").hidden = true; $("wiToggle").hidden = false;
   $("foot").textContent = `${name} added to applicants.`; loadAll();
 });
 

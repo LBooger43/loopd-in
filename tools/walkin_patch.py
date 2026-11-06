@@ -16,7 +16,13 @@ CARD = '''      <div class="quick" id="wiBox">
             <label>How they reached us<select id="wi-src"><option value="walk-in">Walked in</option><option value="phone">Called</option><option value="referral">Referred by someone</option><option value="other">Other</option></select></label>
           </div>
           <label>Notes<textarea id="wi-notes" rows="3" maxlength="2000" placeholder="e.g. Licensed 4 years, free Tue–Sat, wants to bring clients, great energy"></textarea></label>
-          <label>Paper application or résumé <span class="meta">(optional: snap a photo or attach a file)</span><input type="file" id="wi-file" accept="image/*,application/pdf,.doc,.docx"></label>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-weight:600;font-size:.9rem;color:var(--muted)">Paper application or résumé <span class="meta">(optional)</span></span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="wi-pickBtns">
+              <label class="wi-btn">📷 Take a photo<input type="file" id="wi-cam" accept="image/*" capture="environment"></label>
+              <label class="wi-btn">📎 Choose a file<input type="file" id="wi-file" accept="image/*,application/pdf,.doc,.docx"></label>
+            </div>
+            <div id="wi-picked" hidden style="display:flex;align-items:center;gap:10px"></div>
+          </div>
           <div class="form-actions"><span class="form-err" id="wi-err"></span><button type="button" class="ghost" id="wi-cancel">Cancel</button><button type="submit" class="primary" id="wi-save">Save applicant</button></div>
         </form>
       </div>
@@ -44,7 +50,18 @@ async function wiSign() {
   renderApps();
 }
 $("wiToggle").onclick = () => { $("wiForm").hidden = false; $("wiToggle").hidden = true; $("wi-name").focus(); };
-$("wi-cancel").onclick = () => { $("wiForm").reset(); $("wiForm").hidden = true; $("wiToggle").hidden = false; $("wi-err").textContent = ""; };
+let wiPick = null;
+function wiShowPick() {
+  $("wi-pickBtns").hidden = !!wiPick; $("wi-picked").hidden = !wiPick;
+  $("wi-picked").innerHTML = wiPick ? `${/^image\//.test(wiPick.type) ? `<img src="${URL.createObjectURL(wiPick)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">` : "📄"}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(wiPick.name || "Photo")}</span><button type="button" class="link" id="wi-unpick">Remove</button>` : "";
+  if (wiPick) $("wi-unpick").onclick = () => { wiPick = null; wiShowPick(); };
+}
+["wi-cam", "wi-file"].forEach(id => $(id).addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  if (f.size > 10 * 1024 * 1024) { $("wi-err").textContent = "That file is over 10 MB. A phone photo works fine."; return; }
+  $("wi-err").textContent = ""; wiPick = f; wiShowPick();
+}));
+$("wi-cancel").onclick = () => { $("wiForm").reset(); wiPick = null; wiShowPick(); $("wiForm").hidden = true; $("wiToggle").hidden = false; $("wi-err").textContent = ""; };
 $("wiForm").addEventListener("submit", async e => {
   e.preventDefault();
   const err = t => $("wi-err").textContent = t; err("");
@@ -53,10 +70,10 @@ $("wiForm").addEventListener("submit", async e => {
   if (!phone && !email) return err("Add a phone number or email so you can reach them.");
   const src = $("wi-src").value, btn = $("wi-save"); btn.disabled = true; btn.textContent = "Saving…";
   const answers = { source: src };
-  const f = $("wi-file").files[0];
+  const f = wiPick;
   if (f) {
     if (f.size > 10 * 1024 * 1024) { btn.disabled = false; btn.textContent = "Save applicant"; return err("That file is over 10 MB. A phone photo works fine."); }
-    const ext = ((f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg").slice(0, 5);
+    const ext = ((f.name.includes(".") ? f.name.split(".").pop() : (f.type.split("/")[1] || "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg").slice(0, 5);
     const path = `resumes/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 8)}.${ext}`;
     const up = await sb.storage.from("photos").upload(path, f, { contentType: f.type || undefined });
     if (up.error) { btn.disabled = false; btn.textContent = "Save applicant"; return err("The file didn't upload. Try a photo instead."); }
@@ -69,7 +86,7 @@ $("wiForm").addEventListener("submit", async e => {
   const { error } = await sb.from("applicants").insert(row);
   btn.disabled = false; btn.textContent = "Save applicant";
   if (error) return err(friendly(error));
-  $("wiForm").reset(); $("wiForm").hidden = true; $("wiToggle").hidden = false;
+  $("wiForm").reset(); wiPick = null; wiShowPick(); $("wiForm").hidden = true; $("wiToggle").hidden = false;
   $("foot").textContent = `${name} added to applicants.`; loadAll();
 });
 '''
@@ -93,6 +110,7 @@ def patch(s: str) -> str:
         '${a.position ? ` <span class="tag">${esc(a.position)}</span>` : ""}${wiTag(a)}</span>${apTag(a.status)}</div>')
     rep('<div style="display:flex;gap:12px;flex-wrap:wrap">${contact}</div>\n    <div class="meta">Applied ${esc(whenFull(a.submitted_at))}</div>',
         '<div style="display:flex;gap:12px;flex-wrap:wrap">${contact}${wiFileBtn(a)}</div>\n    <div class="meta">${wiWhen(a)} ${esc(whenFull(a.submitted_at))}</div>')
+    s = s.replace('</style>', '.wi-btn{position:relative;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;background:var(--surface);color:var(--ink)}.wi-btn input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}\n' + '</style>', 1)
     rep('function renderApps() {', 'function renderApps() {\n  setTimeout(wiSign, 0);')
     rep('/* ---------- employee handbook ---------- */', JS + '\n/* ---------- employee handbook ---------- */')
     return s
