@@ -18,7 +18,7 @@ def patch(s: str, host_js: str, banner: str = BANNER) -> str:
     s = s[:m.start()] + m.group(1) + '      ' + banner + '\n' + card + s[m.end():]
     rep('</head>', '<script src="qrcode.js" defer></script>\n</head>')
     rep('const AP_SECTIONS = [\n', 'const AP_SECTIONS = [\n' + APP_SECTION)
-    rep('const extra = Object.keys(ans).filter(k => !used.has(k));', 'const extra = Object.keys(ans).filter(k => !used.has(k) && !/^resume_/.test(k));')
+    rep('const extra = Object.keys(ans).filter(k => k !== "source" && !used.has(k));', 'const extra = Object.keys(ans).filter(k => k !== "source" && !used.has(k) && !/^resume_/.test(k));')
     rep('a.answers && a.answers.q193_instagramHandle ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle)}</span>` : ""',
         'a.answers && (a.answers.q193_instagramHandle || a.answers.instagram) ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle || a.answers.instagram)}</span>` : "", aplResumeBtn(a)')
     rep('New Jotform applications will show up here automatically.', 'Share your apply page and new applications show up here automatically.')
