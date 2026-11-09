@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loopd-In admin</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<style>
+:root{--navy:#16213e;--blue:#2f6be0;--peri:#5a56d6;--lav:#ecebfc;--lav2:#f6f5fe;--bg:#f5f6fb;--card:#fff;--ink:#16213e;--muted:#5f6b85;--line:#dfe3ef;--ok:#1f8a5b;--warn:#b7791f;--err:#c0392b;
+  --display:"Poppins",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1{font:700 1.5rem var(--display);margin:0}h1 span{color:var(--peri)}
+h2{font:600 1.1rem var(--display);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.list{display:flex;flex-direction:column;gap:12px}
+.tabs{display:flex;gap:6px;background:var(--lav);padding:4px;border-radius:12px;margin-bottom:14px}
+.tabs button{flex:1;border:0;background:none;border-radius:9px;padding:10px;font:600 .95rem var(--body);color:var(--muted);cursor:pointer}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.meta{color:var(--muted);font-size:.86rem}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:700;background:var(--lav);color:var(--peri)}
+.tag.ok{background:#e6f4ed;color:var(--ok)}.tag.warn{background:#fdf3e1;color:var(--warn)}.tag.off{background:#eef0f5;color:var(--muted)}
+.msg{white-space:pre-wrap;margin:2px 0}
+button,.btn{font:600 .92rem var(--body);border-radius:10px;padding:9px 14px;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;display:inline-block}
+.primary{background:var(--peri);border-color:var(--peri);color:#fff}
+.link{border:0;background:none;color:var(--peri);padding:4px 0;text-decoration:underline}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+textarea,input{font:inherit;width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+details{font-size:.86rem;color:var(--muted)}details summary{cursor:pointer;color:var(--peri);font-weight:600}
+details dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:6px 0 0}details dt{font-weight:600}details dd{margin:0;word-break:break-word}
+.shot{max-width:100%;max-height:320px;border-radius:10px;border:1px solid var(--line);align-self:flex-start}
+.reply{background:var(--lav2);border-left:3px solid var(--peri);border-radius:8px;padding:8px 10px}
+.signin{max-width:380px;margin:60px auto}
+.err{color:var(--err);font-weight:600;font-size:.9rem;min-height:1.2em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px 14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Loopd-In <span>admin</span></h1><div class="actions"><button class="link" id="refresh" hidden>Refresh</button><button class="link" id="signout" hidden>Sign out</button></div></header>
+
+  <form class="card signin" id="signin" hidden>
+    <h2>Sign in</h2>
+    <p class="meta" style="margin:0">Use the same email and password you use for Salon Saia.</p>
+    <input id="em" type="email" autocomplete="email" placeholder="Email" required>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" required>
+    <div class="err" id="siErr"></div>
+    <button class="primary" type="submit">Sign in</button>
+  </form>
+  <div class="card" id="denied" hidden><h2>Not an admin account</h2><p class="meta" style="margin:0">This page is only for the people who run Loopd-In.</p></div>
+
+  <main id="main" hidden>
+    <div class="tabs" role="tablist"><button data-t="help" aria-selected="true" id="t-help">Help requests</button><button data-t="salons" aria-selected="false" id="t-salons">Salons</button></div>
+    <section id="v-help"><div class="actions" style="margin-bottom:10px"><button class="link" id="showClosed"></button></div><div class="list" id="tickets"></div></section>
+    <section id="v-salons" hidden><div class="list" id="salons"></div></section>
+  </main>
+</div>
+<script>
+const db = window.supabase.createClient("https://nalechcrehlzgghtcnog.supabase.co", "sb_publishable_3RlAz9h8qeYt5lE1uIgOug_c9z6bFVn");
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const when = d => d ? new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+const ago = d => { if (!d) return "never"; const m = (Date.now() - new Date(d)) / 6e4; return m < 60 ? Math.max(1, Math.round(m)) + " min ago" : m < 1440 ? Math.round(m / 60) + " hr ago" : Math.round(m / 1440) + " days ago"; };
+const PLAN = { front_desk: "Front Desk", team: "Team", owner: "Owner" };
+const ROLE = { manager: "Manager", front_desk: "Front desk", stylist: "Stylist" };
+const SCREEN = { daily: "Daily log", log: "Incidents", supplies: "Supplies", chat: "Team chat", time: "Time off", oo: "1:1s", staff: "Staff notes", team: "Managers", apps: "Applicants" };
+const device = ua => { ua = ua || ""; const os = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : "Other";
+  const br = /CriOS|Chrome/.test(ua) && !/Edg/.test(ua) ? "Chrome" : /Edg/.test(ua) ? "Edge" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Safari/.test(ua) ? "Safari" : ""; return os + (br ? " · " + br : ""); };
+let salons = [], tickets = [], shots = {}, tab = "help", showClosed = false;
+
+async function boot() {
+  const { data: { session } } = await db.auth.getSession();
+  $("signin").hidden = !!session; $("signout").hidden = !session;
+  if (!session) return;
+  const { data: ok } = await db.rpc("lp_is_admin");
+  $("denied").hidden = !!ok; $("main").hidden = !ok; $("refresh").hidden = !ok;
+  if (!ok) return;
+  await db.rpc("lp_admin_exit");   // coming back from a salon ends that visit
+  await load();
+  db.channel("admin").on("postgres_changes", { event: "*", schema: "public", table: "lp_support_tickets" }, () => load()).subscribe();
+}
+async function load() {
+  const [s, t] = await Promise.all([db.rpc("lp_admin_salons"), db.from("lp_support_tickets").select("*").order("created_at", { ascending: false }).limit(300)]);
+  salons = s.data || []; tickets = t.data || [];
+  const need = tickets.filter(k => k.screenshot && !shots[k.id]).map(k => k.salon_id + "/" + k.screenshot);
+  if (need.length) { const { data } = await db.storage.from("lp-files").createSignedUrls(need, 3600 * 6); (data || []).forEach(x => { const k = tickets.find(k => k.salon_id + "/" + k.screenshot === x.path); if (k && x.signedUrl) shots[k.id] = x.signedUrl; }); }
+  render();
+}
+const salonOf = id => salons.find(s => s.id === id) || {};
+const accessOn = s => s.support_until && new Date(s.support_until) > new Date();
+function openBtn(s) {
+  return accessOn(s) ? `<button class="primary" data-open="${s.id}">Open their salon</button><span class="meta">Access on until ${esc(when(s.support_until))}</span>`
+    : `<span class="meta">Support access is off. Ask them to turn it on: Managers ⚙ → Your salon → Loopd-In support access.</span>`;
+}
+function render() {
+  $("t-help").setAttribute("aria-selected", tab === "help"); $("t-salons").setAttribute("aria-selected", tab === "salons");
+  $("v-help").hidden = tab !== "help"; $("v-salons").hidden = tab !== "salons";
+  const open = tickets.filter(k => k.status === "open");
+  $("t-help").textContent = open.length ? `Help requests (${open.length})` : "Help requests";
+  $("t-salons").textContent = `Salons (${salons.length})`;
+  const closedN = tickets.length - open.length;
+  $("showClosed").hidden = !closedN; $("showClosed").textContent = showClosed ? "Hide solved" : `Show solved (${closedN})`;
+  const list = showClosed ? tickets : open;
+  $("tickets").innerHTML = list.length ? list.map(k => {
+    const s = salonOf(k.salon_id), c = k.context || {};
+    return `<div class="card">
+      <div class="row"><h2>${esc(s.name || "Salon")}</h2><span class="tag ${k.status === "closed" ? "ok" : k.reply ? "" : "warn"}">${k.status === "closed" ? "Solved" : k.reply ? "Answered" : "New"}</span></div>
+      <div class="meta">${esc(k.created_by)} · ${esc(ROLE[c.role] || c.role || "")}${c.also_front_desk ? " + front desk" : ""} · ${esc(PLAN[s.plan] || s.plan || "")} plan · ${esc(when(k.created_at))}</div>
+      <p class="msg">${esc(k.message)}</p>
+      ${shots[k.id] ? `<a href="${esc(shots[k.id])}" target="_blank" rel="noopener"><img class="shot" src="${esc(shots[k.id])}" alt="Screenshot"></a>` : ""}
+      <details><summary>Details the app sent</summary><dl>
+        <dt>Screen</dt><dd>${esc(SCREEN[c.screen] || c.screen || "")}</dd><dt>Device</dt><dd>${esc(device(c.device))} · ${esc(c.size || "")}${c.home_screen_app ? " · home-screen app" : ""}</dd>
+        <dt>Page</dt><dd>${esc(c.page || "")}</dd><dt>App version</dt><dd>${esc(c.app_version || "")}</dd>
+        <dt>Errors</dt><dd>${(c.errors || []).length ? c.errors.map(esc).join("<br>") : "none"}</dd><dt>Full device</dt><dd>${esc(c.device || "")}</dd></dl></details>
+      ${k.reply ? `<div class="reply"><b>Your reply</b> · ${esc(when(k.replied_at))}<div class="msg">${esc(k.reply)}</div></div>` : ""}
+      <textarea id="r-${k.id}" rows="2" maxlength="2000" placeholder="${k.reply ? "Send another reply" : "Reply to them (they'll see it in Help and get a phone alert)"}"></textarea>
+      <div class="actions"><button class="primary" data-reply="${k.id}">Send reply</button>${k.status === "open" ? `<button data-close="${k.id}">Mark solved</button>` : `<button data-reopen="${k.id}">Reopen</button>`}${openBtn(s)}</div>
+    </div>`; }).join("") : `<div class="card"><span class="meta">${showClosed ? "No help requests yet." : "No open help requests. 🎉"}</span></div>`;
+  $("salons").innerHTML = salons.length ? salons.map(s => `<div class="card">
+      <div class="row"><h2>${esc(s.name)}</h2><span class="tag">${esc(PLAN[s.plan] || s.plan)}</span></div>
+      <div class="grid meta"><span>${esc(s.city || "")}</span><span>👥 ${s.team} on the team</span><span>Last active: ${esc(ago(s.last_active))}</span><span>Started ${esc(when(s.created_at))}</span>
+        <span>${s.open_tickets ? `<b style="color:var(--warn)">${s.open_tickets} open help request${s.open_tickets > 1 ? "s" : ""}</b>` : "No open requests"}</span>
+        <span>Support access: ${accessOn(s) ? `<b style="color:var(--ok)">on</b>` : "off"}</span></div>
+      ${(s.visits || []).length ? `<div class="meta">Your visits: ${s.visits.map(v => esc(when(v.started))).join(", ")}</div>` : ""}
+      <div class="actions">${openBtn(s)}${s.slug ? `<a class="link" href="apply.html?s=${encodeURIComponent(s.slug)}" target="_blank" rel="noopener">Apply page ↗</a>` : ""}</div>
+    </div>`).join("") : `<div class="card"><span class="meta">No salons yet.</span></div>`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.t) { tab = b.dataset.t; return render(); }
+  if (b.id === "showClosed") { showClosed = !showClosed; return render(); }
+  if (b.id === "refresh") return load();
+  if (b.id === "signout") { await db.auth.signOut(); location.reload(); return; }
+  if (b.dataset.open) {
+    b.disabled = true; const { error } = await db.rpc("lp_admin_enter", { p_salon: b.dataset.open });
+    if (error) { b.disabled = false; alert(/NO_ACCESS/.test(error.message) ? "Their support access is off or has run out." : error.message); return load(); }
+    location.href = "./"; return;
+  }
+  const id = b.dataset.reply || b.dataset.close || b.dataset.reopen; if (!id) return;
+  let row = null;
+  if (b.dataset.reply) { const v = $("r-" + id).value.trim(); if (!v) return $("r-" + id).focus(); row = { reply: v, replied_at: new Date().toISOString() }; }
+  if (b.dataset.close) row = { status: "closed" };
+  if (b.dataset.reopen) row = { status: "open" };
+  b.disabled = true; const { error } = await db.from("lp_support_tickets").update(row).eq("id", id); b.disabled = false;
+  if (error) return alert(error.message);
+  load();
+});
+$("signin").addEventListener("submit", async e => {
+  e.preventDefault(); $("siErr").textContent = "";
+  const { error } = await db.auth.signInWithPassword({ email: $("em").value.trim(), password: $("pw").value });
+  if (error) { $("siErr").textContent = "That email and password didn't work."; return; }
+  boot();
+});
+boot();
+</script>
+</body>
+</html>
