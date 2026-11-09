@@ -75,6 +75,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--peri);bo
 .agree input{width:22px;height:22px;min-height:0;accent-color:var(--peri)}
 .sig{font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive;font-size:1.35rem}
 .eeo{font-size:.72rem;line-height:1.45}
+.miss{outline:3px solid var(--err);outline-offset:4px;border-radius:12px}
 .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 button.go{font:600 1.05rem var(--display);background:linear-gradient(135deg,var(--blue),var(--peri));color:#fff;border:0;border-radius:14px;padding:15px 18px;min-height:54px;cursor:pointer;box-shadow:0 6px 18px rgba(90,86,214,.28)}
 button.go:disabled{opacity:.6;cursor:default}
@@ -132,25 +133,25 @@ function render(logoUrl) {
   const head = `<div class="top">${logoUrl ? `<img src="${esc(logoUrl)}" alt="${esc(s.name)}">` : `<div class="mono">${esc((s.name || "S")[0].toUpperCase())}</div>`}
       <div><span class="eyebrow">We're hiring</span><h1>Join the ${esc(s.name)} team</h1>${s.city ? `<p class="city">${esc(s.city)}</p>` : ""}</div></div>
     ${s.intro ? `<p class="intro">${esc(s.intro)}</p>` : ""}`;
-  const yn = (n, label) => `<div class="lbl">${label}<div class="yn"><label><input type="radio" name="a_${n}" value="Yes"><span>Yes</span></label><label><input type="radio" name="a_${n}" value="No"><span>No</span></label></div></div>`;
-  const school = (k, label) => `<div class="blk"><b>${label}</b><label>School name<input name="a_${k}_name" maxlength="120"></label><div class="two"><label>Years attended<input name="a_${k}_years" maxlength="40" placeholder="e.g. 2015–2017"></label>${yn(k + "_grad", "Graduated?")}</div></div>`;
-  const job = i => `<div class="blk job" data-job="${i}" ${i > 1 ? "hidden" : ""}><b>${i === 1 ? "Most recent job" : "Job " + i}</b>
-      <div class="two"><label>Employer<input name="a_e${i}_employer" maxlength="120"></label><label>Job title<input name="a_e${i}_title" maxlength="120"></label></div>
-      <div class="two"><label>Phone<input name="a_e${i}_phone" type="tel" maxlength="40"></label><label>Dates<input name="a_e${i}_dates" maxlength="60" placeholder="e.g. Mar 2021 – now"></label></div>
-      <label>Address<input name="a_e${i}_address" maxlength="200"></label>
-      <label>What you did there<textarea name="a_e${i}_duties" maxlength="1000" style="min-height:64px"></textarea></label>
-      <div class="two"><label>Supervisor / manager<input name="a_e${i}_supervisor" maxlength="120"></label>${yn(`e${i}_contact`, "May we contact them?")}</div>
-      <label>Reason for leaving<input name="a_e${i}_reason" maxlength="300"></label></div>`;
-  const ref = i => `<div class="blk"><b>Reference ${i}</b><div class="two"><label>Name<input name="a_r${i}_name" maxlength="120"></label><label>Phone<input name="a_r${i}_phone" type="tel" maxlength="40"></label></div><label>How do you know them?<input name="a_r${i}_relation" maxlength="200" placeholder="e.g. Former coworker, teacher, client"></label></div>`;
+  const yn = (n, label) => `<div class="lbl" data-req="${n}">${label} <span class="req">*</span><div class="yn"><label><input type="radio" name="a_${n}" value="Yes"><span>Yes</span></label><label><input type="radio" name="a_${n}" value="No"><span>No</span></label></div></div>`;
+  const school = (k, label, na) => `<div class="blk"><b>${label}</b>${na ? `<label class="agree"><input type="checkbox" name="a_${k}_na" value="Doesn't apply" data-na="${k}Fields"><span>${na}</span></label>` : ""}<div id="${k}Fields" style="display:flex;flex-direction:column;gap:12px"><label>School name <span class="req">*</span><input name="a_${k}_name" maxlength="120" data-req></label><div class="two"><label>Years attended <span class="req">*</span><input name="a_${k}_years" maxlength="40" placeholder="e.g. 2015–2017" data-req></label>${yn(k + "_grad", "Graduated?")}</div></div></div>`;
+  const job = i => `<div class="blk job" data-job="${i}" ${i > 1 ? "hidden" : ""}><div class="row" style="display:flex;justify-content:space-between;align-items:center"><b>${i === 1 ? "Most recent job" : "Job " + i}</b>${i > 1 ? `<button type="button" class="x" data-rmjob="${i}">Remove</button>` : ""}</div>
+      <div class="two"><label>Employer <span class="req">*</span><input name="a_e${i}_employer" maxlength="120" data-req></label><label>Job title <span class="req">*</span><input name="a_e${i}_title" maxlength="120" data-req></label></div>
+      <div class="two"><label>Phone <span class="req">*</span><input name="a_e${i}_phone" type="tel" maxlength="40" data-req></label><label>Dates <span class="req">*</span><input name="a_e${i}_dates" maxlength="60" placeholder="e.g. Mar 2021 – now" data-req></label></div>
+      <label>Address <span class="req">*</span><input name="a_e${i}_address" maxlength="200" data-req></label>
+      <label>What you did there <span class="req">*</span><textarea name="a_e${i}_duties" maxlength="1000" style="min-height:64px" data-req></textarea></label>
+      <div class="two"><label>Supervisor / manager <span class="req">*</span><input name="a_e${i}_supervisor" maxlength="120" data-req></label>${yn(`e${i}_contact`, "May we contact them?")}</div>
+      <label>Reason for leaving <span class="req">*</span><input name="a_e${i}_reason" maxlength="300" placeholder="If you still work there, write “Still working there”" data-req></label></div>`;
+  const ref = i => `<div class="blk"><b>Reference ${i}</b><div class="two"><label>Name <span class="req">*</span><input name="a_r${i}_name" maxlength="120" data-req></label><label>Phone <span class="req">*</span><input name="a_r${i}_phone" type="tel" maxlength="40" data-req></label></div><label>How do you know them? <span class="req">*</span><input name="a_r${i}_relation" maxlength="200" placeholder="e.g. Former coworker, teacher, client" data-req></label></div>`;
   const today = new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
   $("card").innerHTML = head + `
-  <p class="steps">About 10 minutes. Only the starred items are required; a résumé can stand in for the work history.</p>
+  <p class="steps">About 10–15 minutes. Please fill out every section; anything marked “optional” can be skipped. You're welcome to attach a résumé too.</p>
   <form id="f" novalidate>
     <fieldset>
       <legend>What job are you applying for? <span class="req">*</span></legend>
       <div class="chips" role="radiogroup" aria-label="Position">${pos.map(p => `<label><input type="radio" name="position" value="${esc(p)}" ${pos.length === 1 ? "checked" : ""}><span>${esc(p)}</span></label>`).join("")}</div>
-      <div class="lbl">Available for<div class="chips">${["Full time", "Part time", "Temporary"].map(t => `<label><input type="checkbox" name="avail_type" value="${t}"><span>${t}</span></label>`).join("")}</div></div>
-      <label id="tempWrap" hidden>If temporary, date available<input name="a_temp_date" type="date"></label>
+      <div class="lbl" data-req="avail_type">Available for <span class="req">*</span><div class="chips">${["Full time", "Part time", "Temporary"].map(t => `<label><input type="checkbox" name="avail_type" value="${t}"><span>${t}</span></label>`).join("")}</div></div>
+      <label id="tempWrap" hidden>If temporary, date available <span class="req">*</span><input name="a_temp_date" type="date" data-req></label>
     </fieldset>
     <fieldset class="sec">
       <legend>About you</legend>
@@ -159,7 +160,7 @@ function render(logoUrl) {
         <label>Cell phone <span class="req">*</span><input name="phone" type="tel" autocomplete="tel" maxlength="40" required></label>
         <label>Email <span class="req">*</span><input name="email" type="email" autocomplete="email" maxlength="120" required></label>
       </div>
-      <label>Home address<input name="a_address" autocomplete="street-address" maxlength="200" placeholder="Street, city, state, ZIP"></label>
+      <label>Home address <span class="req">*</span><input name="a_address" autocomplete="street-address" maxlength="200" placeholder="Street, city, state, ZIP" data-req></label>
       <div class="two">
         <label>Other phone <span class="opt">optional</span><input name="a_phone2" type="tel" maxlength="40"></label>
         <label>Instagram <span class="opt">optional</span><input name="instagram" maxlength="100" placeholder="@yourhandle" autocapitalize="off"></label>
@@ -168,49 +169,50 @@ function render(logoUrl) {
     <fieldset class="sec">
       <legend>Your experience</legend>
       <div class="two">
-        <label>License<select name="license">
+        <label>License <span class="req">*</span><select name="license" data-req>
           <option value="">Choose one</option><option>Licensed</option><option>Licensed in another state</option><option>In cosmetology school</option><option>Not licensed (not needed for this job)</option>
         </select></label>
-        <label>Years in the industry<select name="experience">
+        <label>Years in the industry <span class="req">*</span><select name="experience" data-req>
           <option value="">Choose one</option><option>New to the industry</option><option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
         </select></label>
       </div>
-      <label>Which days and hours can you work?<textarea name="availability" maxlength="500" style="min-height:72px" placeholder="e.g. Tue–Sat, can stay until 8pm"></textarea></label>
+      <label>Which days and hours can you work? <span class="req">*</span><textarea data-req name="availability" maxlength="500" style="min-height:72px" placeholder="e.g. Tue–Sat, can stay until 8pm"></textarea></label>
       <div class="two">
-        <label>When could you start?<input name="start" maxlength="100" placeholder="e.g. 2 weeks' notice"></label>
-        <label>How did you hear about us?<select name="heard">
+        <label>When could you start? <span class="req">*</span><input data-req name="start" maxlength="100" placeholder="e.g. 2 weeks' notice"></label>
+        <label>How did you hear about us? <span class="req">*</span><select name="heard" data-req>
           <option value="">Choose one</option><option>Instagram</option><option>Facebook</option><option>Indeed</option><option>Our website</option><option>A friend or someone who works here</option><option>Cosmetology school</option><option>Walked by / saw a sign</option><option>Other</option>
         </select></label>
       </div>
       <div class="two">${yn("employed_now", "Are you working somewhere now?")}${yn("prev_employed", `Have you worked at ${esc(s.name)} before?`)}</div>
-      <label id="prevWrap" hidden>If yes, when?<input name="a_prev_when" maxlength="100"></label>
+      <label id="prevWrap" hidden>If yes, when? <span class="req">*</span><input name="a_prev_when" maxlength="100" data-req></label>
       <label>Languages besides English <span class="opt">optional</span><input name="a_languages" maxlength="200" placeholder="Spoken and written fluently"></label>
     </fieldset>
     <fieldset class="sec">
       <legend>Getting to work</legend>
-      <div class="two">${yn("drivers_license", "Valid driver's license?")}<label>Expiration date <span class="opt">optional</span><input name="a_dl_exp" type="date"></label></div>
+      <div class="two">${yn("drivers_license", "Valid driver's license?")}<label id="dlWrap" hidden>Expiration date <span class="req">*</span><input name="a_dl_exp" type="date" data-req></label></div>
       <div class="two">${yn("transportation", "Your own transportation?")}${yn("reliable", "Is it reliable?")}</div>
     </fieldset>
     ${s.background ? `<fieldset class="sec">
       <legend>Background</legend>
       <p class="fine" style="text-align:left">A conviction will not automatically disqualify you, but leaving one out may. You don't need to list sealed, expunged or erased convictions, or minor traffic tickets.</p>
       ${yn("convicted", "Have you been convicted of a crime, including a “no contest” plea?")}
-      <div class="two" id="crimeWrap" hidden><label>Offense<input name="a_offense" maxlength="300"></label><label>Date<input name="a_offense_date" maxlength="40"></label></div>
+      <div class="two" id="crimeWrap" hidden><label>Offense <span class="req">*</span><input name="a_offense" maxlength="300" data-req></label><label>Date <span class="req">*</span><input name="a_offense_date" maxlength="40" data-req></label></div>
       ${yn("substances", "Do you use any controlled substance that could affect your work?")}
     </fieldset>` : ""}
     <fieldset class="sec">
       <legend>Education and skills</legend>
-      ${school("cos", "Cosmetology school")}
       ${school("hs", "High school")}
-      ${school("college", "College or other")}
+      ${school("cos", "Cosmetology school", "I didn't go to cosmetology school")}
+      ${school("college", "College or other", "Doesn't apply to me")}
       <label>Licenses, certificates and classes <span class="opt">optional</span><textarea name="a_training" maxlength="1000" style="min-height:64px" placeholder="e.g. NC cosmetology license, balayage certification, extensions class"></textarea></label>
       <div class="two"><label>Software you know <span class="opt">optional</span><input name="a_software" maxlength="200" placeholder="e.g. Phorest, Square, Vagaro"></label><label>Other skills <span class="opt">optional</span><input name="a_skills" maxlength="200"></label></div>
     </fieldset>
     <fieldset class="sec">
       <legend>Work history</legend>
-      <p class="fine" style="text-align:left;margin-top:-4px">Your jobs from the last 10 years, newest first. Attaching a résumé below works too.</p>
-      ${[1, 2, 3, 4].map(job).join("")}
-      <button type="button" class="more" id="addJob">+ Add another job</button>
+      <p class="fine" style="text-align:left;margin-top:-4px">Every job from the last 10 years, newest first.</p>
+      <label class="agree"><input type="checkbox" name="a_no_jobs" value="Yes" data-na="jobsWrap"><span>I haven't had a job yet</span></label>
+      <div id="jobsWrap" style="display:flex;flex-direction:column;gap:12px">${[1, 2, 3, 4].map(job).join("")}
+      <button type="button" class="more" id="addJob">+ Add another job</button></div>
     </fieldset>
     <fieldset class="sec">
       <legend>References</legend>
@@ -240,7 +242,9 @@ function render(logoUrl) {
   </form>`;
   const f = $("f");
   const showIf = (radio, wrap) => f.querySelectorAll(`input[name=${radio}]`).forEach(r => r.addEventListener("change", () => { if ($(wrap)) { $(wrap).hidden = !(f.querySelector(`input[name=${radio}]:checked`) || {}).value?.startsWith("Y"); sendHeight(); } }));
-  showIf("a_prev_employed", "prevWrap"); showIf("a_convicted", "crimeWrap");
+  showIf("a_prev_employed", "prevWrap"); showIf("a_convicted", "crimeWrap"); showIf("a_drivers_license", "dlWrap");
+  f.querySelectorAll("[data-na]").forEach(c => c.addEventListener("change", () => { $(c.dataset.na).hidden = c.checked; sendHeight(); }));
+  f.addEventListener("click", e => { const b = e.target.closest("[data-rmjob]"); if (!b) return; const blk = f.querySelector(`.job[data-job="${b.dataset.rmjob}"]`); blk.hidden = true; blk.querySelectorAll("input,textarea").forEach(x => { if (x.type === "radio") x.checked = false; else x.value = ""; }); $("addJob").hidden = false; sendHeight(); });
   f.querySelectorAll("input[name=avail_type]").forEach(c => c.addEventListener("change", () => { $("tempWrap").hidden = !f.querySelector("input[name=avail_type][value=Temporary]:checked"); sendHeight(); }));
   $("addJob").onclick = () => { const next = f.querySelector(".job[hidden]"); if (next) { next.hidden = false; next.querySelector("input").focus(); } if (!f.querySelector(".job[hidden]")) $("addJob").hidden = true; sendHeight(); };
   drawDrop();
@@ -283,6 +287,20 @@ function pick(f) {
   FILE = f; drawDrop();
 }
 
+function firstMissing(f) {
+  const vis = el => !el.closest("[hidden]");
+  const labelOf = el => { const t = ((el.closest("label, .lbl") || {}).firstChild || {}).textContent?.trim().replace(/\s*\*$/, "") || "this question";
+    const blk = el.closest(".blk"), h = blk && blk.querySelector("b"); return h ? `${h.textContent.trim()} – ${t}` : t; };
+  for (const el of f.querySelectorAll("[data-req]")) {
+    if (!vis(el)) continue;
+    const key = el.getAttribute("data-req");
+    if (key) {   // a yes/no or checkbox group
+      const nm = key === "avail_type" ? "avail_type" : "a_" + key;
+      if (!f.querySelector(`input[name="${nm}"]:checked`)) return { el, label: labelOf(el) };
+    } else if (!String(el.value || "").trim()) return { el: el.closest("label") || el, label: labelOf(el) };
+  }
+  return null;
+}
 async function send(e) {
   e.preventDefault();
   const f = e.target, v = n => (f.elements[n] ? f.elements[n].value : "").trim(), err = t => { $("err").textContent = t; sendHeight(); };
@@ -292,6 +310,8 @@ async function send(e) {
   if (!v("name")) { f.elements.name.focus(); return err("Please add your name."); }
   if (!v("phone")) { f.elements.phone.focus(); return err("Please add your phone number."); }
   if (!/^\S+@\S+\.\S+$/.test(v("email"))) { f.elements.email.focus(); return err("Please check your email address."); }
+  const missing = firstMissing(f);
+  if (missing) { missing.el.scrollIntoView({ behavior: "smooth", block: "center" }); missing.el.classList.add("miss"); setTimeout(() => missing.el.classList.remove("miss"), 2500); return err(`Please fill out “${missing.label}”. Every section is needed.`); }
   if (!f.querySelector("input[name=agree]:checked")) { f.querySelector("input[name=agree]").focus(); return err("Please read the statement at the bottom and check “I agree.”"); }
   if (v("a_signature").length < 2) { f.elements.a_signature.focus(); return err("Please type your full name to sign."); }
   if (v("website")) return thanks(v("name"));   // a bot filled the hidden box

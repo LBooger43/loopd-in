@@ -2,7 +2,7 @@
 Print goes into Salon Saia, Loopd-In and the demo; the apply-page sections go where the apply page lives (Loopd-In, demo)."""
 import pathlib, sys
 YN = []
-def emp(i): return f'  ["Job {i}", [["e{i}_employer","Employer"],["e{i}_title","Job title"],["e{i}_dates","Dates"],["e{i}_phone","Phone"],["e{i}_address","Address"],["e{i}_duties","What they did"],["e{i}_supervisor","Supervisor / manager"],["e{i}_contact","May we contact them?"],["e{i}_reason","Reason for leaving"]]],\n'
+def emp(i): return f'  ["Job {i}", [{'["no_jobs","No job history yet"],' if i == 1 else ''}["e{i}_employer","Employer"],["e{i}_title","Job title"],["e{i}_dates","Dates"],["e{i}_phone","Phone"],["e{i}_address","Address"],["e{i}_duties","What they did"],["e{i}_supervisor","Supervisor / manager"],["e{i}_contact","May we contact them?"],["e{i}_reason","Reason for leaving"]]],\n'
 SECTIONS = ('  ["Application", [["avail_type","Available for"],["temp_date","If temporary, available"],["license","License"],["experience","Years in the industry"],["availability","Days and hours they can work"],["start","Could start"],["heard","Heard about us from"],["instagram","Instagram"],["address","Home address"],["phone2","Other phone"],["employed_now","Working somewhere now?"],["prev_employed","Worked here before?"],["prev_when","If yes, when"],["languages","Other languages"],["about","About them"]]],\n'
             '  ["Getting to work", [["drivers_license","Valid driver\'s license?"],["dl_exp","License expires"],["transportation","Own transportation?"],["reliable","Reliable?"]]],\n'
             '  ["Background", [["convicted","Convicted of a crime?"],["offense","Offense"],["offense_date","Date"],["substances","Controlled substance that could affect work?"]]],\n'
