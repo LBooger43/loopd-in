@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loopd-In share kit</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Share kit">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#16213e;--blue:#2f6be0;--peri:#5a56d6;--lav:#ecebfc;--lav2:#f6f5fe;--bg:#f5f6fb;--card:#fff;--ink:#16213e;--muted:#5f6b85;--line:#dfe3ef;--ok:#1f8a5b;
+  --display:"Poppins",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+header img{height:40px}
+h1{font:700 1.45rem var(--display);margin:0}
+h2{font:600 1.05rem var(--display);margin:22px 0 10px;color:var(--navy)}
+.sub{color:var(--muted);margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.card b{font:600 1rem var(--display)}
+.url{font-size:.85rem;color:var(--muted);word-break:break-all}
+.msg{white-space:pre-wrap;background:var(--lav2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:.93rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns a,.btns button{font:600 .92rem var(--body);border-radius:10px;padding:10px 14px;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.btns .main{background:var(--peri);border-color:var(--peri);color:#fff}
+.codes{display:flex;gap:8px;flex-wrap:wrap}
+.codes button{font:700 .95rem ui-monospace,Menlo,monospace;border:1.5px dashed var(--peri);background:var(--lav);color:var(--peri);border-radius:10px;padding:10px 14px;cursor:pointer}
+.note{font-size:.85rem;color:var(--muted)}
+.private{border-color:#e8b931;background:#fffaf0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="loopd-in-logo.png" alt=""><h1>Share kit</h1></header>
+  <p class="sub">Everything to send a salon. Tap <b>Text it</b> or <b>Email it</b> and the message opens ready to go, or <b>Copy</b> to paste anywhere.</p>
+
+  <h2>Ready-to-send messages</h2>
+  <div id="msgs"></div>
+
+  <h2>Links</h2>
+  <div id="links"></div>
+
+  <h2>Beta invite codes</h2>
+  <div class="card">
+    <div class="codes"><button data-copy="BETA-OWNER">BETA-OWNER</button><button data-copy="BETA-TEAM">BETA-TEAM</button><button data-copy="BETA-DESK">BETA-DESK</button></div>
+    <span class="note">Tap a code to copy it. BETA-OWNER gives every feature. Each code works for 5 salons; ask for more anytime.</span>
+  </div>
+
+  <h2>Just for you</h2>
+  <div class="card private">
+    <b>Admin page</b><span class="url">https://lbooger43.github.io/loopd-in/admin.html</span>
+    <div class="btns"><a href="admin.html" target="_blank" rel="noopener">Open ↗</a></div>
+    <span class="note">Help requests and salons. Don't send this one to salons.</span>
+  </div>
+  <p class="note">Tip: on iPhone, tap Share → <b>Add to Home Screen</b> to keep this page one tap away. On your laptop, bookmark it.</p>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const BASE = "https://lbooger43.github.io/loopd-in/";
+const L = { app: BASE, demo: BASE + "demo/", pricing: BASE + "pricing.html", apply: BASE + "demo/apply.html" };
+const LINKS = [
+  ["Demo", L.demo, "Try it with sample data. Switch between Manager, Front desk and Stylist at the top."],
+  ["Plans and pricing", L.pricing, "The three plans side by side. Prints on one page."],
+  ["Start a salon (beta)", L.app, "Where a salon signs up with an invite code."],
+  ["Sample job application", L.apply, "What job seekers see on a salon's apply page."],
+];
+const MSGS = [
+  { title: "First hello: demo + pricing", subject: "Loopd-In: the team app I built for my salon",
+    body: `Hi! Here's the app I mentioned. I built Loopd-In for my own salon, Salon Saia, to keep the front desk, stylists and managers on the same page: daily notes, time off, 1:1s, supplies, team chat and hiring.\n\nTry the demo (no sign-up): ${L.demo}\nPlans and pricing: ${L.pricing}\n\nIt's free while we're in beta. Happy to walk you through it!\n- Leif` },
+  { title: "Ready to start: sign-up steps", subject: "Your Loopd-In beta invite",
+    body: `Great to have you trying Loopd-In! It's free during the beta.\n\n1. Open ${L.app}\n2. Tap "Start a salon"\n3. Enter invite code: BETA-OWNER\n4. Add your salon name, then add your team in the Managers tab\n\nIf anything gets stuck, tap Help at the top of the app and I'll see it right away.\n- Leif` },
+  { title: "Hiring: apply page + walk-ins", subject: "Hiring made easier with Loopd-In",
+    body: `Since you're hiring, here's what Loopd-In does: you get your own apply page for your website, Instagram or a QR "Now hiring" sign. Applications and résumés land on your phone, with a checklist for calls and interviews. Walk-ins can be added in seconds too.\n\nSee a sample application: ${L.apply}\nTry the whole app: ${L.demo}\n- Leif` },
+  { title: "Quick text (short)", subject: "Loopd-In",
+    body: `Here's Loopd-In, the salon team app I built: ${L.demo} (demo, no sign-up). Pricing: ${L.pricing}` },
+];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const sms = body => `sms:${isIOS ? "&" : "?"}body=${encodeURIComponent(body)}`;
+const mail = (subject, body) => `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+$("msgs").innerHTML = MSGS.map((m, i) => `<div class="card"><b>${esc(m.title)}</b><div class="msg">${esc(m.body)}</div>
+  <div class="btns"><a class="main" href="${sms(m.body)}">💬 Text it</a><a href="${mail(m.subject, m.body)}">✉️ Email it</a><button data-msg="${i}">Copy</button>${navigator.share ? `<button data-share="${i}">Share…</button>` : ""}</div></div>`).join("");
+$("links").innerHTML = LINKS.map(([t, u, d]) => `<div class="card"><b>${esc(t)}</b><span class="url">${esc(u)}</span><span class="note">${esc(d)}</span>
+  <div class="btns"><button data-copy="${esc(u)}">Copy link</button><a href="${sms(u)}">💬 Text</a><a href="${mail("Loopd-In: " + t, u)}">✉️ Email</a><a href="${esc(u)}" target="_blank" rel="noopener">Open ↗</a></div></div>`).join("");
+let tt; const toast = t => { $("toast").textContent = t; $("toast").classList.add("on"); clearTimeout(tt); tt = setTimeout(() => $("toast").classList.remove("on"), 1600); };
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  toast("Copied ✓");
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.copy) return copy(b.dataset.copy);
+  if (b.dataset.msg) return copy(MSGS[b.dataset.msg].body);
+  if (b.dataset.share) { const m = MSGS[b.dataset.share]; try { await navigator.share({ title: m.subject, text: m.body }); } catch {} }
+});
+</script>
+</body>
+</html>
