@@ -94,6 +94,14 @@ async function load() {
 }
 const salonOf = id => salons.find(s => s.id === id) || {};
 const accessOn = s => s.support_until && new Date(s.support_until) > new Date();
+const day = d => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+function betaLine(s) {
+  if (s.paid_until && new Date(s.paid_until) > new Date()) return `<span class="tag ok">Paid until ${esc(day(s.paid_until))}</span>`;
+  if (!s.beta_ends_at) return `<span class="tag">Beta, no end date</span>`;
+  const left = Math.ceil((new Date(s.beta_ends_at) - new Date()) / 864e5);
+  return left > 0 ? `<span class="tag ${left <= 14 ? "warn" : ""}">Beta ends ${esc(day(s.beta_ends_at))} · ${left} day${left === 1 ? "" : "s"} left</span>`
+    : `<span class="tag" style="background:#fdecea;color:#c0392b">Beta ended ${esc(day(s.beta_ends_at))} · locked</span>`;
+}
 function openBtn(s) {
   return accessOn(s) ? `<button class="primary" data-open="${s.id}">Open their salon</button><span class="meta">Access on until ${esc(when(s.support_until))}</span>`
     : `<span class="meta">Support access is off. Ask them to turn it on: Managers ⚙ → Your salon → Loopd-In support access.</span>`;
@@ -110,7 +118,7 @@ function render() {
   $("tickets").innerHTML = list.length ? list.map(k => {
     const s = salonOf(k.salon_id), c = k.context || {};
     return `<div class="card">
-      <div class="row"><h2>${esc(s.name || "Salon")}</h2><span class="tag ${k.status === "closed" ? "ok" : k.reply ? "" : "warn"}">${k.status === "closed" ? "Solved" : k.reply ? "Answered" : "New"}</span></div>
+      <div class="row"><h2>${esc(s.name || "Salon")} ${s.id ? betaLine(s) : ""}</h2><span class="tag ${k.status === "closed" ? "ok" : k.reply ? "" : "warn"}">${k.status === "closed" ? "Solved" : k.reply ? "Answered" : "New"}</span></div>
       <div class="meta">${esc(k.created_by)} · ${esc(ROLE[c.role] || c.role || "")}${c.also_front_desk ? " + front desk" : ""} · ${esc(PLAN[s.plan] || s.plan || "")} plan · ${esc(when(k.created_at))}</div>
       <p class="msg">${esc(k.message)}</p>
       ${shots[k.id] ? `<a href="${esc(shots[k.id])}" target="_blank" rel="noopener"><img class="shot" src="${esc(shots[k.id])}" alt="Screenshot"></a>` : ""}
@@ -124,6 +132,7 @@ function render() {
     </div>`; }).join("") : `<div class="card"><span class="meta">${showClosed ? "No help requests yet." : "No open help requests. 🎉"}</span></div>`;
   $("salons").innerHTML = salons.length ? salons.map(s => `<div class="card">
       <div class="row"><h2>${esc(s.name)}</h2><span class="tag">${esc(PLAN[s.plan] || s.plan)}</span></div>
+      <div class="actions">${betaLine(s)}<button data-beta="30" data-id="${s.id}">+30 days</button><button data-beta="60" data-id="${s.id}">+60 days</button>${s.active ? `<button data-beta="0" data-id="${s.id}" style="color:#c0392b">End beta now</button>` : ""}</div>
       <div class="grid meta"><span>${esc(s.city || "")}</span><span>👥 ${s.team} on the team</span><span>Last active: ${esc(ago(s.last_active))}</span><span>Started ${esc(when(s.created_at))}</span>
         <span>${s.open_tickets ? `<b style="color:var(--warn)">${s.open_tickets} open help request${s.open_tickets > 1 ? "s" : ""}</b>` : "No open requests"}</span>
         <span>Support access: ${accessOn(s) ? `<b style="color:var(--ok)">on</b>` : "off"}</span></div>
@@ -137,6 +146,13 @@ document.addEventListener("click", async e => {
   if (b.id === "showClosed") { showClosed = !showClosed; return render(); }
   if (b.id === "refresh") return load();
   if (b.id === "signout") { await db.auth.signOut(); location.reload(); return; }
+  if (b.dataset.beta) {
+    const days = Number(b.dataset.beta), s = salonOf(b.dataset.id);
+    if (!days && !confirm(`End ${s.name}'s beta now? They'll be locked until you give them more days.`)) return;
+    b.disabled = true; const { error } = await db.rpc("lp_admin_set_beta", { p_salon: b.dataset.id, p_days: days }); b.disabled = false;
+    if (error) return alert(error.message);
+    return load();
+  }
   if (b.dataset.open) {
     b.disabled = true; const { error } = await db.rpc("lp_admin_enter", { p_salon: b.dataset.open });
     if (error) { b.disabled = false; alert(/NO_ACCESS/.test(error.message) ? "Their support access is off or has run out." : error.message); return load(); }
