@@ -6,9 +6,9 @@ import pathlib, sys
 
 SUP_FORM = '''        <form id="supOtherForm" class="plain" style="display:flex;flex-direction:column;gap:8px">
           <label for="supOther">Need something that's not listed?</label>
-          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:8px"><select id="supOtherCat" aria-label="Category"></select><input id="supOther" maxlength="200" required autocomplete="off" placeholder="e.g. Dryer sheets"></div>
-          <label style="flex-direction:row;align-items:center;gap:8px;font-weight:500"><input type="checkbox" id="supKeep" checked style="width:20px;height:20px;min-height:0"> Keep it on the Running low list for next time</label>
-          <div class="form-actions"><span class="form-err" id="supErr"></span><button type="submit" class="primary">Add to shopping list</button></div>
+          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:8px"><select id="supOtherCat" aria-label="Category"></select><input id="supOther" maxlength="200" required autocomplete="off" placeholder="e.g. Dryer sheets, balloons for Friday"></div>
+          <p class="meta" style="margin:0">One-time things like balloons for a party: <b>Just this once</b>. Things you'll buy again: <b>Add + save</b> so it's a button next time.</p>
+          <div class="form-actions"><span class="form-err" id="supErr"></span><button type="submit" class="ghost" data-keep="0">Just this once</button><button type="submit" class="primary" data-keep="1">Add + save for next time</button></div>
         </form>'''
 
 SUP_SUBMIT = '''$("supOtherForm").addEventListener("submit", async e => {
@@ -17,7 +17,8 @@ SUP_SUBMIT = '''$("supOtherForm").addEventListener("submit", async e => {
   const category = $("supOtherCat").value || "Other";
   const same = supItems.find(i => i.category === category && i.name.toLowerCase() === v.toLowerCase());
   let item = same || null;
-  if (!item && $("supKeep").checked) {
+  const keep = !(e.submitter && e.submitter.dataset.keep === "0");
+  if (!item && keep) {
     const sort = supItems.filter(i => i.category === category).reduce((m, i) => Math.max(m, i.sort || 0), supItems.reduce((m, i) => Math.max(m, i.sort || 0), 0)) + 1;
     const r = await sb.from("supply_items").insert({ category, name: v, sort }).select("id,name,category").single();
     if (!r.error) item = r.data;   // if saving it for next time isn't allowed, it still goes on today's list
