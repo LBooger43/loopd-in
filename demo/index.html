@@ -688,10 +688,11 @@ window.__demoSeed = function (ME) {
           <datalist id="supCats"></datalist>
           <div class="form-actions"><span class="form-err" id="supEditErr"></span><button type="submit" class="primary">Add item</button></div>
         </form>
-        <form id="supOtherForm" class="plain">
-          <label for="supOther">Something else</label>
-          <div class="todo-add"><input id="supOther" maxlength="200" required autocomplete="off" placeholder="e.g. Oat milk x4, light bulbs for station 3"><button type="submit" class="primary">Add</button></div>
-          <span class="form-err" id="supErr"></span>
+        <form id="supOtherForm" class="plain" style="display:flex;flex-direction:column;gap:8px">
+          <label for="supOther">Need something that's not listed?</label>
+          <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:8px"><select id="supOtherCat" aria-label="Category"></select><input id="supOther" maxlength="200" required autocomplete="off" placeholder="e.g. Dryer sheets"></div>
+          <label style="flex-direction:row;align-items:center;gap:8px;font-weight:500"><input type="checkbox" id="supKeep" checked style="width:20px;height:20px;min-height:0"> Keep it on the Running low list for next time</label>
+          <div class="form-actions"><span class="form-err" id="supErr"></span><button type="submit" class="primary">Add to shopping list</button></div>
         </form>
       </div>
       <button type="button" class="link" id="supBoughtToggle" hidden></button>
@@ -819,8 +820,9 @@ window.__demoSeed = function (ME) {
           <div class="form-actions"><span class="form-err" id="wi-err"></span><button type="button" class="ghost" id="wi-cancel">Cancel</button><button type="submit" class="primary" id="wi-save">Save applicant</button></div>
         </form>
       </div>
-      <div class="tabs" id="apFilter" role="tablist" style="grid-template-columns:repeat(4,1fr)">
+      <div class="tabs" id="apFilter" role="tablist" style="grid-template-columns:repeat(5,1fr)">
         <button type="button" data-apf="active" aria-selected="true">Active</button>
+        <button type="button" data-apf="interview" aria-selected="false">Interviewing</button>
         <button type="button" data-apf="hired" aria-selected="false">Hired</button>
         <button type="button" data-apf="not_a_fit" aria-selected="false">Not a fit</button>
         <button type="button" data-apf="all" aria-selected="false">All</button>
@@ -1415,6 +1417,8 @@ function renderSupplies() {
   $("supEditForm").hidden = !(isMgr() && supEdit);
   $("supHelp").textContent = supEdit ? "Tap × to take an item off this list for good, or add a new one below." : "Tap anything that's running low to add it to the shopping list.";
   $("supCats").innerHTML = catOrder.map(c => `<option value="${esc(c)}">`).join("");
+  { const sel = $("supOtherCat"), keep = sel.value, cats = [...catOrder.filter(c => c !== "Other"), "Other"];
+    sel.innerHTML = cats.map(c => `<option${c === keep ? " selected" : ""}>${esc(c)}</option>`).join(""); }
   $("supCatalog").innerHTML = supItems.length ? supGroups(supItems, i => i.category).map(([c, rows]) => `<div class="supgrp"><h3>${esc(c)}</h3><div class="cats">${rows.map(i =>
     supEdit && isMgr()
       ? `<button type="button" class="cat" data-sup="retire" data-id="${i.id}" aria-label="Remove ${esc(i.name)} from the list">${esc(i.name)} ×</button>`
@@ -1448,7 +1452,16 @@ $("supBoughtToggle").onclick = () => { showBought = !showBought; renderSupplies(
 $("supOtherForm").addEventListener("submit", async e => {
   e.preventDefault(); $("supErr").textContent = "";
   const v = $("supOther").value.trim(); if (!v) return;
-  if (await addNeed({ item_name: v, category: "Other" })) { $("supOther").value = ""; loadAll(); }
+  const category = $("supOtherCat").value || "Other";
+  const same = supItems.find(i => i.category === category && i.name.toLowerCase() === v.toLowerCase());
+  let item = same || null;
+  if (!item && $("supKeep").checked) {
+    const sort = supItems.filter(i => i.category === category).reduce((m, i) => Math.max(m, i.sort || 0), supItems.reduce((m, i) => Math.max(m, i.sort || 0), 0)) + 1;
+    const r = await sb.from("supply_items").insert({ category, name: v, sort }).select("id,name,category").single();
+    if (!r.error) item = r.data;   // if saving it for next time isn't allowed, it still goes on today's list
+  }
+  if (item && supNeeds.some(n => !n.bought && n.item_id === item.id)) { $("supErr").textContent = `${item.name} is already on the list.`; return; }
+  if (await addNeed(item ? { item_id: item.id, item_name: item.name, category: item.category } : { item_name: v, category })) { $("supOther").value = ""; loadAll(); }
 });
 $("supEditForm").addEventListener("submit", async e => {
   e.preventDefault(); $("supEditErr").textContent = "";
@@ -1786,7 +1799,7 @@ $("view-oo").addEventListener("click", async e => {
 let applicants = [], apFilter = "active", apOpen = null, apFull = null, apSched = null, apDel = null;
 const AP_STATUS = {
   new: ["New", "var(--accent)"], no_answer: ["Called – no answer", "var(--warn)"], voicemail: ["Left voicemail", "var(--warn)"],
-  spoke: ["Spoke to", "var(--private)"], interview: ["Interview scheduled", "var(--ok)"], hired: ["Hired", "var(--ok)"], not_a_fit: ["Not a fit", "var(--muted)"],
+  spoke: ["Spoke to", "var(--private)"], interview: ["Interviewing", "var(--ok)"], hired: ["Hired", "var(--ok)"], not_a_fit: ["Not a fit", "var(--muted)"],
 };
 const AP_ACTIVE = ["new", "no_answer", "voicemail", "spoke", "interview"];
 const AP_SECTIONS = [
@@ -1828,7 +1841,7 @@ function apCard(a) {
   } else {
     const b = (st, label) => { const n = (a.log || []).filter(l => l.what === AP_STATUS[st][0]).length; return `<button class="link" data-ap="st" data-st="${st}" data-id="${a.id}">${n ? "☑" : "☐"} ${label}${n > 1 ? ` (${n})` : ""}</button>`; };
     actions = `<div class="actions">${b("no_answer", "Called – no answer")}${b("voicemail", "Left voicemail")}${b("spoke", "Spoke to")}<button class="link" data-ap="sched" data-id="${a.id}">📅 ${a.interview_at ? "Reschedule interview" : "Schedule interview"}</button></div>
-      <div class="actions"><button class="link done" data-ap="st" data-st="hired" data-id="${a.id}">✓ Hired</button><button class="link del" data-ap="st" data-st="not_a_fit" data-id="${a.id}">Not a fit</button>${a.status !== "new" ? `<button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to New</button>` : ""}<button class="link del" data-ap="del" data-id="${a.id}">Delete</button></div>`;
+      <div class="actions">${a.status !== "interview" ? `<button class="link" data-ap="st" data-st="interview" data-id="${a.id}">🗣 Interviewing</button>` : ""}<button class="link done" data-ap="st" data-st="hired" data-id="${a.id}">✓ Hired</button><button class="link del" data-ap="st" data-st="not_a_fit" data-id="${a.id}">Not a fit</button>${a.status !== "new" ? `<button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to New</button>` : ""}<button class="link del" data-ap="del" data-id="${a.id}">Delete</button></div>`;
   }
   const stripe = (AP_STATUS[a.status] || [])[1] || "var(--line)";
   return `<article class="entry" style="--stripe:${stripe}">
