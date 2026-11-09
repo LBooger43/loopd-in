@@ -477,6 +477,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
         </div>
         <form id="apl-set" class="fu-box" hidden style="display:flex;flex-direction:column;gap:10px">
           <label style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="apl-openChk" style="width:22px;height:22px;min-height:0"> <span><b>Taking applications</b><br><span class="meta">Turn off when you're not hiring. The page will say you aren't taking applications.</span></span></label>
+          <label style="flex-direction:row;align-items:center;gap:10px"><input type="checkbox" id="apl-bg" style="width:22px;height:22px;min-height:0"> <span><b>Ask background questions</b><br><span class="meta">Criminal record and controlled substances. Some states and cities limit asking these on an application, so check your local rules first.</span></span></label>
           <label>Jobs people can apply for<input id="apl-pos" maxlength="300" placeholder="Stylist, Assistant, Front desk"><span class="meta">Separate with commas.</span></label>
           <label>Message at the top <span class="meta">(optional)</span><textarea id="apl-intro" maxlength="600" rows="3" placeholder="e.g. We're a team-first salon with paid education, flexible schedules and a full book waiting."></textarea></label>
           <div class="actions"><span class="form-err" id="apl-err"></span><button type="submit" class="primary">Save</button></div>
@@ -1632,7 +1633,16 @@ const AP_STATUS = {
 };
 const AP_ACTIVE = ["new", "no_answer", "voicemail", "spoke", "interview"];
 const AP_SECTIONS = [
-  ["Application", [["license","License"],["experience","Years in the industry"],["availability","Days and hours they can work"],["start","Could start"],["instagram","Instagram"],["heard","Heard about us from"],["about","About them"]]],
+  ["Application", [["avail_type","Available for"],["temp_date","If temporary, available"],["license","License"],["experience","Years in the industry"],["availability","Days and hours they can work"],["start","Could start"],["heard","Heard about us from"],["instagram","Instagram"],["address","Home address"],["phone2","Other phone"],["employed_now","Working somewhere now?"],["prev_employed","Worked here before?"],["prev_when","If yes, when"],["languages","Other languages"],["about","About them"]]],
+  ["Getting to work", [["drivers_license","Valid driver's license?"],["dl_exp","License expires"],["transportation","Own transportation?"],["reliable","Reliable?"]]],
+  ["Background", [["convicted","Convicted of a crime?"],["offense","Offense"],["offense_date","Date"],["substances","Controlled substance that could affect work?"]]],
+  ["Education and skills", [["cos_name","Cosmetology school"],["cos_years","Years"],["cos_grad","Graduated?"],["hs_name","High school"],["hs_years","Years"],["hs_grad","Graduated?"],["college_name","College or other"],["college_years","Years"],["college_grad","Graduated?"],["training","Licenses, certificates and classes"],["software","Software"],["skills","Other skills"]]],
+  ["Job 1", [["e1_employer","Employer"],["e1_title","Job title"],["e1_dates","Dates"],["e1_phone","Phone"],["e1_address","Address"],["e1_duties","What they did"],["e1_supervisor","Supervisor / manager"],["e1_contact","May we contact them?"],["e1_reason","Reason for leaving"]]],
+  ["Job 2", [["e2_employer","Employer"],["e2_title","Job title"],["e2_dates","Dates"],["e2_phone","Phone"],["e2_address","Address"],["e2_duties","What they did"],["e2_supervisor","Supervisor / manager"],["e2_contact","May we contact them?"],["e2_reason","Reason for leaving"]]],
+  ["Job 3", [["e3_employer","Employer"],["e3_title","Job title"],["e3_dates","Dates"],["e3_phone","Phone"],["e3_address","Address"],["e3_duties","What they did"],["e3_supervisor","Supervisor / manager"],["e3_contact","May we contact them?"],["e3_reason","Reason for leaving"]]],
+  ["Job 4", [["e4_employer","Employer"],["e4_title","Job title"],["e4_dates","Dates"],["e4_phone","Phone"],["e4_address","Address"],["e4_duties","What they did"],["e4_supervisor","Supervisor / manager"],["e4_contact","May we contact them?"],["e4_reason","Reason for leaving"]]],
+  ["References", [["r1_name","Reference 1"],["r1_phone","Phone"],["r1_relation","How they know them"],["r2_name","Reference 2"],["r2_phone","Phone"],["r2_relation","How they know them"],["r3_name","Reference 3"],["r3_phone","Phone"],["r3_relation","How they know them"]]],
+  ["Signature", [["agree","Agreed to the statement"],["signature","Signed"],["signed_on","Date signed"]]],
   ["Contact", [["q3_positionsApplied","Position(s) applied for"],["q189_date189","Date"],["q5_name","Name"],["q8_address","Address"],["q6_telephoneNumbers","Telephone"],["q191_email","Email"],["q193_instagramHandle","Instagram"],["q7_home","Home phone"],["q9_cell","Cell phone"],["q11_other11","Other phone"]]],
   ["Availability and background", [["q10_areYou10","Available to work"],["q190_ifTemporary","If temporary, date available"],["q14_haveYou","Previously employed by us?"],["q15_ifYes","If yes, when"],["q16_areYou","Employed now?"],["q17_whatLanguages","Other languages"],["q174_doYou","Valid driver's license?"],["q21_expirationDate","License expiration"],["q175_doYou175","Own transportation?"],["q176_isIt","Reliable?"],["q177_haveYou177","Ever convicted of a crime?"],["q27_ifYes27","If yes, offense"],["q29_date","Date"],["q179_doYou179","Controlled substances affecting job performance?"]]],
   ["Skills and education", [["q32_typingSpeed","Typing speed"],["q33_shorthandSpeed","Shorthand speed"],["q34_otherSkills","Other skills"],["q35_listSoftware","Software / computer skills"],["q121_highSchool","High school"],["q107_from","From"],["q180_to","To"],["q181_graduatedyesno","Graduated"],["q122_colleges122","College or other"],["q182_from182","From"],["q183_to183","To"],["q184_graduatedyesno184","Graduated"],["q123_cosmetologySchool","Cosmetology school"],["q185_from185","From"],["q186_to186","To"],["q187_graduatedyesno187","Graduated"],["q47_1","Training 1"],["q110_2110","Training 2"],["q111_3111","Training 3"],["q49_4","Training 4"]]],
@@ -1654,7 +1664,7 @@ function apAnswers(a) {
   }).filter(Boolean);
   const extra = Object.keys(ans).filter(k => k !== "source" && !used.has(k) && !/^resume_/.test(k));
   if (extra.length) secs.push(`<div style="display:flex;flex-direction:column;gap:6px"><b>Other answers</b>${extra.map(k => `<div><span class="meta">${esc(k.replace(/^q\d+_/, ""))}</span><div class="note">${esc(ans[k])}</div></div>`).join("")}</div>`);
-  return `<div class="mgr" style="display:flex;flex-direction:column;gap:14px">${secs.join("") || `<span class="meta">No answers saved.</span>`}</div>`;
+  return `<div class="mgr" style="display:flex;flex-direction:column;gap:14px"><button class="link" data-ap="print" data-id="${a.id}" style="align-self:flex-start">🖨 Print application</button>${secs.join("") || `<span class="meta">No answers saved.</span>`}</div>`;
 }
 function apCard(a) {
   const open = apOpen === a.id;
@@ -1708,6 +1718,7 @@ $("apSearch").addEventListener("input", () => renderApps());
 $("view-apps").addEventListener("click", async e => {
   const b = e.target.closest("[data-ap]"); if (!b || !isMgr()) return;
   const act = b.dataset.ap, id = b.dataset.id, a = applicants.find(x => x.id === id);
+  if (act === "print") { if (a) apPrint(a); return; }
   if (act === "close") { apSched = null; apDel = null; return renderApps(); }
   if (act === "full") { apFull = apFull === id ? null : id; return renderApps(); }
   if (act === "sched") { apSched = id; apDel = null; return renderApps(); }
@@ -1736,9 +1747,9 @@ $("view-apps").addEventListener("click", async e => {
 const APPLY_HOST = {
   url: () => SALON && SALON.slug ? new URL("apply.html?s=" + encodeURIComponent(SALON.slug), location.href.split(/[?#]/)[0]).href : "",
   name: () => (SALON && SALON.name) || "our salon",
-  get: () => { const s = (SALON && SALON.settings) || {}; return { open: s.apply_open !== false, positions: s.apply_positions || ["Stylist", "Assistant", "Front desk"], intro: s.apply_intro || "" }; },
+  get: () => { const s = (SALON && SALON.settings) || {}; return { open: s.apply_open !== false, background: !!s.apply_background, positions: s.apply_positions || ["Stylist", "Assistant", "Front desk"], intro: s.apply_intro || "" }; },
   save: async v => {
-    const settings = { ...(SALON.settings || {}), apply_open: v.open, apply_positions: v.positions, apply_intro: v.intro };
+    const settings = { ...(SALON.settings || {}), apply_open: v.open, apply_background: !!v.background, apply_positions: v.positions, apply_intro: v.intro };
     const { error } = await sbRaw.rpc("lp_update_salon", { p_name: null, p_city: SALON.city, p_settings: settings, p_logo: null });
     if (error) return friendly(error);
     await loadSalon(); return null;
@@ -1774,7 +1785,7 @@ function renderApplyCard() {
     if (window.qrcode) { const q = qrcode(0, "M"); q.addData(aplLink(false)); q.make(); $("apl-qrDl").href = q.createDataURL(12, 16); }
   }
   if (aplPanel === "set" && !$("apl-set").dataset.filled) {
-    $("apl-openChk").checked = st.open; $("apl-pos").value = st.positions.join(", "); $("apl-intro").value = st.intro || "";
+    $("apl-openChk").checked = st.open; $("apl-bg").checked = !!st.background; $("apl-pos").value = st.positions.join(", "); $("apl-intro").value = st.intro || "";
     $("apl-set").dataset.filled = "1";
   }
 }
@@ -1794,7 +1805,7 @@ $("apl-set").addEventListener("submit", async e => {
   e.preventDefault(); $("apl-err").textContent = "";
   const positions = $("apl-pos").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 12);
   if (!positions.length) { $("apl-err").textContent = "Add at least one job."; return; }
-  const err = await APPLY_HOST.save({ open: $("apl-openChk").checked, positions, intro: $("apl-intro").value.trim() || null });
+  const err = await APPLY_HOST.save({ open: $("apl-openChk").checked, background: $("apl-bg").checked, positions, intro: $("apl-intro").value.trim() || null });
   if (err) { $("apl-err").textContent = err; return; }
   aplPanel = null; renderApplyCard(); $("foot").textContent = "Apply page saved.";
 });
@@ -2045,6 +2056,22 @@ $("wiForm").addEventListener("submit", async e => {
   $("wiForm").reset(); wiPick = null; wiShowPick(); $("wiForm").hidden = true; $("wiToggle").hidden = false;
   $("foot").textContent = `${name} added to applicants.`; loadAll();
 });
+
+
+/* print a full application (like Jotform's PDF) */
+function apPrint(a) {
+  const w = window.open("", "_blank"); if (!w) return;
+  const body = apAnswers(a).replace(/<button[^>]*data-ap="print"[^>]*>.*?<\/button>/, "");
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Application · ${esc(a.name)}</title>
+  <style>body{font:14px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#16213e;margin:32px auto;max-width:720px;padding:0 20px}
+  h1{font-size:22px;margin:0 0 4px}.meta{color:#5f6b85;font-size:12px}.note{margin:1px 0 6px}b{display:block;font-size:15px;margin-top:14px;border-bottom:1px solid #dfe3ef;padding-bottom:3px}
+  .mgr{display:block!important}.mgr>div{break-inside:avoid}@media print{.bar{display:none}body{margin:0 auto}}<\/style><\/head><body><div class="bar" style="text-align:right"><button onclick="print()" style="font:600 14px sans-serif;padding:8px 14px;border-radius:8px;border:0;background:#5a56d6;color:#fff">Print</button></div>
+  <h1>${esc(a.name)}</h1><div class="meta">${esc([a.position, a.phone, a.email].filter(Boolean).join(" · "))}</div>
+  <div class="meta">Applied ${esc(whenFull(a.submitted_at))}${a.status ? ` · Status: ${esc((AP_STATUS[a.status] || [a.status])[0])}` : ""}</div>
+  ${body}${a.notes ? `<b>Manager notes</b><div class="note" style="white-space:pre-wrap">${esc(a.notes)}</div>` : ""}
+  <script>window.onload=function(){setTimeout(function(){print()},300)}<\/script><\/body><\/html>`);
+  w.document.close();
+}
 
 /* ---------- employee handbook ---------- */
 async function latestHandbook() {

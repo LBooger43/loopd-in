@@ -28,7 +28,7 @@ function renderApplyCard() {
     if (window.qrcode) { const q = qrcode(0, "M"); q.addData(aplLink(false)); q.make(); $("apl-qrDl").href = q.createDataURL(12, 16); }
   }
   if (aplPanel === "set" && !$("apl-set").dataset.filled) {
-    $("apl-openChk").checked = st.open; $("apl-pos").value = st.positions.join(", "); $("apl-intro").value = st.intro || "";
+    $("apl-openChk").checked = st.open; $("apl-bg").checked = !!st.background; $("apl-pos").value = st.positions.join(", "); $("apl-intro").value = st.intro || "";
     $("apl-set").dataset.filled = "1";
   }
 }
@@ -48,7 +48,7 @@ $("apl-set").addEventListener("submit", async e => {
   e.preventDefault(); $("apl-err").textContent = "";
   const positions = $("apl-pos").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 12);
   if (!positions.length) { $("apl-err").textContent = "Add at least one job."; return; }
-  const err = await APPLY_HOST.save({ open: $("apl-openChk").checked, positions, intro: $("apl-intro").value.trim() || null });
+  const err = await APPLY_HOST.save({ open: $("apl-openChk").checked, background: $("apl-bg").checked, positions, intro: $("apl-intro").value.trim() || null });
   if (err) { $("apl-err").textContent = err; return; }
   aplPanel = null; renderApplyCard(); $("foot").textContent = "Apply page saved.";
 });
