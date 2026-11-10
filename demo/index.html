@@ -1916,6 +1916,11 @@ $("view-apps").addEventListener("click", async e => {
   b.disabled = true;
   const { error } = await sb.from("applicants").update(row).eq("id", id);
   if (error) { b.disabled = false; return alert(friendly(error)); }
+  if (act === "st" && row.status === "hired" && a.status !== "hired") {
+    const who = a.name + (a.position ? ` (${a.position})` : "");
+    await sb.from("todos").insert({ task: `Send a message to the team: welcome our new hire, ${who}`, created_by: me.email });
+    $("foot").textContent = `Hired ✓ Added "Send a message to the team" to the managers' to-do list.`;
+  }
   apSched = null; if (act === "note") $("foot").textContent = "Notes saved."; loadAll();
 });
 
