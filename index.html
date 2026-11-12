@@ -163,6 +163,11 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 @media print{body{background:#fff}.wrap{display:none!important}#printArea{display:block!important;color:#000;font-family:Figtree,sans-serif;padding:24px}#printArea img{max-width:240px;max-height:100px}#printArea h1{font-size:22px;margin:0 0 4px}#printArea h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 4px}#printArea p{margin:0;white-space:pre-wrap}#printArea table{border-collapse:collapse;width:100%}#printArea td{border:1px solid #999;padding:4px 6px;font-size:12px;vertical-align:top}#printArea .gp{font-family:Georgia,"Times New Roman",serif;font-size:14px;max-width:640px;margin:0 auto}#printArea .gp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}#printArea .gp-head img{width:76px;height:76px}#printArea .gp-head>div{min-width:180px}#printArea .gp-head>div:last-child{text-align:right}#printArea .gp-title{font-family:inherit;text-align:center;font-weight:400;font-size:18px;margin:4px 0 22px}#printArea .gp-sec{margin-bottom:18px}#printArea .gp-ln{border-bottom:1px solid #888;min-height:28px;line-height:20px;padding-top:8px;white-space:pre-wrap}#printArea .gp-row{display:flex;gap:40px;margin:0 0 16px}#printArea .gp-row>div{flex:1}#printArea .gp-line{display:inline-block;min-width:150px;border-bottom:1px solid #888}#printArea .gp-help{margin-top:26px;font-size:12.5px;line-height:1.6}}
 .pr-drop{position:relative;display:block;border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:var(--accent-soft, #f4f3fe)}.pr-drop.over{border-color:var(--accent)}
 .rx{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}.rx button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:.85rem;line-height:1.3;cursor:pointer;color:var(--ink)}.rx button.mine{border-color:var(--accent);background:var(--accent-soft,#ecebfc)}.rx .pick{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:1px 4px;background:var(--surface)}.rx .pick button{border:0;background:transparent;font-size:1.1rem;padding:3px 5px}.quoteline{border-left:3px solid var(--accent);background:var(--accent-soft,#ecebfc);border-radius:6px;padding:4px 8px;font-size:.85rem;color:var(--muted);margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.replybar{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.thread{display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-left:12px;border-left:2px solid var(--accent-soft,#ecebfc)}
+.thread .rp{display:flex;flex-direction:column;gap:2px;min-width:0}
+.thread .rp .who{font-size:.8rem;color:var(--muted)}.thread .rp .who b{color:var(--ink);font-weight:600}
+.thread .rx{margin-top:2px}.thread .rx button{font-size:.8rem;padding:2px 8px}
+.thread-box{display:flex;flex-direction:column;gap:8px}.thread-box textarea.grow{min-height:44px;max-height:40vh;resize:none;overflow-y:auto;line-height:1.4}
 .wi-btn{position:relative;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;background:var(--surface);color:var(--ink)}.wi-btn input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
 #helpDlg{border:0;border-radius:18px;padding:18px;width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 40px);background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(22,33,62,.25)}#helpDlg::backdrop{background:rgba(22,33,62,.45)}.support-banner{background:#fff4d6;border:1.5px solid #e8b931;color:#5c4400;border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600}
 .beta-banner{border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600;background:var(--accent-soft,#ecebfc);border:1.5px solid var(--accent);color:var(--ink)}.beta-banner.soon{background:#fff4d6;border-color:#e8b931;color:#5c4400}.beta-banner.ended{background:#fdecea;border-color:#c0392b;color:#7a1f16}#planDlg{border:0;border-radius:18px;padding:18px;width:min(480px,calc(100vw - 24px));background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(22,33,62,.25)}#planDlg::backdrop{background:rgba(22,33,62,.45)}body.locked section form{opacity:.45;pointer-events:none}
@@ -2009,7 +2014,8 @@ $("prBox").addEventListener("click", async e => {
 
 
 /* ---------- team chat: replies and reactions ---------- */
-let chatReplyTo = null, chatPick = null;
+let chatReplyTo = null, chatPick = null, chatThreadOpen = null;
+function chatRoot(m) { let cur = m, n = 0; while (cur.reply_to && n++ < 25) { const p = msgs.find(x => x.id === cur.reply_to); if (!p) break; cur = p; } return cur; }
 const CHAT_EMOJI = ["👍", "❤️", "😂", "🎉", "🙏", "👀"];
 const snip = (s, n) => { s = String(s || "").replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
 function chatExtras(p, kind) {
@@ -2276,13 +2282,32 @@ function postRow(p, kind) {
   const bodyHtml = kind === "a" && annEdit === p.id
     ? `<div class="fu-box"><textarea id="annEdit-${p.id}" maxlength="2000">${esc(p.body)}</textarea><div class="actions"><button class="primary" data-chat="edit-save" data-id="${p.id}">Save</button><button class="link" data-chat="edit-cancel">Cancel</button></div></div>`
     : `${kind === "m" ? chatQuote(p) : ""}<p class="note">${esc(p.body)}</p>${photoHtml(p.photo)}${chatExtras(p, kind)}${(edit || del) ? `<div class="actions">${edit}${del}</div>` : ""}`;
-  return `<div class="todo"${kind === "a" ? ' style="border-left:4px solid var(--accent)"' : ""}><div class="body"><div class="row"><b>${esc(nameOf(p.created_by))}</b><span class="meta">${whenFull(p.created_at)}${p.edited_at ? " · edited" : ""}</span></div>${bodyHtml}</div></div>`;
+  return `<div class="todo"${kind === "a" ? ' style="border-left:4px solid var(--accent)"' : ""}><div class="body"><div class="row"><b>${esc(nameOf(p.created_by))}</b><span class="meta">${whenFull(p.created_at)}${p.edited_at ? " · edited" : ""}</span></div>${bodyHtml}${kind === "m" ? chatThread(p) : ""}</div></div>`;
+}
+function chatReplyRow(p) {
+  const canDel = isMgr() || p.created_by === me.email, key = "m:" + p.id;
+  const del = !canDel ? "" : chatDel === key ? `<span class="meta">Delete?</span><button class="link del" data-chat="del-yes" data-kind="m" data-id="${p.id}">Yes</button><button class="link" data-chat="del-no">No</button>` : `<button class="link del" data-chat="del" data-kind="m" data-id="${p.id}">Delete</button>`;
+  return `<div class="rp"><span class="who"><b>${esc(nameOf(p.created_by))}</b> · ${whenFull(p.created_at)}</span><p class="note">${esc(p.body)}</p>${photoHtml(p.photo)}${chatExtras(p, "m")}${del ? `<div class="actions">${del}</div>` : ""}</div>`;
+}
+let chatKids = {};
+function chatThread(t) {
+  const kids = chatKids[t.id] || [];
+  const box = chatThreadOpen === t.id ? `<div class="thread-box"><textarea id="crp-${t.id}" class="grow" rows="1" maxlength="1000" placeholder="Reply to ${esc(nameOf(t.created_by))}" aria-label="Write a reply"></textarea><div class="actions"><button class="primary" data-chat="rsend" data-id="${t.id}">Send reply</button><button class="link" data-chat="rcancel">Cancel</button><span class="form-err" id="crpErr"></span></div></div>` : "";
+  return kids.length || box ? `<div class="thread">${kids.map(chatReplyRow).join("")}${box}</div>` : "";
 }
 function renderChat() {
   if (!me) return;
   $("annForm").hidden = !isMgr();
   $("annFeed").innerHTML = anns.length ? anns.map(a => postRow(a, "a")).join("") : `<div class="meta">No announcements yet.</div>`;
-  $("msgFeed").innerHTML = msgs.length ? msgs.map(m => postRow(m, "m")).join("") : `<div class="meta">No messages yet. Say hi to the team.</div>`;
+  const keepRp = chatThreadOpen && $("crp-" + chatThreadOpen) ? $("crp-" + chatThreadOpen).value : null;
+  chatKids = {}; const tops = [];
+  msgs.forEach(m => { const r = chatRoot(m); if (r.id === m.id) tops.push(m); else (chatKids[r.id] = chatKids[r.id] || []).push(m); });
+  Object.values(chatKids).forEach(k => k.sort((a, b) => a.created_at < b.created_at ? -1 : 1));
+  const lastAt = t => (chatKids[t.id] || []).reduce((a, x) => x.created_at > a ? x.created_at : a, t.created_at);
+  tops.sort((a, b) => lastAt(a) > lastAt(b) ? -1 : 1);
+  if (chatThreadOpen && !tops.some(t => t.id === chatThreadOpen)) chatThreadOpen = null;
+  $("msgFeed").innerHTML = tops.length ? tops.map(m => postRow(m, "m")).join("") : `<div class="meta">No messages yet. Say hi to the team.</div>`;
+  if (keepRp !== null && $("crp-" + chatThreadOpen)) { $("crp-" + chatThreadOpen).value = keepRp; growBox($("crp-" + chatThreadOpen)); }
   renderReplyBar();
   $("reportBox").hidden = isMgr();
   $("repFeed").innerHTML = myReports.map(t => `<div class="todo${t.done ? " done" : ""}"><div class="body"><p class="note">${esc(t.task)}</p>${photoHtml(t.photo)}<span class="meta">${t.done ? "✓ Done" + (t.done_at ? " · " + whenShort(t.done_at) : "") : "Sent to managers · " + whenShort(t.created_at)}</span></div></div>`).join("");
@@ -2310,11 +2335,26 @@ $("msgForm").addEventListener("submit", async e => {
   if (!$("msgText").value) { chatReplyTo = null; renderReplyBar(); }
 });
 $("repForm").addEventListener("submit", e => { e.preventDefault(); quickPost("repText", "repErr", "todos", task => ({ task, reported: true, created_by: me.email }), "rep", "reports/" + session.user.id); });
+$("view-chat").addEventListener("input", e => { if (e.target.id && e.target.id.startsWith("crp-")) growBox(e.target); });
+$("view-chat").addEventListener("keydown", e => { const t = e.target; if (t.id && t.id.startsWith("crp-") && e.key === "Enter" && !e.shiftKey && !e.isComposing && matchMedia("(pointer: fine)").matches) { e.preventDefault(); const sb2 = t.closest(".thread-box").querySelector("[data-chat=rsend]"); if (sb2) sb2.click(); } });
 $("view-chat").addEventListener("click", async e => {
   const b = e.target.closest("[data-chat]"); if (!b) return;
   const a = b.dataset.chat;
   if (a === "pick") { chatPick = chatPick === b.dataset.key ? null : b.dataset.key; return renderChat(); }
-  if (a === "reply") { chatReplyTo = b.dataset.id; chatPick = null; renderChat(); $("msgText").focus(); return; }
+  if (a === "reply") {
+    const m = msgs.find(x => x.id === b.dataset.id); if (!m) return;
+    chatThreadOpen = chatRoot(m).id; chatReplyTo = null; chatPick = null; renderChat();
+    const t = $("crp-" + chatThreadOpen); if (t) { t.focus(); t.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    return;
+  }
+  if (a === "rcancel") { chatThreadOpen = null; return renderChat(); }
+  if (a === "rsend") {
+    const id = b.dataset.id, t = $("crp-" + id), body = t.value.trim(); if (!body) return;
+    b.disabled = true;
+    const { error } = await sb.from("messages").insert({ body, created_by: me.email, reply_to: id });
+    if (error) { b.disabled = false; $("crpErr").textContent = friendly(error); return; }
+    chatThreadOpen = null; return loadAll();
+  }
   if (a === "reply-cancel") { chatReplyTo = null; return renderChat(); }
   if (a === "react") {
     chatPick = null; b.disabled = true;
