@@ -122,6 +122,7 @@ textarea{min-height:80px;resize:vertical}
 .fu-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,var(--line));border-radius:12px;padding:10px 14px;font-weight:600}
 .fu-bar button{border:0;background:transparent;color:var(--warn);font-weight:700;padding:4px 0}
 .fu-box{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.send-box{background:var(--accent-soft,#ecebfc);border-radius:10px;padding:10px 12px}.send-box .lbl{font-size:.88rem}.send-names{display:flex;flex-wrap:wrap;gap:6px}.send-names .cat{padding:6px 12px}.send-names .cat .meta{font-size:.72rem}
 .replies{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding-left:10px;border-left:2px solid var(--accent-soft)}
 .rp{font-size:.9rem;display:flex;flex-direction:column;gap:1px;min-width:0}
 .rp .who{font-size:.78rem;color:var(--muted)}
@@ -270,6 +271,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
       <button role="tab" id="tab-daily" aria-selected="true">Daily log</button>
       <button role="tab" id="tab-log" aria-selected="false">Incidents</button>
       <button role="tab" id="tab-supplies" aria-selected="false">Supplies</button>
+      <button role="tab" id="tab-cash" aria-selected="false">Cash out</button>
       <button role="tab" id="tab-chat" aria-selected="false">Team 💬</button>
       <button role="tab" id="tab-time" aria-selected="false">Time off</button>
       <button role="tab" id="tab-oo" aria-selected="false">1:1s</button>
@@ -278,6 +280,20 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
       <button role="tab" id="tab-team" class="priv" aria-selected="false" hidden>Managers ⚙</button>
     </div>
     <div class="fu-bar" id="previewBar" hidden style="background:var(--private-soft);border-color:var(--private);color:var(--private)"><span id="previewText">You're seeing what staff see.</span><button type="button" id="exitPreview" style="color:var(--private)">Back to manager view</button></div>
+
+    <!-- CASH OUT -->
+    <section id="view-cash" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick">
+        <h2 class="h2">💵 Nightly cash out</h2>
+        <p class="meta" style="margin:0">Anything off at close? Write it here and it goes straight to the managers.</p>
+        <form id="coForm" class="plain">
+          <span class="pbox"><textarea id="coText" required maxlength="4000" placeholder="e.g. Drawer short $5. Recounted twice."></textarea><button type="button" class="cam" data-ph="co" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-co" accept="image/*" hidden></span>
+          <div class="pprev" id="pp-co"></div>
+          <div class="form-actions"><span class="form-err" id="coErr"></span><span class="meta" id="coMsg"></span><button type="submit" class="primary">Send to managers</button></div>
+        </form>
+      </div>
+      <div class="feed" id="coFeed"></div>
+    </section>
 
     <!-- DAILY LOG -->
     <section id="view-daily" style="display:flex;flex-direction:column;gap:16px">
@@ -424,6 +440,11 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 
     <!-- TEAM CHAT (everyone) -->
     <section id="view-chat" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick" id="forYouBox" hidden style="border:2px solid var(--warn)">
+        <h2 class="h2">📌 For you</h2>
+        <p class="meta" style="margin:0">Notes the front desk sent you. Tap Done once you've handled it.</p>
+        <div class="feed" id="forYouFeed"></div>
+      </div>
       <div class="quick" id="hbBox" style="border:2px solid var(--accent)">
         <h2 class="h2">📘 Employee handbook</h2>
         <p class="meta" style="margin:0" id="hbMeta">Read it, then sign that you received it.</p>
@@ -894,11 +915,11 @@ async function uploadLogo(file) {
 }
 
 /* ---------- tabs & preview ---------- */
-const TABS = ["daily", "log", "supplies", "chat", "time", "oo", "apps", "staff", "team"];
+const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
 function setTab(t) {
   if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
   if (!tabAllowed(t)) t = "daily";
-  if ((t === "daily" || t === "log" || t === "supplies") && !isDesk()) t = "chat";
+  if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = "chat";
   current = t;
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
 }
@@ -909,7 +930,7 @@ function applyRole() {
   $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-mgr").setAttribute("aria-selected", isMgr());
   $("previewBar").hidden = !previewRole;
   $("previewText").textContent = `You're seeing what ${previewRole === "stylist" ? "stylists" : "front desk"} see.`;
-  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk();
+  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk(); $("tab-cash").hidden = !isDesk();
   $("tab-staff").hidden = !isMgr() || !tabAllowed("staff"); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr() || !tabAllowed("apps");
   $("tab-time").hidden = !tabAllowed("time"); $("tab-oo").hidden = !tabAllowed("oo");
   $("hbBox").hidden = !planAtLeast("team"); $("mlBox").hidden = !planAtLeast("owner"); $("wuBox").hidden = !planAtLeast("team");
@@ -946,7 +967,7 @@ function showPhotoPreview(k) {
   const b = pendingPhoto[k];
   $("pp-" + k).innerHTML = b ? `<img src="${URL.createObjectURL(b)}" alt="Photo to attach"><button type="button" class="link del" data-phx="${k}">Remove photo</button>` : "";
 }
-["d", "l", "rep", "msg", "ml"].forEach(k => $("ph-" + k).addEventListener("change", async e => {
+["d", "l", "rep", "msg", "ml", "co"].forEach(k => $("ph-" + k).addEventListener("change", async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try { pendingPhoto[k] = await shrinkPhoto(f); } catch { alert("Couldn't read that photo. Try a different one."); return; }
   showPhotoPreview(k);
@@ -1039,6 +1060,8 @@ async function loadAll() {
   arch = { d: rad.data || [], l: ral.data || [] };
   anns = ra.data || []; msgs = rm.data || []; timeOff = rt.data || []; oos = roo.data || []; goals = rgs.data || []; applicants = rap.data || []; myReports = rr.data || []; supItems = rsi.data || []; supNeeds = rsn.data || [];
   await Promise.all([fetchRange("d"), fetchRange("l")]);
+  if (me.role !== "stylist" || me.also_desk) { const rco = await sb.from("cash_outs").select("*").order("created_at", { ascending: false }).limit(300); cashOuts = rco.data || []; await signPhotos(cashOuts.map(x => x.photo)); } else cashOuts = [];
+  { const ral = await sb.from("staff_alerts").select("*").order("created_at", { ascending: false }).limit(500); alerts = ral.data || []; }
   const rpj = me && (me.role === "manager" || me.role === "front_desk" || me.also_desk) ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
   prJobs = rpj.data || []; prReady = !rpj.error;
   await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
@@ -1047,7 +1070,7 @@ async function loadAll() {
 let reloadTimer = null;
 const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 400); };
 
-function renderAll() { renderBeta(); renderSupport(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
+function renderAll() { renderAlerts(); renderCash(); renderBeta(); renderSupport(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
 
 /* ---------- staff write-ups ---------- */
 let writeups = [], wuOpen = null, wuSign = null, wuDel = null, wuPad = null;
@@ -2439,14 +2462,15 @@ function renderDailyInner() {
   const days = {}; list.forEach(d => (days[d.entry_date] = days[d.entry_date] || []).push(d));
   $("dailyFeed").innerHTML = Object.entries(days).map(([day, items]) => `<div class="day"><h2>${esc(dayLabel(day))}<span>${items.length} ${items.length === 1 ? "note" : "notes"}</span></h2>
     ${items.map(d => {
-      const badge = d.fu ? (d.fuDone ? `<span class="fu ok">✓ Followed up</span>` : `<span class="fu wait">⚑ Needs follow-up</span>`) : "";
+      const badge = (d.fu ? (d.fuDone ? `<span class="fu ok">✓ Followed up</span>` : `<span class="fu wait">⚑ Needs follow-up</span>`) : "") + alertChip(d.id);
       const reply = d.fuDone && d.fuNote ? `<div class="mgr"><b>Manager follow-up</b><div class="note">${esc(d.fuNote)}</div></div>` : "";
       let mgr = "";
       const canEdit = isMgr() || (isDesk() && d.created_by === me.email);
       const editBtn = canEdit ? `<button class="link" data-dedit="open" data-id="${d.id}">Edit</button>` : "";
       const delBtn = canEdit ? `<button class="link del" data-arch="ask" data-k="d" data-id="${d.id}">Delete</button>` : "";
       const rs = replies[d.id] || [];
-      const replyBtn = isDesk() ? `<button class="link" data-rp="open" data-id="${d.id}">Reply</button>` : "";
+      const replyBtn = isDesk() ? `<button class="link" data-rp="open" data-id="${d.id}">Reply</button><button class="link" data-send="open" data-id="${d.id}">📌 Send</button>` : "";
+      const sendBox = sendOpen === d.id ? `<div class="fu-box send-box"><b class="lbl">📌 Who needs to see this?</b><div class="send-names">${sendPeople().map(t => `<button type="button" class="cat" aria-pressed="${sendPick.includes(t.email)}" data-send="pick" data-email="${esc(t.email)}">${esc(t.name.split(" ")[0])}${t.role === "stylist" ? "" : ` <span class="meta">${t.role === "manager" ? "mgr" : "desk"}</span>`}</button>`).join("")}</div><div class="actions"><button class="primary" data-send="go" data-id="${d.id}">${sendPick.length ? "Send to " + sendPick.length + (sendPick.length === 1 ? " person" : " people") : "Send"}</button><button class="link" data-send="cancel">Cancel</button><span class="form-err" id="sendErr"></span></div></div>` : "";
       const rpHtml = rs.length ? `<div class="replies">${rs.map(x => {
         const mine = isMgr() || x.created_by === me.email;
         const canEditRp = x.created_by === me.email;
@@ -2460,7 +2484,7 @@ function renderDailyInner() {
       else if (isMgr() && fuOpen === d.id) mgr = `<div class="fu-box"><textarea id="fu-${d.id}" maxlength="4000" placeholder="What you did or decided (optional)">${esc(d.fuNote)}</textarea><div class="actions"><button class="primary" data-dact="fu-save" data-id="${d.id}">Mark followed up</button><button class="link" data-dact="fu-cancel">Cancel</button></div></div>`;
       else if (isMgr()) mgr = `<div class="actions">${replyBtn}${d.fu && !d.fuDone ? `<button class="link" data-dact="fu-open" data-id="${d.id}">Follow up…</button>` : d.fuDone ? `<button class="link" data-dact="fu-reopen" data-id="${d.id}">Reopen</button>` : `<button class="link" data-dact="fu-flag" data-id="${d.id}">Flag for follow-up</button>`}${editBtn}${delBtn}</div>`;
       else if (replyBtn || editBtn) mgr = `<div class="actions">${replyBtn}${editBtn}${delBtn}</div>`;
-      return `<div class="dl${d.fu && !d.fuDone ? " flag" : ""}"><time>${esc(t12(d.entry_time))}</time><div class="body"><div><span class="tag">${esc(d.category)}</span>${badge}</div><p class="note">${esc(d.note)}</p>${photoHtml(d.photo)}<span class="meta">${esc(nameOf(d.created_by))}${d.edited_at ? " · edited" : ""}</span>${reply}${rpHtml}${rpBox}${mgr}</div></div>`;
+      return `<div class="dl${d.fu && !d.fuDone ? " flag" : ""}"><time>${esc(t12(d.entry_time))}</time><div class="body"><div><span class="tag">${esc(d.category)}</span>${badge}</div><p class="note">${esc(d.note)}</p>${photoHtml(d.photo)}<span class="meta">${esc(nameOf(d.created_by))}${d.edited_at ? " · edited" : ""}</span>${reply}${rpHtml}${rpBox}${sendBox}${sendOpen === d.id ? "" : mgr}</div></div>`;
     }).join("")}</div>`).join("");
 }
 $("d-cats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (!b) return; dcat = b.textContent; $("d-cats").querySelectorAll(".cat").forEach(c => c.setAttribute("aria-pressed", c === b)); });
@@ -2479,6 +2503,22 @@ $("dailyForm").addEventListener("submit", async e => {
   loadAll();
 });
 $("dailyFeed").addEventListener("click", async e => {
+  const sbtn = e.target.closest("[data-send]");
+  if (sbtn) {
+    const a = sbtn.dataset.send, id = sbtn.dataset.id;
+    if (a === "open") { sendOpen = id; sendPick = []; replyOpen = null; dEdit = null; confirmDel = null; return renderDaily(); }
+    if (a === "cancel") { sendOpen = null; sendPick = []; return renderDaily(); }
+    if (a === "pick") { const em = sbtn.dataset.email; sendPick = sendPick.includes(em) ? sendPick.filter(x => x !== em) : [...sendPick, em]; return renderDaily(); }
+    if (a === "go") {
+      if (!sendPick.length) { $("sendErr").textContent = "Tap a name first."; return; }
+      const d = mergedDaily().find(x => x.id === id); if (!d) return;
+      sbtn.disabled = true;
+      const { error } = await sb.from("staff_alerts").insert(sendPick.map(to => ({ to_email: to, note: d.note, log_id: id, created_by: me.email })));
+      if (error) { sbtn.disabled = false; $("sendErr").textContent = friendly(error); return; }
+      sendOpen = null; sendPick = []; return loadAll();
+    }
+    return;
+  }
   const rb = e.target.closest("[data-rp]");
   if (rb) {
     const a = rb.dataset.rp, id = rb.dataset.id;
@@ -2529,6 +2569,89 @@ $("dailyFeed").addEventListener("click", async e => {
   else if (a === "del-yes") { confirmDel = null; ({ error } = await sb.from("daily_log").delete().eq("id", id)); }
   if (error) alert(friendly(error));
   if (["fu-save", "fu-reopen", "fu-flag", "del-yes"].includes(a)) loadAll(); else renderDaily();
+});
+
+/* ---------- notes sent to one person ---------- */
+let alerts = [], sendOpen = null, sendPick = [];
+function sendPeople() {
+  return team.filter(t => t.email !== me.email).sort((a, b) => (a.role === "stylist" ? 0 : 1) - (b.role === "stylist" ? 0 : 1) || a.name.localeCompare(b.name));
+}
+function alertChip(logId) {
+  const list = alerts.filter(a => a.log_id === logId); if (!list.length) return "";
+  const first = e => esc(nameOf(e).split(" ")[0]);
+  return list.map(a => `<span class="fu ${a.done_at ? "ok" : "wait"}" style="display:inline-block;white-space:nowrap">📌 ${a.done_at ? first(a.to_email) + " · done ✓" : "Sent to " + first(a.to_email)}</span>`).join("");
+}
+function renderAlerts() {
+  if (!me || !$("forYouFeed")) return;
+  const mine = alerts.filter(a => a.to_email === me.email);
+  const open = mine.filter(a => !a.done_at);
+  const recentDone = mine.filter(a => a.done_at && Date.now() - new Date(a.done_at) < 2 * 864e5);
+  $("tab-chat").textContent = open.length ? `Team 💬 (${open.length})` : "Team 💬";
+  $("forYouBox").hidden = !(open.length || recentDone.length);
+  $("forYouFeed").innerHTML = [...open, ...recentDone].map(a => `<div class="todo${a.done_at ? " done" : ""}"><div class="body"><div class="row"><b>From ${esc(nameOf(a.created_by))}</b><span class="meta">${esc(whenFull(a.created_at))}</span></div><p class="note">${esc(a.note)}</p>${a.done_at ? `<span class="meta">✓ Done</span>` : `<div class="actions"><button class="primary" data-alert="done" data-id="${a.id}">✓ Done</button></div>`}</div></div>`).join("");
+}
+$("forYouFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-alert]"); if (!b) return;
+  b.disabled = true;
+  const { error } = await sb.from("staff_alerts").update({ done_at: new Date().toISOString() }).eq("id", b.dataset.id);
+  if (error) { b.disabled = false; return alert(friendly(error)); }
+  loadAll();
+});
+
+/* ---------- nightly cash out ---------- */
+let cashOuts = [], coOpen = null, coDel = null;
+function renderCash() {
+  if (!me || !$("coFeed")) return;
+  const list = isMgr() ? cashOuts : cashOuts.filter(c => c.created_by === me.email);
+  const waiting = cashOuts.filter(c => !c.reviewed_at).length;
+  $("tab-cash").textContent = isMgr() && waiting ? `Cash out (${waiting})` : "Cash out";
+  if (!list.length) { $("coFeed").innerHTML = `<div class="empty">${isMgr() ? "No cash-out notes yet." : "Notes you send show here, along with the manager's reply."}</div>`; return; }
+  $("coFeed").innerHTML = list.map(c => {
+    const seen = c.reviewed_at
+      ? `<div class="mgr"><b>✓ Seen by ${esc(nameOf(c.reviewed_by))}</b> <span class="meta">${esc(stamp(c.reviewed_at))}</span>${c.mgr_note ? `<p class="note">${esc(c.mgr_note)}</p>` : ""}</div>`
+      : `<span class="fu wait" style="margin-left:0;align-self:flex-start">Waiting for a manager</span>`;
+    let act = "";
+    if (isMgr()) {
+      if (coOpen === c.id) act = `<div class="fu-box"><textarea id="coMgr-${c.id}" maxlength="2000" placeholder="Reply or what you did (optional)">${esc(c.mgr_note || "")}</textarea><div class="actions"><button class="primary" data-co="save" data-id="${c.id}">${c.reviewed_at ? "Save" : "Mark as seen"}</button><button class="link" data-co="cancel">Cancel</button></div></div>`;
+      else if (coDel === c.id) act = `<div class="actions"><span class="meta">Delete this note for good?</span><button class="link del" data-co="del-yes" data-id="${c.id}">Yes, delete</button><button class="link" data-co="del-no">Keep it</button></div>`;
+      else act = `<div class="actions"><button class="link" data-co="open" data-id="${c.id}">${c.reviewed_at ? "Edit reply" : "Mark as seen…"}</button><button class="link del" data-co="del" data-id="${c.id}">Delete</button></div>`;
+    }
+    return `<div class="todo"${c.reviewed_at ? "" : ' style="box-shadow:inset 3px 0 0 var(--warn)"'}><div class="body"><div class="row"><b>${esc(nameOf(c.created_by))}</b><span class="meta">${esc(whenFull(c.created_at))}</span></div><p class="note">${esc(c.note)}</p>${photoHtml(c.photo)}${seen}${act}</div></div>`;
+  }).join("");
+}
+$("coForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("coErr").textContent = ""; $("coMsg").textContent = "";
+  const note = $("coText").value.trim(); if (!note) return;
+  const btn = e.submitter; if (btn) btn.disabled = true;
+  try {
+    const row = { note, created_by: me.email };
+    try { const ph = await uploadPhoto("co", "cashout"); if (ph) row.photo = ph; } catch { $("coErr").textContent = "Couldn't upload the photo. Try again."; return; }
+    const { error } = await sb.from("cash_outs").insert(row);
+    if (error) { $("coErr").textContent = friendly(error); return; }
+    clearPhoto("co"); $("coText").value = ""; $("coMsg").textContent = "Sent to managers ✓"; loadAll();
+  } finally { if (btn) btn.disabled = false; }
+});
+$("coFeed").addEventListener("click", async e => {
+  const b = e.target.closest("[data-co]"); if (!b || !isMgr()) return;
+  const a = b.dataset.co, id = b.dataset.id;
+  if (a === "open") { coOpen = id; coDel = null; renderCash(); const t = $("coMgr-" + id); if (t) t.focus(); return; }
+  if (a === "cancel") { coOpen = null; return renderCash(); }
+  if (a === "del") { coDel = id; coOpen = null; return renderCash(); }
+  if (a === "del-no") { coDel = null; return renderCash(); }
+  b.disabled = true;
+  let error = null;
+  if (a === "save") {
+    const c = cashOuts.find(x => x.id === id), note = $("coMgr-" + id).value.trim();
+    ({ error } = await sb.from("cash_outs").update({ mgr_note: note || null, reviewed_by: (c && c.reviewed_by) || me.email, reviewed_at: (c && c.reviewed_at) || new Date().toISOString() }).eq("id", id));
+    if (!error) coOpen = null;
+  } else if (a === "del-yes") {
+    const c = cashOuts.find(x => x.id === id);
+    ({ error } = await sb.from("cash_outs").delete().eq("id", id));
+    if (!error && c && c.photo) sb.storage.from("photos").remove([c.photo]).catch(() => {});
+    coDel = null;
+  }
+  if (error) { b.disabled = false; return alert(friendly(error)); }
+  loadAll();
 });
 
 /* ---------- deleted history ---------- */
@@ -2727,6 +2850,7 @@ const PUSH_CATS = [
   ["applicants", "New applicants", "When someone applies", true],
   ["print", "Things to print", "When a manager sends a flyer or ad to print", false],
   ["announcements", "Announcements and handbook", "New announcements and handbook updates", false],
+  ["foryou", "Notes sent to me", "When the front desk sends you a note from the daily log", false],
   ["replies", "Replies to me", "When someone replies to your chat message", false],
   ["chat", "Team chat", "Every chat message (can get busy)", false],
 ];
