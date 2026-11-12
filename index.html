@@ -148,6 +148,8 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 .supgrp{display:flex;flex-direction:column;gap:8px}.supgrp h3{margin:6px 0 0;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .photo{display:block;max-width:100%;max-height:240px;border-radius:10px;border:1px solid var(--line);margin-top:4px}
 .todo-add{display:flex;gap:8px}.todo-add input{flex:1}
+.todo-add:has(.grow){align-items:flex-end}
+.todo-add textarea.grow{flex:1;min-width:0;min-height:44px;max-height:40vh;resize:none;overflow-y:auto;line-height:1.4}
 .todo{display:flex;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .todo input[type=checkbox]{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:var(--ok);cursor:pointer}
 .todo .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -449,7 +451,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
         <p class="meta" style="margin:0">Goes straight to the managers' to-do list.</p>
         <form id="repForm" class="todo-add plain" style="flex-direction:row">
           <button type="button" class="cam inline" data-ph="rep" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-rep" accept="image/*" hidden>
-          <input id="repText" required maxlength="500" autocomplete="off" placeholder="e.g. Out of 6N color, dryer #2 is broken">
+          <textarea id="repText" class="grow" rows="1" required maxlength="500" placeholder="e.g. Out of 6N color, dryer #2 is broken"></textarea>
           <button type="submit" class="primary">Send</button>
         </form>
         <div class="pprev" id="pp-rep"></div>
@@ -461,7 +463,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
         <div class="replybar" id="replyBar" hidden></div>
         <form id="msgForm" class="todo-add plain" style="flex-direction:row">
           <button type="button" class="cam inline" data-ph="msg" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-msg" accept="image/*" hidden>
-          <input id="msgText" required maxlength="1000" autocomplete="off" placeholder="Message the whole team">
+          <textarea id="msgText" class="grow" rows="1" required maxlength="1000" placeholder="Message the whole team"></textarea>
           <button type="submit" class="primary">Send</button>
         </form>
         <div class="pprev" id="pp-msg"></div>
@@ -2293,8 +2295,13 @@ async function quickPost(inputId, errId, table, row, phKey, folder) {
   const { error } = await sb.from(table).insert(data);
   if (error) { $(errId).textContent = friendly(error); return; }
   if (phKey) clearPhoto(phKey);
-  $(inputId).value = ""; loadAll();
+  $(inputId).value = ""; growBox($(inputId)); loadAll();
 }
+function growBox(el) { if (!el || !el.classList.contains("grow")) return; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight + 2, Math.round(window.innerHeight * 0.4)) + "px"; }
+document.querySelectorAll("textarea.grow").forEach(el => {
+  el.addEventListener("input", () => growBox(el));
+  el.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && matchMedia("(pointer: fine)").matches) { e.preventDefault(); el.form.requestSubmit(); } });
+});
 $("annForm").addEventListener("submit", e => { e.preventDefault(); quickPost("annText", "annErr", "announcements", body => ({ body, created_by: me.email })); });
 $("msgForm").addEventListener("submit", async e => {
   e.preventDefault();
