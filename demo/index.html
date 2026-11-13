@@ -692,7 +692,8 @@ window.__demoSeed = function (ME) {
         <label>Type<select id="s-type"><option>Late arrival</option><option>Left early</option><option>Called out / sick</option><option>Attitude / mood</option><option>Heads-up</option><option>Policy issue</option><option>Praise</option><option>Other</option></select></label>
         <label>Date<input id="s-date" type="date" required></label>
         <label>Time (optional)<input id="s-time" type="time"></label>
-        <label class="full">Note<textarea id="s-note" required maxlength="4000" placeholder="e.g. Arrived 9:25 for a 9:00 shift. Didn't text ahead."></textarea></label>
+        <label class="full">Note<span class="pbox"><textarea id="s-note" required maxlength="4000" placeholder="e.g. Arrived 9:25 for a 9:00 shift. Didn't text ahead."></textarea><button type="button" class="cam" data-ph="sn" aria-label="Add a photo, like a doctor's note"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-sn" accept="image/*" hidden></span></label>
+        <div class="pprev full" id="pp-sn"></div>
         <div class="full form-actions">
           <span class="form-err" id="s-err"></span>
           <button type="button" class="ghost" id="cancelStaff">Cancel</button>
@@ -1116,7 +1117,7 @@ function showPhotoPreview(k) {
   const b = pendingPhoto[k];
   $("pp-" + k).innerHTML = b ? `<img src="${URL.createObjectURL(b)}" alt="Photo to attach"><button type="button" class="link del" data-phx="${k}">Remove photo</button>` : "";
 }
-["d", "l", "rep", "msg", "ml", "co"].forEach(k => $("ph-" + k).addEventListener("change", async e => {
+["d", "l", "rep", "msg", "ml", "co", "sn"].forEach(k => $("ph-" + k).addEventListener("change", async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try { pendingPhoto[k] = await shrinkPhoto(f); } catch { alert("Couldn't read that photo. Try a different one."); return; }
   showPhotoPreview(k);
@@ -1213,7 +1214,7 @@ async function loadAll() {
   { const ral = await sb.from("staff_alerts").select("*").order("created_at", { ascending: false }).limit(500); alerts = ral.data || []; }
   const rpj = me && (me.role === "manager" || me.role === "front_desk" || me.also_desk) ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
   prJobs = rpj.data || []; prReady = !rpj.error;
-  await signPhotos([...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
+  await signPhotos([...notes, ...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
   renderAll();
 }
 let reloadTimer = null;
@@ -2803,17 +2804,18 @@ function renderStaff() {
   if (!notes.length) { $("staffFeed").innerHTML = `<div class="empty"><b>No staff notes yet</b>Use these for lateness, early exits, call-outs, attitude, and praise. Dated, factual notes help when you need a hard conversation.</div>`; return; }
   $("staffFeed").innerHTML = list.map(n => `<article class="entry" style="--stripe:${staffStripe[n.note_type] || "var(--private)"}">
     <div class="row"><span class="name">${esc(n.staff_member)}</span><span class="meta">${fmt(n.note_date)}${n.note_time ? " · " + esc(t12(n.note_time)) : ""}</span></div>
-    <div><span class="tag">${esc(n.note_type)}</span></div><p class="note">${esc(n.note)}</p>
+    <div><span class="tag">${esc(n.note_type)}</span></div><p class="note">${esc(n.note)}</p>${photoHtml(n.photo)}
     <div class="actions"><span class="meta">by ${esc(nameOf(n.created_by))}</span>${confirmDel === "s:" + n.id ? `<span class="meta">Delete this note?</span><button class="link del" data-sact="yes" data-id="${n.id}">Yes, delete</button><button class="link" data-sact="no">Keep it</button>` : `<button class="link del" data-sact="del" data-id="${n.id}">Delete</button>`}</div></article>`).join("");
 }
 $("s-filter").addEventListener("change", renderStaff);
 $("openStaff").onclick = () => { $("staffForm").hidden = false; $("openStaff").hidden = true; $("s-date").value = daysAgo(0); $("s-name").focus(); };
-const closeStaff = () => { $("staffForm").hidden = true; $("openStaff").hidden = false; $("staffForm").reset(); $("s-err").textContent = ""; };
+const closeStaff = () => { $("staffForm").hidden = true; $("openStaff").hidden = false; $("staffForm").reset(); $("s-err").textContent = ""; clearPhoto("sn"); };
 $("cancelStaff").onclick = closeStaff;
 $("staffForm").addEventListener("submit", async e => {
   e.preventDefault();
   const row = { staff_member: $("s-name").value.trim(), note_type: $("s-type").value, note_date: $("s-date").value, note_time: $("s-time").value || null, note: $("s-note").value.trim(), created_by: me.email };
   if (!row.staff_member || !row.note) return;
+  try { const ph = await uploadPhoto("sn", "staffnotes"); if (ph) row.photo = ph; } catch { $("s-err").textContent = "Couldn't upload the photo. Try again."; return; }
   const { error } = await sb.from("staff_notes").insert(row);
   if (error) { $("s-err").textContent = friendly(error); return; }
   closeStaff(); loadAll();
@@ -2821,7 +2823,7 @@ $("staffForm").addEventListener("submit", async e => {
 $("staffFeed").addEventListener("click", async e => {
   const b = e.target.closest("[data-sact]"); if (!b) return; const a = b.dataset.sact, id = b.dataset.id;
   if (a === "del") confirmDel = "s:" + id; else if (a === "no") confirmDel = null;
-  else if (a === "yes") { confirmDel = null; const { error } = await sb.from("staff_notes").delete().eq("id", id); if (error) alert(friendly(error)); return loadAll(); }
+  else if (a === "yes") { confirmDel = null; const n = notes.find(x => x.id === id); const { error } = await sb.from("staff_notes").delete().eq("id", id); if (error) alert(friendly(error)); else if (n && n.photo) sb.storage.from("photos").remove([n.photo]).catch(() => {}); return loadAll(); }
   renderStaff();
 });
 
