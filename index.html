@@ -2761,7 +2761,13 @@ $("logFeed").addEventListener("click", async e => {
 });
 
 /* ---------- staff notes ---------- */
+let snEdit = null;
 function renderStaff() {
+  const keepSn = snEdit && $("snEdit-" + snEdit) ? $("snEdit-" + snEdit).value : null;
+  renderStaffInner();
+  if (keepSn !== null && $("snEdit-" + snEdit)) $("snEdit-" + snEdit).value = keepSn;
+}
+function renderStaffInner() {
   if (!isMgr()) { $("staffFeed").innerHTML = ""; return; }
   const names = [...new Set([...notes.map(n => n.staff_member), ...team.map(t => t.name)])].sort((a, b) => a.localeCompare(b));
   $("staffList").innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
@@ -2774,7 +2780,7 @@ function renderStaff() {
   $("staffFeed").innerHTML = list.map(n => `<article class="entry" style="--stripe:${staffStripe[n.note_type] || "var(--private)"}">
     <div class="row"><span class="name">${esc(n.staff_member)}</span><span class="meta">${fmt(n.note_date)}${n.note_time ? " · " + esc(t12(n.note_time)) : ""}</span></div>
     <div><span class="tag">${esc(n.note_type)}</span></div><p class="note">${esc(n.note)}</p>${photoHtml(n.photo)}
-    <div class="actions"><span class="meta">by ${esc(nameOf(n.created_by))}</span>${confirmDel === "s:" + n.id ? `<span class="meta">Delete this note?</span><button class="link del" data-sact="yes" data-id="${n.id}">Yes, delete</button><button class="link" data-sact="no">Keep it</button>` : `<button class="link del" data-sact="del" data-id="${n.id}">Delete</button>`}</div></article>`).join("");
+    ${snEdit === n.id ? `<div class="fu-box"><textarea id="snEdit-${n.id}" maxlength="4000" aria-label="Edit this note">${esc(n.note)}</textarea><div class="actions"><button class="primary" data-sact="save" data-id="${n.id}">Save</button><button class="link" data-sact="cancel">Cancel</button><span class="form-err" id="snEditErr"></span></div></div>` : `<div class="actions"><span class="meta">by ${esc(nameOf(n.created_by))}${n.edited_at ? " · edited" : ""}</span>${confirmDel === "s:" + n.id ? `<span class="meta">Delete this note?</span><button class="link del" data-sact="yes" data-id="${n.id}">Yes, delete</button><button class="link" data-sact="no">Keep it</button>` : `<button class="link" data-sact="edit" data-id="${n.id}">Edit</button><button class="link del" data-sact="del" data-id="${n.id}">Delete</button>`}</div>`}</article>`).join("");
 }
 $("s-filter").addEventListener("change", renderStaff);
 $("openStaff").onclick = () => { $("staffForm").hidden = false; $("openStaff").hidden = true; $("s-date").value = daysAgo(0); $("s-name").focus(); };
@@ -2791,6 +2797,15 @@ $("staffForm").addEventListener("submit", async e => {
 });
 $("staffFeed").addEventListener("click", async e => {
   const b = e.target.closest("[data-sact]"); if (!b) return; const a = b.dataset.sact, id = b.dataset.id;
+  if (a === "edit") { snEdit = id; confirmDel = null; renderStaff(); const t = $("snEdit-" + id); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } return; }
+  if (a === "cancel") { snEdit = null; return renderStaff(); }
+  if (a === "save") {
+    const note = $("snEdit-" + id).value.trim(); if (!note) { $("snEditErr").textContent = "The note can't be empty."; return; }
+    b.disabled = true;
+    const { error } = await sb.from("staff_notes").update({ note, edited_at: new Date().toISOString() }).eq("id", id);
+    if (error) { b.disabled = false; $("snEditErr").textContent = friendly(error); return; }
+    snEdit = null; return loadAll();
+  }
   if (a === "del") confirmDel = "s:" + id; else if (a === "no") confirmDel = null;
   else if (a === "yes") { confirmDel = null; const n = notes.find(x => x.id === id); const { error } = await sb.from("staff_notes").delete().eq("id", id); if (error) alert(friendly(error)); else if (n && n.photo) sb.storage.from("photos").remove([n.photo]).catch(() => {}); return loadAll(); }
   renderStaff();
