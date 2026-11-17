@@ -123,6 +123,7 @@ textarea{min-height:80px;resize:vertical}
 .fu-bar button{border:0;background:transparent;color:var(--warn);font-weight:700;padding:4px 0}
 .fu-box{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .refresh-btn{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-grid;place-items:center;cursor:pointer;padding:0}.refresh-btn:hover{border-color:var(--accent)}.refresh-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.refresh-btn.spin svg{animation:refspin .8s linear infinite}@keyframes refspin{to{transform:rotate(360deg)}}
+.pw-wrap{position:relative;display:block}.pw-wrap input{width:100%;box-sizing:border-box;padding-right:48px}.pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0;border-radius:8px}.pw-eye:hover{color:var(--ink)}.pw-eye:focus-visible{outline:2px solid var(--accent)}
 .send-box{background:var(--accent-soft,#ecebfc);border-radius:10px;padding:10px 12px}.send-box .lbl{font-size:.88rem}.send-names{display:flex;flex-wrap:wrap;gap:6px}.send-names .cat{padding:6px 12px}.send-names .cat .meta{font-size:.72rem}
 .replies{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding-left:10px;border-left:2px solid var(--accent-soft)}
 .rp{font-size:.9rem;display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -1067,6 +1068,21 @@ $("loginForm").addEventListener("submit", async e => {
 async function logout() { await sb.auth.signOut(); location.reload(); }
 $("logout").onclick = logout; $("logout2").onclick = logout;
 $("refreshBtn").onclick = () => { $("refreshBtn").classList.add("spin"); setTimeout(() => location.reload(), 150); };
+/* show / hide password: an eye button on every password box, including ones added later */
+const EYE = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.6-.6 5-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+function addEyes(root) {
+  (root || document).querySelectorAll('input[type="password"]:not([data-eye])').forEach(inp => {
+    inp.dataset.eye = "1";
+    const w = document.createElement("span"); w.className = "pw-wrap";
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    const b = document.createElement("button"); b.type = "button"; b.className = "pw-eye"; b.setAttribute("aria-label", "Show password"); b.innerHTML = EYE;
+    b.onclick = () => { const show = inp.type === "password"; inp.type = show ? "text" : "password"; b.innerHTML = show ? EYE_OFF : EYE; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); inp.focus(); };
+    w.appendChild(b);
+  });
+}
+addEyes();
+new MutationObserver(() => addEyes()).observe(document.body, { childList: true, subtree: true });
 
 /* ---------- tabs & preview ---------- */
 const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
