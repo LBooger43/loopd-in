@@ -1923,13 +1923,14 @@ function apCard(a) {
     <div class="meta">${wiWhen(a)} ${esc(whenFull(a.submitted_at))}</div>
     ${actions}
     <div class="fu-box"><textarea id="apN-${a.id}" maxlength="2000" rows="2" placeholder="Notes (what they said, who referred them…)">${esc(a.notes || "")}</textarea><div class="actions"><button class="link" data-ap="note" data-id="${a.id}">Save notes</button></div></div>
+    ${apPhotos(a)}
     ${log ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="meta"><b>History</b></span>${log}</div>` : ""}
     <div class="actions"><button class="link" data-ap="full" data-id="${a.id}">${apFull === a.id ? "Hide application" : "View full application"}</button></div>
     ${apFull === a.id ? apAnswers(a) : ""}
   </article>`;
 }
 function renderApps() {
-  setTimeout(wiSign, 0);
+  setTimeout(wiSign, 0); setTimeout(apPhSign, 0);
   if (!me || !isMgr()) { $("apList").innerHTML = ""; $("apInterviews").innerHTML = ""; return; }
   const n = applicants.filter(a => a.status === "new").length;
   $("tab-apps").textContent = n ? `Applicants (${n})` : "Applicants";
@@ -2137,6 +2138,37 @@ const WI_SRC = { "walk-in": ["🚶 Walk-in", "Walked in"], phone: ["📞 Called 
 const wiSrc = a => (a.answers && a.answers.source) || (/^manual-/.test(a.submission_id || "") ? "other" : "");
 const wiTag = a => { const s = WI_SRC[wiSrc(a)]; return s ? ` <span class="tag">${s[0]}</span>` : ""; };
 const wiWhen = a => { const s = WI_SRC[wiSrc(a)]; return s ? s[1] : "Applied"; };
+/* photos added to an applicant after the fact (managers only; stored with résumés) */
+const apPhUrls = {}, apPhAsked = {};
+function apPhotos(a) {
+  const ps = (a.answers && a.answers.photos) || [];
+  const thumbs = ps.map(p => apPhUrls[p] ? `<a href="${esc(apPhUrls[p])}" target="_blank" rel="noopener"><img src="${esc(apPhUrls[p])}" alt="Photo for ${esc(a.name || "applicant")}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block"></a>` : `<span class="meta">Loading photo…</span>`).join("");
+  return `<div class="actions" style="align-items:center">${thumbs}<label class="link" style="cursor:pointer">📷 Add photo<input type="file" accept="image/*" data-ap-photo="${a.id}" hidden></label><span class="form-err" id="apPhErr-${a.id}"></span></div>`;
+}
+async function apPhSign() {
+  const need = (applicants || []).flatMap(a => (a.answers && a.answers.photos) || []).filter(p => !apPhUrls[p] && !apPhAsked[p]);
+  if (!need.length) return;
+  need.forEach(p => apPhAsked[p] = 1);
+  const { data } = await sb.storage.from("photos").createSignedUrls(need, 60 * 60 * 6);
+  (data || []).forEach(x => { if (x.signedUrl) apPhUrls[x.path] = x.signedUrl; });
+  renderApps();
+}
+document.addEventListener("change", async e => {
+  const inp = e.target.closest && e.target.closest("[data-ap-photo]"); if (!inp) return;
+  const id = inp.dataset.apPhoto, f = inp.files[0]; inp.value = ""; if (!f) return;
+  const a = applicants.find(x => x.id === id); if (!a) return;
+  const err = t => { const el = $("apPhErr-" + id); if (el) el.textContent = t; };
+  err("Uploading…");
+  let blob; try { blob = await shrinkPhoto(f); } catch { return err("Couldn't read that photo. Try a different one."); }
+  const path = `resumes/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 8)}.jpg`;
+  const up = await sb.storage.from("photos").upload(path, blob, { contentType: "image/jpeg" });
+  if (up.error) return err("The photo didn't upload. Try again.");
+  const answers = { ...(a.answers || {}), photos: [...((a.answers && a.answers.photos) || []), path] };
+  const log = [...(a.log || []), { what: "Photo added", note: "", by: me.email, at: new Date().toISOString() }];
+  const { error } = await sb.from("applicants").update({ answers, log }).eq("id", id);
+  if (error) return err(friendly(error));
+  loadAll();
+});
 /* résumé photo link, for pages that don't already show one */
 const wiUrls = {}, wiAsked = {};
 function wiFileBtn(a) {
