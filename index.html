@@ -189,6 +189,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
     </div>
     <div class="who" id="who" hidden>
       <span class="avatar" id="avatar"></span><span id="whoName"></span><span class="role" id="roleBadge"></span>
+      <button type="button" class="link" id="langBtn" hidden lang="es">Español</button>
       <button type="button" class="link" id="helpBtn">Help</button>
       <button type="button" class="refresh-btn" id="refreshBtn" aria-label="Refresh" title="Refresh"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg></button>
       <button type="button" class="link" id="logout">Log out</button>
@@ -249,6 +250,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
       <span class="meta" id="st-plan"></span>
       <label>Salon name<input id="st-salon" required maxlength="80" placeholder="e.g. Bella Hair Studio"></label>
       <label>City<input id="st-city" maxlength="60" placeholder="e.g. Raleigh, NC"></label>
+      <label>Type of business<select id="st-kind"><option value="salon">Salon or spa</option><option value="restaurant">Restaurant</option></select></label>
       <label>Your name<input id="st-name" required maxlength="80" placeholder="e.g. Jordan Lee"></label>
       <div id="st-acct" style="display:flex;flex-direction:column;gap:8px">
         <label>Your email<input id="st-email" type="email" autocomplete="email" placeholder="you@example.com"></label>
@@ -272,6 +274,8 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
       </div>
     </div>
     <div class="tabs" id="tabs" role="tablist">
+      <button role="tab" id="tab-shift" aria-selected="false" hidden>Shift log</button>
+      <button role="tab" id="tab-checks" aria-selected="false" hidden>Checklists</button>
       <button role="tab" id="tab-daily" aria-selected="true">Daily log</button>
       <button role="tab" id="tab-log" aria-selected="false">Incidents</button>
       <button role="tab" id="tab-supplies" aria-selected="false">Supplies</button>
@@ -284,6 +288,11 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
       <button role="tab" id="tab-team" class="priv" aria-selected="false" hidden>Managers ⚙</button>
     </div>
     <div class="fu-bar" id="previewBar" hidden style="background:var(--private-soft);border-color:var(--private);color:var(--private)"><span id="previewText">You're seeing what staff see.</span><button type="button" id="exitPreview" style="color:var(--private)">Back to manager view</button></div>
+
+    <!-- RESTAURANT: SHIFT LOG + OWNER RECAP -->
+    <section id="view-shift" hidden style="display:flex;flex-direction:column;gap:16px"></section>
+    <!-- RESTAURANT: CHECKLISTS + TEMPS -->
+    <section id="view-checks" hidden style="display:flex;flex-direction:column;gap:16px"></section>
 
     <!-- CASH OUT -->
     <section id="view-cash" hidden style="display:flex;flex-direction:column;gap:16px">
@@ -648,6 +657,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
         <form id="salonForm" class="plain">
           <label>Salon name<input id="ss-name" maxlength="80" required></label>
           <label>City<input id="ss-city" maxlength="60"></label>
+          <label>Type of business<select id="ss-kind"><option value="salon">Salon or spa</option><option value="restaurant">Restaurant</option></select></label>
           <div id="ss-teamOnly" style="display:flex;flex-direction:column;gap:8px">
             <label>Most people of one role off on the same day<input id="ss-limit" type="number" min="1" max="10" step="1" inputmode="numeric"></label>
             <label>Handbook sign-off link (optional)<input id="ss-sign" type="url" maxlength="400" placeholder="https://… your own sign-off form"></label>
@@ -762,7 +772,7 @@ const dayLabel = s => { const w = new Date(s + "T12:00").toLocaleDateString(unde
 const stripe = {low:"var(--ok)", med:"var(--warn)", high:"var(--crit)"};
 const sevName = {low:"Minor", med:"Watch", high:"Serious"};
 const staffStripe = {"Praise":"var(--ok)","Late arrival":"var(--warn)","Left early":"var(--warn)","Called out / sick":"var(--warn)","Attitude / mood":"var(--crit)","Policy issue":"var(--crit)"};
-const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Stylist" : "Front desk";
+const roleName = r => r === "manager" ? L("Manager", "Gerente") : r === "stylist" ? (isRest() ? L("Team member", "Equipo") : "Stylist") : (isRest() ? L("Shift lead", "Encargado de turno") : "Front desk");
 
 let session = null, me = null, previewRole = "", current = "daily";
 let daily = [], fups = {}, incidents = [], res = {}, notes = [], team = [];
@@ -849,11 +859,15 @@ $("startForm").addEventListener("submit", async e => {
       if (!r.data.session) return err("Check your email to confirm your account, then sign in and tap “Start a salon” again.");
       session = r.data.session;
     }
-    const { error } = await sbRaw.rpc("lp_create_salon", { p_code: code, p_salon: salon, p_city: city, p_name: name });
+    const kind = $("st-kind").value;
+    const { error } = kind === "restaurant"
+      ? await sbRaw.rpc("lp_create_salon", { p_code: code, p_salon: salon, p_city: city, p_name: name, p_kind: "restaurant" })
+      : await sbRaw.rpc("lp_create_salon", { p_code: code, p_salon: salon, p_city: city, p_name: name });
     if (error) return err(/ALREADY_IN_SALON/.test(error.message) ? "This email already belongs to a salon. Sign in instead." : /BAD_CODE/.test(error.message) ? "That invite code isn't valid or has been used up." : "Couldn't create your salon. Try again.");
     location.reload();
   } finally { $("st-btn").disabled = false; }
 });
+if (new URLSearchParams(location.search).get("type") === "restaurant") $("st-kind").value = "restaurant";
 $("logout").onclick = logout; $("logout2").onclick = logout;
 $("refreshBtn").onclick = () => { $("refreshBtn").classList.add("spin"); setTimeout(() => location.reload(), 150); };
 /* show / hide password: an eye button on every password box, including ones added later */
@@ -899,7 +913,7 @@ async function loadSalon() {
 function renderSalonSettings() {
   if (!SALON || !isMgr()) return;
   const st = SALON.settings || {};
-  $("ss-name").value = SALON.name || ""; $("ss-city").value = SALON.city || "";
+  $("ss-name").value = SALON.name || ""; $("ss-city").value = SALON.city || ""; $("ss-kind").value = isRest() ? "restaurant" : "salon";
   $("ss-limit").value = st.timeoff_limit || 2; $("ss-sign").value = st.handbook_sign_url || "";
   $("ss-teamOnly").hidden = !planAtLeast("team"); $("ss-ownerOnly").hidden = !planAtLeast("owner");
   $("planCards").innerHTML = PLAN_ORDER.map(p => {
@@ -922,6 +936,12 @@ async function saveSalonSettings(e) {
   const settings = { ...(SALON.settings || {}), timeoff_limit: limit, handbook_sign_url: sign || null };
   const { error } = await sbRaw.rpc("lp_update_salon", { p_name: $("ss-name").value, p_city: $("ss-city").value, p_settings: settings, p_logo: null });
   if (error) return err(friendly(error));
+  const kind = $("ss-kind").value;
+  if (kind !== (isRest() ? "restaurant" : "salon")) {
+    const r2 = await sbRaw.rpc("lp_set_business_type", { p_kind: kind });
+    if (r2.error) return err(friendly(r2.error));
+    location.reload(); return;
+  }
   await loadSalon(); applyRole(); $("foot").textContent = "Salon settings saved.";
 }
 async function uploadLogo(file) {
@@ -936,11 +956,13 @@ async function uploadLogo(file) {
 }
 
 /* ---------- tabs & preview ---------- */
-const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
+const TABS = ["shift", "checks", "daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
 function setTab(t) {
   if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
   if (!tabAllowed(t)) t = "daily";
-  if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = "chat";
+  if ((t === "shift" || t === "checks") && !isRest()) t = "daily";
+  if (t === "shift" && !isDesk()) t = "checks";
+  if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = isRest() ? "checks" : "chat";
   current = t;
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
 }
@@ -954,6 +976,7 @@ function applyRole() {
   $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk(); $("tab-cash").hidden = !isDesk();
   $("tab-staff").hidden = !isMgr() || !tabAllowed("staff"); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr() || !tabAllowed("apps");
   $("tab-time").hidden = !tabAllowed("time"); $("tab-oo").hidden = !tabAllowed("oo");
+  $("tab-shift").hidden = !isRest() || !isDesk(); $("tab-checks").hidden = !isRest(); $("langBtn").hidden = !isRest();
   $("hbBox").hidden = !planAtLeast("team"); $("mlBox").hidden = !planAtLeast("owner"); $("wuBox").hidden = !planAtLeast("team");
   const lim = (SALON && SALON.settings && SALON.settings.timeoff_limit) || 2;
   $("toRule").textContent = `No more than ${lim} ${lim === 1 ? "stylist" : "stylists"} (or ${lim} front desk) out at the same time. A request is just a request: it isn't time off until a manager approves it.`;
@@ -1086,12 +1109,13 @@ async function loadAll() {
   const rpj = me && (me.role === "manager" || me.role === "front_desk" || me.also_desk) ? await sb.from("print_jobs").select("*").order("created_at", {ascending: false}).limit(300) : { data: [] };
   prJobs = rpj.data || []; prReady = !rpj.error;
   await signPhotos([...notes, ...daily, ...incidents, ...msgs, ...myReports, ...todos, ...mlog, ...(rangeData.d || []), ...(rangeData.l || []), ...arch.d, ...arch.l].map(x => x.photo).concat(prJobs.map(j => j.file_path), writeups.flatMap(w => [w.employee_sig, w.witness_sig, w.manager_sig])));
+  if (isRest()) await loadRest();
   renderAll();
 }
 let reloadTimer = null;
 const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 400); };
 
-function renderAll() { renderAlerts(); renderCash(); renderBeta(); renderSupport(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
+function renderAll() { renderAlerts(); renderCash(); renderBeta(); renderSupport(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); renderRest(); }
 
 /* ---------- staff write-ups ---------- */
 let writeups = [], wuOpen = null, wuSign = null, wuDel = null, wuPad = null;
@@ -3011,6 +3035,293 @@ $("planCards").addEventListener("click", async e => {
   await loadSalon(); applyRole(); renderAll(); $("foot").textContent = `You're now on the ${PLAN_NAMES[SALON.plan]} plan.`;
 });
 
+/* ---------- restaurants: shift log, owner recap, checklists, temps (English / Español) ---------- */
+let LANG = (() => { try { return localStorage.getItem("lp_lang") === "es" ? "es" : "en"; } catch { return "en"; } })();
+function isRest() { return !!(SALON && SALON.settings && SALON.settings.business_type === "restaurant"); }
+function L(en, es) { return LANG === "es" && isRest() ? es : en; }
+let shiftNotes = [], checkItems = [], checkDone = [], temps = [];
+let restList = new Date().getHours() < 15 ? "open" : "close", checkEdit = false, shTags = new Set(), shPhoto = null, shOpen = false;
+
+/* the wording swap: salon words become restaurant words in the app's fixed text (never in what people typed) */
+function restWording() {
+  const swaps = [[/\bFront desk\b/g, "Shift lead"], [/\bfront desk\b/g, "shift lead"], [/\bStylists\b/g, "Team members"], [/\bstylists\b/g, "team members"],
+    [/\bStylist\b/g, "Team member"], [/\bstylist\b/g, "team member"], [/\bSalons\b/g, "Restaurants"], [/\bsalons\b/g, "restaurants"], [/\bSalon\b/g, "Restaurant"],
+    [/\bsalon\b/g, "restaurant"], [/\bClients\b/g, "Guests"], [/\bclients\b/g, "guests"], [/\bClient\b/g, "Guest"], [/\bclient\b/g, "guest"]];
+  const w = document.createTreeWalker($("app"), NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest(".feed, script, style, #view-shift, #view-checks") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n => { let s = n.nodeValue; swaps.forEach(([a, b]) => s = s.replace(a, b)); if (s !== n.nodeValue) n.nodeValue = s; });
+  $("app").querySelectorAll("input[placeholder], textarea[placeholder]").forEach(el => { let s = el.placeholder; swaps.forEach(([a, b]) => s = s.replace(a, b)); el.placeholder = s; });
+  $("tab-log").textContent = "Guest issues";
+}
+function restTabLabels() {
+  $("tab-shift").textContent = L("Shift log", "Turnos");
+  const open = checkItems.filter(i => i.active && i.list === restList).length, done = doneFor(daysAgo(0), restList).length;
+  $("tab-checks").textContent = L("Checklists", "Listas") + (open && done < open ? ` (${open - done})` : "");
+  $("langBtn").textContent = LANG === "es" ? "English" : "Español";
+  $("langBtn").setAttribute("lang", LANG === "es" ? "en" : "es");
+  if (me) $("roleBadge").textContent = roleName(effRole());
+}
+$("langBtn").onclick = () => { LANG = LANG === "es" ? "en" : "es"; try { localStorage.setItem("lp_lang", LANG); } catch {} renderRest(); };
+
+async function loadRest() {
+  const since = daysAgo(45), since31 = new Date(Date.now() - 31 * 864e5).toISOString();
+  const [rs, ri, rd, rt] = await Promise.all([
+    isDesk() ? sb.from("shift_notes").select("*").gte("shift_date", since).order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [] }),
+    sb.from("check_items").select("*").order("sort").order("created_at"),
+    sb.from("check_done").select("*").gte("done_date", daysAgo(1)).limit(2000),
+    sb.from("temp_logs").select("*").gte("logged_at", since31).order("logged_at", { ascending: false }).limit(3000),
+  ]);
+  shiftNotes = rs.data || []; checkItems = ri.data || []; checkDone = rd.data || []; temps = rt.data || [];
+  if (rs.error || ri.error) console.warn("Restaurant tables missing? Run db/14_restaurants.sql", rs.error || ri.error);
+  await signPhotos(shiftNotes.map(x => x.photo));
+}
+
+const money = n => n == null || n === "" ? "—" : "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+const splh = n => n && n.sales != null && Number(n.labor_hours) > 0 ? "$" + (Number(n.sales) / Number(n.labor_hours)).toFixed(0) : "—";
+const SHIFT_NAME = s => ({ open: L("Open", "Apertura"), mid: L("Mid", "Intermedio"), close: L("Close", "Cierre") }[s] || s);
+const TAGS = [["callout", "Call-out", "Faltó alguien"], ["86", "86'd item", "Algo en 86"], ["guest", "Guest issue", "Problema con cliente"], ["broke", "Something broke", "Algo se descompuso"], ["injury", "Injury", "Lesión"], ["delivery", "Delivery problem", "Problema con entrega"]];
+const tagName = k => { const x = TAGS.find(t => t[0] === k); return x ? L(x[1], x[2]) : k; };
+const TEMP_RULE = { cold: { max: 41 }, frozen: { max: 0 }, hot: { min: 135 } };
+const tempBad = r => { const k = TEMP_RULE[r.kind] || {}; return (k.max != null && Number(r.temp) > k.max) || (k.min != null && Number(r.temp) < k.min); };
+const doneFor = (day, list) => checkDone.filter(d => d.done_date === day && checkItems.some(i => i.id === d.item_id && i.active && i.list === list));
+const pill = (txt, kind) => `<span class="fu ${kind === "ok" ? "ok" : kind === "wait" ? "wait" : ""}" ${kind === "bad" ? 'style="color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)"' : ""}>${esc(txt)}</span>`;
+
+function renderRest() {
+  if (!isRest()) return;
+  restTabLabels();
+  // live updates redraw these screens: keep anything half-typed and where the cursor was
+  const focus = document.activeElement && document.activeElement.id;
+  keepShiftForm(() => renderShift());
+  const ids = ["tl-unit", "tl-kind", "tl-temp", "ci-en", "ci-es", "ci-area"], saved = {};
+  ids.forEach(i => { if ($(i)) saved[i] = $(i).value; });
+  renderChecks();
+  ids.forEach(i => { if ($(i) && saved[i] != null) $(i).value = saved[i]; });
+  if (focus && $(focus) && /^(sh|tl|ci)-/.test(focus)) $(focus).focus();
+}
+
+/* ----- shift log: owner recap on top, then the handoffs, the note form and recent notes ----- */
+function renderShift() {
+  const v = $("view-shift"); if (!isDesk()) { v.innerHTML = ""; return; }
+  const latest = shiftNotes.find(n => n.shift === "close") || shiftNotes[0];
+  const needs = shiftNotes.filter(n => n.flag_owner && !n.owner_done_at);
+  const flagsTemp = temps.filter(r => tempBad(r) && Date.now() - new Date(r.logged_at) < 864e5);
+  let h = "";
+  if (isMgr()) {
+    h += `<div class="quick" style="border:2px solid var(--accent)">
+      <div class="row"><h2 class="h2">${L("Last shift, while you were out", "El último turno, mientras no estabas")}</h2>${latest ? `<span class="meta">${esc(SHIFT_NAME(latest.shift))} · ${esc(nameOf(latest.created_by))} · ${esc(stamp(latest.created_at))}</span>` : ""}</div>
+      ${latest ? `<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+        <div class="stat"><b>${money(latest.sales)}</b><span>${L("Sales", "Ventas")}</span></div>
+        <div class="stat"><b>${latest.labor_pct != null ? Number(latest.labor_pct) + "%" : "—"}</b><span>${L("Labor", "Mano de obra")}</span></div>
+        <div class="stat"><b>${splh(latest)}</b><span>SPLH</span></div>
+        <div class="stat"><b>${money(latest.comps)}</b><span>${L("Comps", "Cortesías")}</span></div></div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${[[L("Call-outs", "Faltas"), latest.callouts], [L("86'd", "En 86"), latest.eighty_six], [L("Guest issue", "Cliente"), latest.guest_issue], [L("Broke", "Descompuesto"), latest.broke]].filter(x => x[1]).map(x => `<div class="row" style="border-bottom:1px solid var(--line);padding:6px 0"><span class="meta">${x[0]}</span><b style="text-align:right;max-width:70%;overflow-wrap:anywhere">${esc(x[1])}</b></div>`).join("")}
+          <div class="row" style="padding:6px 0"><span class="meta">${L("Closing checklist", "Lista de cierre")}</span><b>${doneFor(latest.shift_date, "close").length} ${L("of", "de")} ${checkItems.filter(i => i.active && i.list === "close").length}</b></div>
+          ${flagsTemp.length ? `<div class="row" style="padding:6px 0"><span class="meta">${L("Temps out of range (24 hrs)", "Temperaturas fuera de rango (24 h)")}</span><b style="color:var(--crit)">${flagsTemp.map(r => esc(r.unit) + " " + Number(r.temp) + "°").join(", ")}</b></div>` : ""}
+        </div>` : `<p class="meta" style="margin:0">${L("No shift notes yet. When a manager or shift lead sends the closing note, the night's numbers and problems show up here.", "Todavía no hay notas de turno.")}</p>`}
+    </div>`;
+    if (needs.length) h += `<div class="quick"><div class="row"><h2 class="h2">${L("Needs you", "Te necesita")}</h2>${pill(String(needs.length), "bad")}</div>
+      ${needs.map(n => `<article class="entry" style="--stripe:var(--crit)"><div class="row"><b>${esc([n.guest_issue && L("Guest issue", "Cliente"), n.broke && L("Something broke", "Algo se descompuso")].filter(Boolean).join(" · ") || L("Flagged for you", "Marcado para ti"))}</b><span class="meta">${esc(fmt(n.shift_date))} · ${esc(SHIFT_NAME(n.shift))} · ${esc(nameOf(n.created_by))}</span></div>
+        ${[n.guest_issue, n.broke, n.note_next].filter(Boolean).map(x => `<p class="note">${esc(x)}</p>`).join("")}${photoHtml(n.photo)}
+        <div class="actions"><button type="button" class="primary" data-sh="handled" data-id="${n.id}">${L("Handled", "Resuelto")}</button></div></article>`).join("")}</div>`;
+  }
+  const today = shiftNotes.filter(n => n.shift_date === daysAgo(0) || n.shift_date === daysAgo(1)).slice(0, 4);
+  if (today.length) h += `<div class="quick"><h2 class="h2">${L("Shift handoffs", "Entrega de turno")}</h2>
+    ${today.map(n => `<div class="row" style="border-bottom:1px solid var(--line);padding:8px 0;align-items:center"><span><b>${esc(SHIFT_NAME(n.shift))}</b> · ${esc(nameOf(n.created_by))} <span class="meta">${esc(stamp(n.created_at))}</span></span>
+      ${n.read_at ? pill(L("Read by ", "Leído por ") + nameOf(n.read_by), "ok") : n.created_by === me.email ? pill(L("Waiting for next shift", "Esperando al siguiente turno"), "wait") : `<button type="button" class="primary" data-sh="read" data-id="${n.id}">${L("Mark read", "Marcar leído")}</button>`}</div>
+      ${n.note_next ? `<p class="note" style="margin:0 0 6px">${esc(n.note_next)}</p>` : ""}`).join("")}</div>`;
+  const hr = new Date().getHours(), defShift = hr < 11 ? "open" : hr < 16 ? "mid" : "close";
+  h += `<div class="quick">
+    <div class="row"><h2 class="h2">${L("Shift note", "Nota de turno")}</h2><button type="button" class="link" data-sh="toggle">${shOpen ? L("Close", "Cerrar") : L("+ Write one", "+ Escribir")}</button></div>
+    ${shOpen ? `<form id="shForm" class="plain" style="display:flex;flex-direction:column;gap:10px">
+      <label>${L("Shift", "Turno")}<select id="sh-shift">${["open", "mid", "close"].map(s => `<option value="${s}" ${s === defShift ? "selected" : ""}>${SHIFT_NAME(s)}</option>`).join("")}</select></label>
+      <div class="meta">${L("Numbers (optional)", "Números (opcional)")}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <label>${L("Sales $", "Ventas $")}<input id="sh-sales" type="number" inputmode="decimal" min="0" step="0.01"></label>
+        <label>${L("Labor hours", "Horas de trabajo")}<input id="sh-hours" type="number" inputmode="decimal" min="0" step="0.25"></label>
+        <label>${L("Labor %", "Mano de obra %")}<input id="sh-pct" type="number" inputmode="decimal" min="0" max="100" step="0.1"></label>
+        <label>${L("Comps $", "Cortesías $")}<input id="sh-comps" type="number" inputmode="decimal" min="0" step="0.01"></label>
+      </div>
+      <div class="meta">${L("What happened? Tap all that apply", "¿Qué pasó? Toca todo lo que aplique")}</div>
+      <div class="chips">${TAGS.map(t => `<button type="button" class="chip" data-shtag="${t[0]}" aria-pressed="${shTags.has(t[0])}">${esc(L(t[1], t[2]))}</button>`).join("")}</div>
+      ${shTags.has("callout") ? `<label>${L("Who called out?", "¿Quién faltó?")}<input id="sh-callouts" maxlength="300"></label>` : ""}
+      ${shTags.has("86") ? `<label>${L("What's 86'd?", "¿Qué está en 86?")}<input id="sh-86" maxlength="300"></label>` : ""}
+      ${shTags.has("guest") || shTags.has("injury") ? `<label>${L("What happened with the guest (or injury)?", "¿Qué pasó con el cliente (o la lesión)?")}<textarea id="sh-guest" maxlength="2000"></textarea></label>` : ""}
+      ${shTags.has("broke") || shTags.has("delivery") ? `<label>${L("What broke, or what was wrong with the delivery?", "¿Qué se descompuso o qué pasó con la entrega?")}<textarea id="sh-broke" maxlength="2000"></textarea></label>` : ""}
+      <label>${L("Note for the next shift", "Nota para el siguiente turno")}<textarea id="sh-next" maxlength="3000"></textarea></label>
+      <label class="fu-check"><input type="checkbox" id="sh-flag" ${shTags.has("guest") || shTags.has("injury") ? "checked" : ""}> ${L("Flag for the owner to follow up", "Marcar para que el dueño le dé seguimiento")}</label>
+      <div class="actions"><button type="button" class="ghost" id="sh-photoBtn">${shPhoto ? L("Change photo", "Cambiar foto") : L("Add a photo", "Agregar foto")}</button><input type="file" id="sh-photo" accept="image/*" hidden>${shPhoto ? `<span class="meta">${L("Photo attached", "Foto lista")}</span>` : ""}</div>
+      <div class="form-actions"><span class="form-err" id="sh-err"></span><button type="submit" class="primary">${L("Send to owner & next shift", "Enviar al dueño y al siguiente turno")}</button></div>
+    </form>` : `<p class="meta" style="margin:0">${L("About two minutes at the end of every shift. The owner sees it in the recap; the next shift sees your note.", "Unos dos minutos al final de cada turno.")}</p>`}
+  </div>`;
+  const recent = shiftNotes.slice(0, 20);
+  h += `<h2 class="h2">${L("Recent shift notes", "Notas recientes")}</h2><div class="feed">${recent.length ? recent.map(n => `<article class="entry" style="--stripe:${n.flag_owner && !n.owner_done_at ? "var(--crit)" : "var(--accent)"}">
+    <div class="row"><b>${esc(dayLabel(n.shift_date))} · ${esc(SHIFT_NAME(n.shift))}</b><span class="meta">${esc(nameOf(n.created_by))}</span></div>
+    ${n.sales != null || n.labor_pct != null || n.comps != null ? `<div class="meta">${L("Sales", "Ventas")} ${money(n.sales)} · ${L("Labor", "M. de obra")} ${n.labor_pct != null ? Number(n.labor_pct) + "%" : "—"} · SPLH ${splh(n)} · ${L("Comps", "Cortesías")} ${money(n.comps)}</div>` : ""}
+    ${(n.tags || []).length ? `<div class="chips">${n.tags.map(k => `<span class="tag">${esc(tagName(k))}</span>`).join("")}</div>` : ""}
+    ${[[L("Call-outs", "Faltas"), n.callouts], [L("86'd", "En 86"), n.eighty_six], [L("Guest", "Cliente"), n.guest_issue], [L("Broke", "Descompuesto"), n.broke], [L("For next shift", "Para el siguiente turno"), n.note_next]].filter(x => x[1]).map(x => `<p class="note"><b>${x[0]}:</b> ${esc(x[1])}</p>`).join("")}
+    ${photoHtml(n.photo)}
+    ${isMgr() ? `<div class="actions"><button type="button" class="link del" data-sh="del" data-id="${n.id}">${L("Delete", "Borrar")}</button></div>` : ""}
+  </article>`).join("") : `<div class="empty"><b>${L("No shift notes yet", "Todavía no hay notas")}</b></div>`}</div>`;
+  v.innerHTML = h;
+}
+
+$("view-shift").addEventListener("click", async e => {
+  const tg = e.target.closest("[data-shtag]");
+  if (tg) { const k = tg.dataset.shtag; shTags.has(k) ? shTags.delete(k) : shTags.add(k); keepShiftForm(() => renderShift()); return; }
+  if (e.target.id === "sh-photoBtn") { $("sh-photo").click(); return; }
+  const b = e.target.closest("[data-sh]"); if (!b) return;
+  const a = b.dataset.sh, id = b.dataset.id; let error = null;
+  if (a === "toggle") { shOpen = !shOpen; if (!shOpen) { shTags.clear(); shPhoto = null; } return renderShift(); }
+  if (a === "read") ({ error } = await sb.from("shift_notes").update({ read_by: me.email, read_at: new Date().toISOString() }).eq("id", id));
+  if (a === "handled") ({ error } = await sb.from("shift_notes").update({ owner_done_at: new Date().toISOString(), owner_done_by: me.email }).eq("id", id));
+  if (a === "del") { if (!confirm(L("Delete this shift note for good?", "¿Borrar esta nota para siempre?"))) return; ({ error } = await sb.from("shift_notes").delete().eq("id", id)); }
+  if (error) alert(friendly(error));
+  loadAll();
+});
+/* keep what's been typed when the form redraws (tapping a tag adds fields) */
+function keepShiftForm(redraw) {
+  const ids = ["sh-shift", "sh-sales", "sh-hours", "sh-pct", "sh-comps", "sh-callouts", "sh-86", "sh-guest", "sh-broke", "sh-next"], saved = {};
+  ids.forEach(i => { if ($(i)) saved[i] = $(i).value; });
+  const flag = $("sh-flag") ? $("sh-flag").checked : null;
+  redraw();
+  ids.forEach(i => { if ($(i) && saved[i] != null) $(i).value = saved[i]; });
+  if ($("sh-flag") && flag) $("sh-flag").checked = true;
+}
+$("view-shift").addEventListener("change", async e => {
+  if (e.target.id !== "sh-photo") return;
+  const f = e.target.files[0]; if (!f) return;
+  try { shPhoto = await shrinkPhoto(f); } catch { alert(L("Couldn't read that photo.", "No se pudo leer esa foto.")); return; }
+  keepShiftForm(() => renderShift());
+});
+$("view-shift").addEventListener("submit", async e => {
+  if (e.target.id !== "shForm") return;
+  e.preventDefault();
+  const err = t => $("sh-err").textContent = t; err("");
+  const num = id => { const x = $(id) && $(id).value.trim(); return x === "" || x == null ? null : Number(x); };
+  const txt = id => ($(id) && $(id).value.trim()) || null;
+  const row = { shift: $("sh-shift").value, shift_date: daysAgo(new Date().getHours() < 4 ? 1 : 0), sales: num("sh-sales"), labor_hours: num("sh-hours"), labor_pct: num("sh-pct"), comps: num("sh-comps"),
+    tags: [...shTags], callouts: txt("sh-callouts"), eighty_six: txt("sh-86"), guest_issue: txt("sh-guest"), broke: txt("sh-broke"), note_next: txt("sh-next"), flag_owner: $("sh-flag").checked, created_by: me.email };
+  if (!row.note_next && !row.tags.length && row.sales == null) return err(L("Add a number, a tag or a note first.", "Agrega un número, una etiqueta o una nota."));
+  const btn = e.target.querySelector("[type=submit]"); btn.disabled = true;
+  try {
+    if (shPhoto) {
+      const path = `shift/${crypto.randomUUID()}.jpg`;
+      const up = await sb.storage.from("photos").upload(path, shPhoto, { contentType: "image/jpeg" });
+      if (up.error) return err(L("Couldn't upload the photo. Try again.", "No se pudo subir la foto."));
+      row.photo = path;
+    }
+    const { error } = await sb.from("shift_notes").insert(row);
+    if (error) return err(friendly(error));
+    shOpen = false; shTags.clear(); shPhoto = null;
+    $("foot").textContent = L("Shift note sent.", "Nota de turno enviada.");
+    loadAll();
+  } finally { btn.disabled = false; }
+});
+
+/* ----- checklists and temperature log ----- */
+function renderChecks() {
+  const v = $("view-checks"); const today = daysAgo(0);
+  const items = checkItems.filter(i => i.active && i.list === restList);
+  const done = {}; checkDone.filter(d => d.done_date === today).forEach(d => done[d.item_id] = d);
+  const n = items.filter(i => done[i.id]).length;
+  const area = a => a === "foh" ? L("Front", "Frente") : a === "boh" ? L("Kitchen", "Cocina") : L("All", "Todos");
+  let h = `<div class="quick">
+    <div class="tabs" style="grid-template-columns:repeat(2,1fr)">
+      <button type="button" data-cl="open" aria-selected="${restList === "open"}">${L("Opening", "Apertura")}</button>
+      <button type="button" data-cl="close" aria-selected="${restList === "close"}">${L("Closing", "Cierre")}</button>
+    </div>
+    <div class="row"><h2 class="h2">${restList === "open" ? L("Opening checklist", "Lista de apertura") : L("Closing checklist", "Lista de cierre")}</h2>${items.length ? pill(`${n} ${L("of", "de")} ${items.length}`, n === items.length ? "ok" : "wait") : ""}</div>
+    ${items.length ? `<div style="height:8px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${Math.round(100 * n / items.length)}%;background:var(--accent)"></div></div>` : ""}
+    <div style="display:flex;flex-direction:column">${items.map(i => `<label class="fu-check" style="min-height:44px;border-bottom:1px solid var(--line);font-size:1rem">
+      <input type="checkbox" data-ci="${i.id}" ${done[i.id] ? "checked" : ""} style="accent-color:var(--accent);width:22px;height:22px">
+      <span style="flex:1">${esc(LANG === "es" && i.label_es ? i.label_es : i.label_en)} <span class="tag">${area(i.area)}</span></span>
+      ${done[i.id] ? `<span class="meta">${esc(nameOf(done[i.id].done_by))} ${esc(stamp(done[i.id].done_at))}</span>` : ""}
+      ${checkEdit && isMgr() ? `<button type="button" class="link del" data-cidel="${i.id}">${L("Remove", "Quitar")}</button>` : ""}
+    </label>`).join("") || `<p class="meta">${L("Nothing on this list yet.", "Esta lista está vacía.")}</p>`}</div>
+    ${isMgr() ? `<button type="button" class="link" data-cl="edit" style="align-self:flex-start">${checkEdit ? L("Done editing", "Terminar") : L("Edit this list", "Editar esta lista")}</button>` : ""}
+    ${checkEdit && isMgr() ? `<form id="ciForm" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <label style="grid-column:1/-1">${L("New item (English)", "Nuevo (inglés)")}<input id="ci-en" required maxlength="200"></label>
+      <label style="grid-column:1/-1">${L("Same item in Spanish (optional)", "En español (opcional)")}<input id="ci-es" maxlength="200" lang="es"></label>
+      <label>${L("Area", "Área")}<select id="ci-area"><option value="all">${L("All", "Todos")}</option><option value="foh">${L("Front of house", "Frente")}</option><option value="boh">${L("Kitchen", "Cocina")}</option></select></label>
+      <div class="form-actions" style="align-self:end"><span class="form-err" id="ci-err"></span><button type="submit" class="primary">${L("Add", "Agregar")}</button></div>
+    </form>` : ""}
+  </div>`;
+  // temps
+  const latest = {}; temps.forEach(r => { if (!latest[r.unit]) latest[r.unit] = r; });
+  const units = [...new Set(["Walk-in cooler", "Reach-in", "Freezer", "Hot holding", ...temps.map(r => r.unit)])];
+  const kindFor = u => /freez/i.test(u) ? "frozen" : /hot|steam|warm/i.test(u) ? "hot" : "cold";
+  h += `<div class="quick">
+    <div class="row"><h2 class="h2">${L("Temperature log", "Registro de temperaturas")}</h2>${isDesk() ? `<button type="button" class="link" data-cl="print">${L("Print 30 days", "Imprimir 30 días")}</button>` : ""}</div>
+    <p class="meta" style="margin:0">${L("Cold food 41° or below · frozen 0° or below · hot holding 135° or above. Readings outside that are flagged red.", "Frío: 41° o menos · congelado: 0° o menos · caliente: 135° o más. Lo que esté fuera se marca en rojo.")}</p>
+    ${Object.keys(latest).length ? `<div class="stats" style="grid-template-columns:repeat(2,1fr)">${Object.values(latest).map(r => `<div class="stat" style="${tempBad(r) ? "border:2px solid var(--crit)" : ""}"><b style="${tempBad(r) ? "color:var(--crit)" : ""}">${Number(r.temp)}°</b><span>${esc(r.unit)} · ${esc(stamp(r.logged_at))}${tempBad(r) ? " · " + L("out of range", "fuera de rango") : ""}</span></div>`).join("")}</div>` : ""}
+    <form id="tlForm" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <label style="grid-column:1/-1">${L("What", "Qué")}<input id="tl-unit" list="tlUnits" required maxlength="60" placeholder="${L("e.g. Walk-in cooler", "ej. Cámara fría")}"></label>
+      <datalist id="tlUnits">${units.map(u => `<option value="${esc(u)}">`).join("")}</datalist>
+      <label>${L("Type", "Tipo")}<select id="tl-kind"><option value="cold">${L("Cold", "Frío")}</option><option value="frozen">${L("Frozen", "Congelado")}</option><option value="hot">${L("Hot holding", "Caliente")}</option></select></label>
+      <label>${L("Temp °F", "Temp °F")}<input id="tl-temp" type="number" inputmode="decimal" step="0.1" required></label>
+      <div class="form-actions" style="grid-column:1/-1"><span class="form-err" id="tl-err"></span><button type="submit" class="primary">${L("Log temp", "Anotar")}</button></div>
+    </form>
+  </div>`;
+  v.innerHTML = h;
+  const u = $("tl-unit"); if (u) u.addEventListener("change", () => { $("tl-kind").value = kindFor(u.value); });
+}
+$("view-checks").addEventListener("click", async e => {
+  const t = e.target.closest("[data-cl]");
+  if (t) {
+    const a = t.dataset.cl;
+    if (a === "open" || a === "close") { restList = a; return renderRest(); }
+    if (a === "edit") { checkEdit = !checkEdit; return renderChecks(); }
+    if (a === "print") return printTemps();
+  }
+  const d = e.target.closest("[data-cidel]");
+  if (d) { e.preventDefault(); const { error } = await sb.from("check_items").update({ active: false }).eq("id", d.dataset.cidel); if (error) alert(friendly(error)); loadAll(); }
+});
+$("view-checks").addEventListener("change", async e => {
+  const c = e.target.closest("[data-ci]"); if (!c) return;
+  const id = c.dataset.ci, today = daysAgo(0); let error = null;
+  if (c.checked) {
+    checkDone.push({ item_id: id, done_date: today, done_by: me.email, done_at: new Date().toISOString() }); renderRest();
+    ({ error } = await sb.from("check_done").insert({ item_id: id, done_date: today, done_by: me.email }));
+  } else {
+    checkDone = checkDone.filter(x => !(x.item_id === id && x.done_date === today)); renderRest();
+    ({ error } = await sb.from("check_done").delete().eq("item_id", id).eq("done_date", today));
+  }
+  if (error && !/duplicate/i.test(error.message || "")) alert(friendly(error));
+  loadAll();
+});
+$("view-checks").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (e.target.id === "ciForm") {
+    const en = $("ci-en").value.trim(); if (!en) return;
+    const sort = Math.max(0, ...checkItems.filter(i => i.list === restList).map(i => i.sort || 0)) + 10;
+    const { error } = await sb.from("check_items").insert({ list: restList, area: $("ci-area").value, label_en: en, label_es: $("ci-es").value.trim() || null, sort });
+    if (error) { $("ci-err").textContent = friendly(error); return; }
+    $("ci-en").value = ""; $("ci-es").value = ""; loadAll();
+  }
+  if (e.target.id === "tlForm") {
+    const temp = Number($("tl-temp").value), unit = $("tl-unit").value.trim();
+    if (!unit || !isFinite(temp)) return;
+    const row = { unit, kind: $("tl-kind").value, temp, logged_by: me.email };
+    const { error } = await sb.from("temp_logs").insert(row);
+    if (error) { $("tl-err").textContent = friendly(error); return; }
+    $("tl-temp").value = "";
+    $("foot").textContent = tempBad(row) ? L(`${unit} is out of range at ${temp}°. Tell a manager now.`, `${unit} está fuera de rango: ${temp}°. Avísale a un gerente ya.`) : L("Temp logged.", "Temperatura anotada.");
+    loadAll();
+  }
+});
+function printTemps() {
+  const rows = temps.slice().sort((a, b) => a.logged_at.localeCompare(b.logged_at));
+  const w = window.open("", "_blank"); if (!w) return alert("Allow pop-ups to print.");
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Temperature log</title>
+    <style>body{font:12pt -apple-system,Segoe UI,sans-serif;margin:24px}h1{font-size:16pt;margin:0 0 4px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #999;padding:5px 8px;text-align:left}th{background:#eee}.bad{color:#b42318;font-weight:700}</style></head><body>
+    <h1>${esc(SALON.name)} · Temperature log</h1><div>Last 30 days · printed ${new Date().toLocaleString()} · Cold 41°F or below, frozen 0°F or below, hot holding 135°F or above</div>
+    <table><tr><th>Date</th><th>Time</th><th>What</th><th>Temp °F</th><th>OK?</th><th>Logged by</th></tr>
+    ${rows.map(r => { const d = new Date(r.logged_at); return `<tr><td>${d.toLocaleDateString()}</td><td>${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</td><td>${esc(r.unit)}</td><td class="${tempBad(r) ? "bad" : ""}">${Number(r.temp)}</td><td class="${tempBad(r) ? "bad" : ""}">${tempBad(r) ? "OUT OF RANGE" : "OK"}</td><td>${esc(nameOf(r.logged_by))}</td></tr>`; }).join("")}
+    </table><script>print()<\/script></body></html>`);
+  w.document.close();
+}
+
 /* ---------- boot ---------- */
 async function start(s) {
   session = s;
@@ -3028,6 +3339,8 @@ async function start(s) {
   show("app"); $("d-time").value = nowTime();
   const want = new URLSearchParams(location.search).get("tab");
   if (want && TABS.includes(want)) current = want;
+  else if (isRest()) current = (role === "stylist" && !me.also_desk) ? "checks" : "shift";
+  if (isRest()) restWording();
   applyRole();
   await loadAll();
   pushInit();
