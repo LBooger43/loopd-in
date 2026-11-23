@@ -606,7 +606,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
         <button type="button" data-apf="active" aria-selected="true">Active</button>
         <button type="button" data-apf="interview" aria-selected="false">Interviewing</button>
         <button type="button" data-apf="hired" aria-selected="false">Hired</button>
-        <button type="button" data-apf="not_a_fit" aria-selected="false">Not a fit</button>
+        <button type="button" data-apf="later" aria-selected="false">Saved for later</button><button type="button" data-apf="not_a_fit" aria-selected="false">Not a fit</button>
         <button type="button" data-apf="all" aria-selected="false">All</button>
       </div>
       <input id="apSearch" type="search" placeholder="Search by name, position or phone" autocomplete="off">
@@ -1743,10 +1743,12 @@ $("view-oo").addEventListener("click", async e => {
 });
 
 /* ---------- applicants ---------- */
-let applicants = [], apFilter = "active", apOpen = null, apFull = null, apSched = null, apDel = null;
+let applicants = [], apFilter = "active", apOpen = null, apFull = null, apSched = null, apDel = null, apLater = null;
+const apDue = a => a.status === "later" && a.interview_at && new Date(a.interview_at) <= new Date();
+const apDay = iso => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 const AP_STATUS = {
   new: ["New", "var(--accent)"], no_answer: ["Called – no answer", "var(--warn)"], voicemail: ["Left voicemail", "var(--warn)"],
-  spoke: ["Spoke to", "var(--private)"], interview: ["Interviewing", "var(--ok)"], hired: ["Hired", "var(--ok)"], not_a_fit: ["Not a fit", "var(--muted)"],
+  spoke: ["Spoke to", "var(--private)"], interview: ["Interviewing", "var(--ok)"], hired: ["Hired", "var(--ok)"], later: ["Saved for later", "#2f6be0"], not_a_fit: ["Not a fit", "var(--muted)"],
 };
 const AP_ACTIVE = ["new", "no_answer", "voicemail", "spoke", "interview"];
 const AP_SECTIONS = [
@@ -1788,7 +1790,9 @@ function apCard(a) {
   const contact = [a.phone ? `<a class="link" href="${esc(telHref(a.phone))}">📞 ${esc(a.phone)}</a>` : "", a.email ? `<a class="link" href="mailto:${esc(a.email)}">✉️ ${esc(a.email)}</a>` : "", a.answers && (a.answers.q193_instagramHandle || a.answers.instagram) ? `<span class="meta">IG ${esc(a.answers.q193_instagramHandle || a.answers.instagram)}</span>` : "", aplResumeBtn(a)].filter(Boolean).join(" ");
   const log = (a.log || []).slice().reverse().map(l => `<div class="meta">• ${esc(l.what)}${l.note ? ` – ${esc(l.note)}` : ""} · ${esc(nameOf(l.by))} · ${esc(whenFull(l.at))}</div>`).join("");
   let actions = "";
-  if (apSched === a.id) {
+  if (apLater === a.id) {
+    actions = `<div class="fu-box"><b>Save ${esc(a.name || "them")} for later</b><span class="meta">They stay on file, and we'll remind you to check back.</span><div class="actions"><span class="meta">Check back in</span>${[1, 3, 6].map(m => `<button class="${m === 3 ? "primary" : "ghost"}" data-ap="later-save" data-m="${m}" data-id="${a.id}">${m} month${m > 1 ? "s" : ""}</button>`).join("")}<button class="link" data-ap="close">Cancel</button></div></div>`;
+  } else if (apSched === a.id) {
     const d = a.interview_at ? isoLocal(new Date(a.interview_at)) : daysAgo(-1);
     const t = a.interview_at ? new Date(a.interview_at).toTimeString().slice(0, 5) : "10:00";
     actions = `<div class="fu-box"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Day<input type="date" id="apD-${a.id}" value="${d}"></label><label>Time<input type="time" step="900" id="apT-${a.id}" value="${t}"></label></div><div class="actions"><button class="primary" data-ap="sched-save" data-id="${a.id}">Save interview</button><button class="link" data-ap="close">Cancel</button><span class="form-err" id="apErr"></span></div></div>`;
@@ -1796,13 +1800,13 @@ function apCard(a) {
     actions = `<div class="actions"><span class="meta">Delete this applicant for good?</span><button class="link del" data-ap="del-yes" data-id="${a.id}">Yes, delete</button><button class="link" data-ap="close">No</button></div>`;
   } else {
     const b = (st, label) => { const n = (a.log || []).filter(l => l.what === AP_STATUS[st][0]).length; return `<button class="link" data-ap="st" data-st="${st}" data-id="${a.id}">${n ? "☑" : "☐"} ${label}${n > 1 ? ` (${n})` : ""}</button>`; };
-    actions = `<div class="actions">${b("no_answer", "Called – no answer")}${b("voicemail", "Left voicemail")}${b("spoke", "Spoke to")}<button class="link" data-ap="sched" data-id="${a.id}">📅 ${a.interview_at ? "Reschedule interview" : "Schedule interview"}</button></div>
-      <div class="actions">${a.status !== "interview" ? `<button class="link" data-ap="st" data-st="interview" data-id="${a.id}">🗣 Interviewing</button>` : ""}<button class="link done" data-ap="st" data-st="hired" data-id="${a.id}">✓ Hired</button><button class="link del" data-ap="st" data-st="not_a_fit" data-id="${a.id}">Not a fit</button>${a.status !== "new" ? `<button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to New</button>` : ""}<button class="link del" data-ap="del" data-id="${a.id}">Delete</button></div>`;
+    actions = `<div class="actions">${b("no_answer", "Called – no answer")}${b("voicemail", "Left voicemail")}${b("spoke", "Spoke to")}<button class="link" data-ap="sched" data-id="${a.id}">📅 ${a.interview_at && a.status !== "later" ? "Reschedule interview" : "Schedule interview"}</button></div>
+      <div class="actions">${a.status !== "interview" ? `<button class="link" data-ap="st" data-st="interview" data-id="${a.id}">🗣 Interviewing</button>` : ""}<button class="link done" data-ap="st" data-st="hired" data-id="${a.id}">✓ Hired</button><button class="link del" data-ap="st" data-st="not_a_fit" data-id="${a.id}">Not a fit</button>${a.status !== "later" ? `<button class="link" data-ap="later" data-id="${a.id}">⏳ Save for later</button>` : ""}${a.status !== "new" ? `<button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to New</button>` : ""}<button class="link del" data-ap="del" data-id="${a.id}">Delete</button></div>`;
   }
   const stripe = (AP_STATUS[a.status] || [])[1] || "var(--line)";
   return `<article class="entry" style="--stripe:${stripe}">
     <div class="row"><span><span class="name">${esc(a.name || "Unnamed applicant")}</span>${a.position ? ` <span class="tag">${esc(a.position)}</span>` : ""}${wiTag(a)}</span>${apTag(a.status)}</div>
-    ${a.status === "interview" && a.interview_at ? `<div><b>Interview ${esc(apWhen(a.interview_at))}</b></div>` : ""}
+    ${a.status === "interview" && a.interview_at ? `<div><b>Interview ${esc(apWhen(a.interview_at))}</b></div>` : ""}${a.status === "later" && a.interview_at ? (apDue(a) ? `<div class="fu-box" style="border-color:#2f6be0"><b>⏰ Time to check back with ${esc(a.name || "them")}</b><span class="meta">Saved for later until ${esc(apDay(a.interview_at))}. Give them a call, then move them back to Active or save them for later again.</span><div class="actions"><button class="link" data-ap="st" data-st="new" data-id="${a.id}">Move back to Active</button><button class="link" data-ap="later" data-id="${a.id}">⏳ Save for later again</button></div></div>` : `<div class="meta"><b>⏳ Check back ${esc(apDay(a.interview_at))}</b></div>`) : ""}
     <div style="display:flex;gap:12px;flex-wrap:wrap">${contact}${wiFileBtn(a)}</div>
     <div class="meta">${wiWhen(a)} ${esc(whenFull(a.submitted_at))}</div>
     ${actions}
@@ -1816,7 +1820,8 @@ function apCard(a) {
 function renderApps() {
   setTimeout(wiSign, 0); setTimeout(apPhSign, 0);
   if (!me || !isMgr()) { $("apList").innerHTML = ""; $("apInterviews").innerHTML = ""; return; }
-  const n = applicants.filter(a => a.status === "new").length;
+  const n = applicants.filter(a => a.status === "new" || apDue(a)).length;
+  const dueN = applicants.filter(apDue).length, lb = $("apFilter").querySelector("[data-apf=later]"); if (lb) lb.textContent = dueN ? `Saved for later (${dueN} to check)` : "Saved for later";
   $("tab-apps").textContent = n ? `Applicants (${n})` : "Applicants";
   const now = Date.now() - 2 * 3600e3;
   const ups = applicants.filter(a => a.status === "interview" && a.interview_at && new Date(a.interview_at).getTime() >= now).sort((x, y) => x.interview_at.localeCompare(y.interview_at));
@@ -1837,13 +1842,18 @@ $("view-apps").addEventListener("click", async e => {
   const b = e.target.closest("[data-ap]"); if (!b || !isMgr()) return;
   const act = b.dataset.ap, id = b.dataset.id, a = applicants.find(x => x.id === id);
   if (act === "print") { if (a) apPrint(a); return; }
-  if (act === "close") { apSched = null; apDel = null; return renderApps(); }
+  if (act === "close") { apSched = null; apDel = null; apLater = null; return renderApps(); }
+  if (act === "later") { apLater = id; apSched = null; apDel = null; return renderApps(); }
   if (act === "full") { apFull = apFull === id ? null : id; return renderApps(); }
-  if (act === "sched") { apSched = id; apDel = null; return renderApps(); }
+  if (act === "sched") { apSched = id; apDel = null; apLater = null; return renderApps(); }
   if (act === "del") { apDel = id; apSched = null; return renderApps(); }
   const entry = (what, note) => [...(a.log || []), { what, note: note || null, by: me.email, at: new Date().toISOString() }];
   let row = null;
-  if (act === "st") { const st = b.dataset.st; row = { status: st, log: entry(AP_STATUS[st][0]) }; if (st === "new" || st === "not_a_fit" || st === "hired") row.interview_at = st === "hired" ? a.interview_at : null; }
+  if (act === "later-save") {
+    const m = +b.dataset.m, when = new Date(); when.setMonth(when.getMonth() + m); when.setHours(9, 0, 0, 0);
+    row = { status: "later", interview_at: when.toISOString(), log: entry("Saved for later", `Check back ${apDay(when.toISOString())}`) }; apLater = null;
+  }
+  if (act === "st") { const st = b.dataset.st; row = { status: st, log: entry(AP_STATUS[st][0]) }; if (st === "new" || st === "not_a_fit" || st === "hired") row.interview_at = st === "hired" ? a.interview_at : null; if (a.status === "later") row.interview_at = null; }
   if (act === "sched-save") {
     const d = $("apD-" + id).value, t = $("apT-" + id).value;
     if (!d || !t) { $("apErr").textContent = "Pick a day and a time."; return; }
