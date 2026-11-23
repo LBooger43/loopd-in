@@ -109,9 +109,4 @@ do $$ declare t text; begin
   end loop;
 end $$;
 
--- first beta invite codes (one per plan, a few uses each); more can be added any time
-insert into lp_invite_codes (code, plan, uses_left, note) values
-  ('BETA-DESK', 'front_desk', 5, 'Beta: Front Desk plan'),
-  ('BETA-TEAM', 'team', 5, 'Beta: Team plan'),
-  ('BETA-OWNER', 'owner', 5, 'Beta: Owner plan')
-on conflict (code) do nothing;
+-- invite codes are created privately in the Supabase SQL editor, never saved in this public repo
