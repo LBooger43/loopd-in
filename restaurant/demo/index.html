@@ -175,7 +175,8 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 #pushBox{display:none!important}#logout{display:none!important}
 .soon-pill{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--accent);color:#fff;border-radius:99px;padding:1px 6px;margin-left:4px;vertical-align:2px}.lv-soon{background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:.9rem}.lv-scroll{overflow-x:auto;margin:0 -4px}.lv-table{border-collapse:collapse;width:100%;min-width:520px;font-size:.85rem}.lv-table th,.lv-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.lv-table th{color:var(--muted);font-weight:600;font-size:.75rem}.lv-badge{display:inline-block;font-weight:700;font-size:.75rem;border-radius:99px;padding:2px 9px;color:#fff}.lv-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}.lv-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}.lv-bar{display:flex;flex-direction:column;gap:3px;font-size:.78rem}.lv-bar .track{height:7px;border-radius:99px;background:var(--line);overflow:hidden}.lv-bar .fill{height:100%;border-radius:99px}.lv-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}.lv-flag{font-size:.75rem;font-weight:700;border-radius:99px;padding:2px 9px}
 .tr-skill{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.88rem;background:var(--surface)}.tr-num{flex:none;width:26px;height:26px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:.8rem}.tr-pics{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:300px}.tr-pic{aspect-ratio:4/5;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:700;font-size:.8rem;text-shadow:0 1px 2px rgba(0,0,0,.3)}.tr-pic span{font-size:2rem}.tr-vid{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.85rem}.tr-play{flex:none;width:64px;height:40px;border-radius:8px;background:linear-gradient(135deg,#16213e,#5a56d6);color:#fff;display:grid;place-items:center;font-size:1rem}.tr-opt{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:.88rem}.tr-opt.right{border-color:var(--ok);background:#e3f4ea}.tr-opt.wrong{border-color:var(--crit);background:#fbe9e6}
-#viewAs .tabs{display:grid;grid-template-columns:repeat(4,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}
+#viewAs .tabs{display:grid;grid-template-columns:repeat(3,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}
+.k-lang{display:flex;border:1.5px solid var(--line);border-radius:99px;overflow:hidden}.k-lang button{border:0;background:transparent;padding:5px 12px;font-weight:700;color:var(--muted);min-height:0}.k-lang button[aria-pressed=true]{background:var(--accent);color:#fff}.k-unit{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}.k-unit.bad{border-color:var(--crit);background:#fbe9e6}.k-row{display:flex;gap:8px}.k-row input{flex:1}.k-station{display:flex;flex-direction:column;gap:6px}.k-item{gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}.k-done{border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}.k-done.ok{border-left-color:var(--ok)}.k-notice{border:1.5px solid var(--accent)}.k-shift{display:flex;width:auto;flex:none;gap:4px}
 </style>
 <script>
 /* Sample data for the Loopd-In restaurant demo. Dates are relative to today so the demo always looks current. */
@@ -187,10 +188,10 @@ window.__demoSeed = function (ME) {
   const ym = n => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - n); return d.getFullYear() + "-" + pad(d.getMonth() + 1); };
   const yr = String(new Date().getFullYear());
   const E = n => n + "@demokitchen.example";
-  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
+  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma"), DIEGO = E("diego"), LUIS = E("luis"), ANA = E("ana");
   let i = 0; const id = p => p + "-" + (++i);
 
-  // role keys stay the app's own: front_desk = host, expo = expo (new), stylist = team member
+  // role keys: manager, chef (sous chef), front_desk = host, expo, stylist = front-of-house team, boh = cook
   const staff = [
     { email: ME, name: "Jordan Lee", role: "manager" },
     { email: SAM, name: "Sam Patel", role: "manager" },
@@ -199,12 +200,15 @@ window.__demoSeed = function (ME) {
     { email: MAYA, name: "Maya Torres", role: "stylist" },
     { email: AVA, name: "Ava Johnson", role: "stylist", also_desk: true },
     { email: LILY, name: "Lily Chen", role: "stylist" },
-    { email: NOAH, name: "Noah Kim", role: "stylist" },
+    { email: DIEGO, name: "Diego Herrera", role: "chef" },
+    { email: NOAH, name: "Noah Kim", role: "boh" },
+    { email: LUIS, name: "Luis Ramírez", role: "boh" },
+    { email: ANA, name: "Ana Morales", role: "boh" },
     { email: EMMA, name: "Emma Davis", role: "stylist" },
   ];
 
   const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
-  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", SAM, { needs_followup: true });
+  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", DIEGO, { needs_followup: true });
   const rep = dl(0, "14:10", "Visitor", "Beer rep dropped off samples of two new seasonal drafts. They're in the office for Jordan to try.", CASEY);
   const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", ME, { needs_followup: true });
   const pie = dl(1, "20:10", "86'd", "86 key lime pie. Sold the last slice at 8.", RILEY);
@@ -221,7 +225,7 @@ window.__demoSeed = function (ME) {
     dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", SAM),
   ];
   const followups = [
-    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: SAM, updated_at: ts(0, 15, 6) },
+    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: DIEGO, updated_at: ts(0, 15, 6) },
     { log_id: inspect.id, flagged: true, done: true, note: "Sam went through the logs. All caught up.", updated_by: SAM, updated_at: ts(1, 17, 30) },
     { log_id: pie.id, flagged: false, done: true, note: "Back on: fresh pies made this morning.", updated_by: SAM, updated_at: ts(0, 10, 0) },
   ];
@@ -282,7 +286,7 @@ window.__demoSeed = function (ME) {
   const time_off = [
     { id: id("to"), off_from: day(-10), back_on: day(-14), note: "Family wedding in Charleston", created_by: AVA, role: "stylist", status: "pending", created_at: ts(2, 9, 0) },
     { id: id("to"), off_from: day(-11), back_on: day(-13), note: "Long weekend", created_by: EMMA, role: "stylist", status: "pending", created_at: ts(1, 9, 0) },
-    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "stylist", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
+    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "boh", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
   ];
 
   const oMaya = { id: id("oo"), created_by: MAYA, with_manager: ME, req_date: day(-2), req_time: "14:00:00", meet_date: day(-2), meet_time: "14:00:00", topic: "Becoming a server trainer", status: "confirmed", decided_by: ME, decided_at: ts(1, 9, 0), created_at: ts(2, 8, 0) };
@@ -331,6 +335,29 @@ window.__demoSeed = function (ME) {
   return {
     print_jobs, staff, daily_log, followups, staff_alerts, cash_outs, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
     announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
+    temp_logs: [
+      { id: id("tl"), unit: "walkin", temp: 38, created_by: LUIS, created_at: ts(0, 9, 5) },
+      { id: id("tl"), unit: "reachin", temp: 37, created_by: LUIS, created_at: ts(0, 9, 6) },
+      { id: id("tl"), unit: "freezer", temp: -2, created_by: LUIS, created_at: ts(0, 9, 7) },
+      { id: id("tl"), unit: "hotbox", temp: 152, created_by: ANA, created_at: ts(0, 11, 30) },
+      { id: id("tl"), unit: "walkin", temp: 44, created_by: DIEGO, created_at: ts(0, 15, 0) },
+    ],
+    line_checks: [
+      { id: id("lc"), check_date: day(0), shift: "AM", created_by: LUIS, created_at: ts(0, 10, 25), signed_by: DIEGO, signed_at: ts(0, 10, 40),
+        items: [["Grill", "Burger patties", "cold", 38], ["Grill", "Steaks", "cold", 39], ["Grill", "Chicken breast", "cold", 37], ["Sauté", "Salmon", "cold", 36], ["Sauté", "Scallops", "cold", 37], ["Sauté", "Béarnaise (holding)", "hot", 140],
+          ["Fry", "Fryer oil filtered", "check", true], ["Fry", "Fries", "frozen", -4], ["Cold side", "Salad greens", "cold", 38], ["Cold side", "Dressings", "cold", 39], ["Cold side", "Cut fruit", "cold", 40], ["Hot holding", "Soup of the day", "hot", 158], ["Hot holding", "Rice", "hot", 146]]
+          .map(([station, name, kind, v]) => kind === "check" ? { station, name, kind, ok: v } : { station, name, kind, temp: v }) },
+      { id: id("lc"), check_date: day(1), shift: "PM", created_by: NOAH, created_at: ts(1, 16, 20), signed_by: null, signed_at: null,
+        items: [["Grill", "Burger patties", "cold", 40], ["Sauté", "Salmon", "cold", 43], ["Hot holding", "Rice", "hot", 141], ["Fry", "Fryer oil filtered", "check", true]]
+          .map(([station, name, kind, v]) => kind === "check" ? { station, name, kind, ok: v } : { station, name, kind, temp: v }) },
+    ],
+    chef_log: [
+      { id: id("cl"), cat: "Order", note: "Fish delivery short. 86 fish tacos until the truck comes tomorrow.", note_es: "Llegó poco pescado. No hay tacos de pescado hasta que llegue el camión mañana.", to_line: true, acks: [LUIS], created_by: DIEGO, created_at: ts(0, 14, 30) },
+      { id: id("cl"), cat: "Prep", note: "Tomorrow AM: braise 40 lb short rib and prep 2 batches of pumpkin cheesecake for the holiday menu.", note_es: "Mañana en la mañana: 40 lb de costilla estofada y 2 tandas de pastel de calabaza para el menú de fiestas.", to_line: true, acks: [], created_by: DIEGO, created_at: ts(0, 15, 45) },
+      { id: id("cl"), cat: "Waste", note: "Tossed 6 lb salmon after the walk-in read 44°F. Logged for the food cost report.", to_line: false, acks: [], created_by: DIEGO, created_at: ts(0, 15, 20) },
+      { id: id("cl"), cat: "Equipment", note: "Fryer 2 takes 15 minutes to come up to temp. Repair company coming Thursday.", to_line: false, acks: [], created_by: DIEGO, created_at: ts(1, 21, 0) },
+      { id: id("cl"), cat: "Staffing", note: "Ana is moving to the grill on weekends starting next week. Luis trains her Friday.", to_line: false, acks: [], created_by: SAM, created_at: ts(2, 17, 0) },
+    ],
     _handbooks: [{ name: "Demo_Kitchen_and_Bar_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
     _fileMap: { "print/demo-flyer.png": "demo-flyer.png", "print/demo-sign.png": "demo-sign.png" },
   };
@@ -566,14 +593,17 @@ window.__demoSeed = function (ME) {
   <div id="app" hidden style="display:flex;flex-direction:column;gap:16px">
     <div class="lbl" id="viewAs" hidden>Access level
       <div class="tabs">
-        <button type="button" id="va-sty" aria-selected="false">Team</button>
+        <button type="button" id="va-sty" aria-selected="false">Server / Bar</button>
         <button type="button" id="va-desk" aria-selected="false">Host</button>
         <button type="button" id="va-expo" aria-selected="false">Expo</button>
+        <button type="button" id="va-boh" aria-selected="false">Cook</button>
+        <button type="button" id="va-chef" aria-selected="false">Sous chef</button>
         <button type="button" id="va-mgr" aria-selected="true">Manager</button>
       </div>
     </div>
     <div class="tabs" id="tabs" role="tablist">
       <button role="tab" id="tab-daily" aria-selected="true">Shift log</button>
+      <button role="tab" id="tab-kitchen" aria-selected="false" hidden>Kitchen</button>
       <button role="tab" id="tab-log" aria-selected="false">Incidents</button>
       <button role="tab" id="tab-supplies" aria-selected="false">Supplies</button>
       <button role="tab" id="tab-cash" aria-selected="false">Cash out</button>
@@ -581,6 +611,7 @@ window.__demoSeed = function (ME) {
       <button role="tab" id="tab-time" aria-selected="false">Time off</button>
       <button role="tab" id="tab-oo" aria-selected="false">1:1s</button>
       <button role="tab" id="tab-apps" class="priv" aria-selected="false" hidden>Applicants</button>
+      <button role="tab" id="tab-chef" class="priv" aria-selected="false" hidden>Chef log 🔪</button>
       <button role="tab" id="tab-staff" class="priv" aria-selected="false" hidden>Staff notes 🔒</button>
       <button role="tab" id="tab-team" class="priv" aria-selected="false" hidden>Managers ⚙</button>
     </div>
@@ -811,6 +842,45 @@ window.__demoSeed = function (ME) {
     </section>
 
     <!-- APPLICANTS (managers only; fed by the Jotform application form) -->
+    <!-- KITCHEN (cooks, chefs, managers): chef notes, 86 list, temps, line check -->
+    <section id="view-kitchen" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="row" style="flex-wrap:wrap;gap:8px"><h2 class="h2" id="kTitle" style="margin:0">🔪 Kitchen</h2>
+        <div class="k-lang" id="kLang" hidden><button type="button" data-klang="en">EN</button><button type="button" data-klang="es">ES</button></div></div>
+      <div id="kNotices" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="k86Title">🚫 86'd right now</h2></div>
+        <div id="k86List" style="display:flex;flex-direction:column;gap:6px"></div>
+        <form id="k86Form" class="k-row" style="margin-top:4px"><input id="k86Item" maxlength="120" autocomplete="off"><button type="submit" class="primary" id="k86Btn">86 it</button></form>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="kTempTitle">🌡️ Temps</h2><span class="meta" id="kTempRule"></span></div>
+        <div id="kUnits" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="kTempLog"></div>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="kLcTitle">✅ Line check</h2><div class="tabs k-shift" id="kShift"><button type="button" data-kshift="AM" aria-selected="true">AM</button><button type="button" data-kshift="PM" aria-selected="false">PM</button></div></div>
+        <p class="meta" id="kLcHelp" style="margin:0"></p>
+        <form id="kLcForm" style="display:flex;flex-direction:column;gap:12px"><div id="kLcItems" style="display:flex;flex-direction:column;gap:12px"></div>
+          <div class="form-actions"><span class="form-err" id="kLcErr"></span><button type="submit" class="primary" id="kLcBtn"></button></div></form>
+        <div id="kLcDone" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- CHEF LOG (sous chef + managers) -->
+    <section id="view-chef" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick">
+        <h2 class="h2">🔪 Chef log</h2>
+        <p class="meta" style="margin:0">Kitchen notes for the chefs and managers: prep, waste, orders, equipment and staffing. Check <b>Post to the line</b> to send it to every cook too.</p>
+        <form id="chefForm" style="display:flex;flex-direction:column;gap:10px">
+          <div class="cats" id="chefCats"><button type="button" class="cat" aria-pressed="true">Prep</button><button type="button" class="cat" aria-pressed="false">Waste</button><button type="button" class="cat" aria-pressed="false">Order</button><button type="button" class="cat" aria-pressed="false">Equipment</button><button type="button" class="cat" aria-pressed="false">Staffing</button><button type="button" class="cat" aria-pressed="false">Note</button></div>
+          <textarea id="chefNote" required maxlength="2000" rows="3" placeholder="e.g. Braise 40 lb short rib tomorrow AM. Waste: 6 lb salmon (cooler)."></textarea>
+          <label class="fu-check"><input type="checkbox" id="chefLine"> Post to the line (cooks see it on their Kitchen screen)</label>
+          <label id="chefEsWrap" hidden>Spanish for the cooks <span class="meta">(the real app translates this for you; in the demo, type it or leave it blank)</span><textarea id="chefEs" maxlength="2000" rows="2" placeholder="ej. Mañana en la mañana: 40 lb de costilla."></textarea></label>
+          <div class="form-actions"><span class="form-err" id="chefErr"></span><button type="submit" class="primary">Save to chef log</button></div>
+        </form>
+      </div>
+      <div class="feed" id="chefFeed"></div>
+    </section>
     <section id="view-apps" hidden style="display:flex;flex-direction:column;gap:16px">
       <div class="banner">Managers only. Share your apply page below and applications land here automatically, résumés included.</div>
       <style>.apl-wait > :not(.row):not(p){display:none!important}</style>
@@ -993,11 +1063,11 @@ window.__demoSeed = function (ME) {
         <div class="feed" id="wuFeed"></div>
       </div>
       <h2 class="h2">Team</h2>
-      <div class="banner">Add someone here, then text them the link. The first time, they tap “Create your password” and use this same email. Managers get everything. Hosts also get the Shift log and Incidents. Expo also gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.</div>
+      <div class="banner">Add someone here, then text them the link. The first time, they tap “Create your password” and use this same email. Managers get everything. Sous chefs get the Kitchen, Chef log, Shift log, Incidents and Supplies. Cooks get the Kitchen screen (in Spanish if they like). Hosts get the Shift log and Incidents. Expo gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.</div>
       <form id="teamForm">
         <label>Name<input id="t-name" required maxlength="100" placeholder="e.g. Jennifer"></label>
         <label>Email<input id="t-email" type="email" required placeholder="name@example.com"></label>
-        <label class="full">Access<select id="t-role"><option value="front_desk">Host</option><option value="expo">Expo</option><option value="stylist">Team member</option><option value="manager">Manager</option></select></label>
+        <label class="full">Access<select id="t-role"><option value="front_desk">Host</option><option value="expo">Expo</option><option value="boh">Cook</option><option value="chef">Sous chef</option><option value="stylist">Team member</option><option value="manager">Manager</option></select></label>
         <div class="full form-actions"><span class="form-err" id="t-err"></span><button type="submit" class="primary">Add person</button></div>
       </form>
       <div class="feed" id="teamFeed"></div>
@@ -1024,7 +1094,7 @@ const dayLabel = s => { const w = new Date(s + "T12:00").toLocaleDateString(unde
 const stripe = {low:"var(--ok)", med:"var(--warn)", high:"var(--crit)"};
 const sevName = {low:"Minor", med:"Watch", high:"Serious"};
 const staffStripe = {"Praise":"var(--ok)","Late arrival":"var(--warn)","Left early":"var(--warn)","Called out / sick":"var(--warn)","Attitude / mood":"var(--crit)","Policy issue":"var(--crit)"};
-const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Team member" : r === "expo" ? "Expo" : "Host";
+const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Front of house" : r === "expo" ? "Expo" : r === "boh" ? "Cook" : r === "chef" ? "Sous chef" : "Host";
 
 let session = null, me = null, previewRole = "", current = "daily";
 let daily = [], fups = {}, incidents = [], res = {}, notes = [], team = [];
@@ -1037,7 +1107,7 @@ let dcat = "General", fuOnly = false, fuOpen = null, logFilter = "all", sev = "m
 const realMgr = () => me && me.role === "manager";
 const effRole = () => previewRole || (me && me.role);
 const isMgr = () => effRole() === "manager";
-const isDesk = () => effRole() === "manager" || effRole() === "front_desk" || effRole() === "expo" || (!previewRole && !!me && me.role === "stylist" && !!me.also_desk);
+const isDesk = () => effRole() === "manager" || effRole() === "front_desk" || effRole() === "expo" || effRole() === "chef" || (!previewRole && !!me && me.role === "stylist" && !!me.also_desk);
 const nameOf = email => { const p = team.find(x => x.email === (email || "").toLowerCase()); return p ? p.name : (email || "Someone").split("@")[0]; };
 function show(view) { ["view-login", "view-noaccess", "app"].forEach(v => $(v).hidden = v !== view); }
 function friendly(err) {
@@ -1098,29 +1168,29 @@ addEyes();
 new MutationObserver(() => addEyes()).observe(document.body, { childList: true, subtree: true });
 
 /* ---------- tabs & preview ---------- */
-const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
+const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "kitchen", "chef", "staff", "team"];
 function setTab(t) {
   if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
-  if ((t === "daily" || t === "log") && !isDesk()) t = "chat"; if (t === "log" && effRole() === "expo") t = "daily"; if ((t === "supplies" || t === "cash") && !isMgr()) t = "chat";
-  current = t;
+  if ((t === "daily" || t === "log") && !isDesk()) t = isBoh() ? "kitchen" : "chat"; if (t === "log" && effRole() === "expo") t = "daily"; if (t === "cash" && !isMgr()) t = "chat"; if (t === "supplies" && !(isMgr() || isChef())) t = "chat"; if (t === "kitchen" && !isKitchen()) t = "chat"; if (t === "chef" && !isKLead()) t = "chat";
+  current = t; setTimeout(kTrans, 0);
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
 }
 TABS.forEach(k => $("tab-" + k).onclick = () => setTab(k));
 window.__demoMe = () => me && me.email;
 window.__demoPersona = () => {
   if (!me) return;
-  const r = effRole(), p = r === "stylist" ? ["maya@demokitchen.example", "Maya Torres"] : r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] : r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"] : ["jordan@demokitchen.example", "Jordan Lee"];
+  const r = effRole(), p = r === "stylist" ? ["maya@demokitchen.example", "Maya Torres"] : r === "boh" ? ["luis@demokitchen.example", "Luis Ramírez"] : r === "chef" ? ["diego@demokitchen.example", "Diego Herrera"] : r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] : r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"] : ["jordan@demokitchen.example", "Jordan Lee"];
   me.email = p[0]; me.name = p[1]; $("whoName").textContent = p[1]; $("avatar").textContent = p[1][0];
 };
 function applyRole() {
   __demoPersona();
   openResolve = null; confirmDel = null; fuOpen = null;
   $("viewAs").hidden = !realMgr();
-  $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-expo").setAttribute("aria-selected", effRole() === "expo"); $("va-mgr").setAttribute("aria-selected", isMgr());
+  $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-expo").setAttribute("aria-selected", effRole() === "expo"); $("va-boh").setAttribute("aria-selected", effRole() === "boh"); $("va-chef").setAttribute("aria-selected", effRole() === "chef"); $("va-mgr").setAttribute("aria-selected", isMgr());
   $("previewBar").hidden = !previewRole;
-  $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a server" : previewRole === "expo" ? "Casey, on expo" : "Riley, on the host stand"}. This is what they see.`;
-  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk() || effRole() === "expo"; $("tab-supplies").hidden = !isMgr(); $("tab-cash").hidden = !isMgr();
-  $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr();
+  $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a server" : previewRole === "boh" ? "Luis, a line cook (Spanish)" : previewRole === "chef" ? "Diego, the sous chef" : previewRole === "expo" ? "Casey, on expo" : "Riley, on the host stand"}. This is what they see.`;
+  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk() || effRole() === "expo"; $("tab-supplies").hidden = !(isMgr() || isChef()); $("tab-cash").hidden = !isMgr();
+  $("tab-kitchen").hidden = !isKitchen(); $("tab-chef").hidden = !isKLead(); $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr();
   $("hbMgr").hidden = !isMgr(); refreshHandbookMeta(); renderPush();
   $("roleBadge").textContent = roleName(effRole());
   $("foot").textContent = isMgr() ? "Manager view. Deleted notes go to Deleted history at the bottom of each log; only managers can delete forever." : isDesk() ? "Everything you add is visible to the whole team. Keep notes factual." : "Announcements and chat are shared with the whole team.";
@@ -1129,6 +1199,8 @@ function applyRole() {
 $("va-sty").onclick = () => { previewRole = "stylist"; applyRole(); };
 $("va-desk").onclick = () => { previewRole = "front_desk"; applyRole(); };
 $("va-expo").onclick = () => { previewRole = "expo"; applyRole(); };
+$("va-boh").onclick = () => { previewRole = "boh"; current = "kitchen"; applyRole(); };
+$("va-chef").onclick = () => { previewRole = "chef"; current = "kitchen"; applyRole(); };
 $("va-mgr").onclick = () => { previewRole = ""; applyRole(); };
 $("exitPreview").onclick = () => { previewRole = ""; applyRole(); };
 
@@ -1253,7 +1325,7 @@ async function loadAll() {
 let reloadTimer = null;
 const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 400); };
 
-function renderAll() { renderAlerts(); renderCash(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
+function renderAll() { renderKitchen(); renderAlerts(); renderCash(); renderPrint(); renderDaily(); renderLog(); renderArch("d"); renderArch("l"); renderStaff(); renderTeam(); renderTodo(); renderChat(); renderTime(); renderOO(); renderApps(); renderSupplies(); renderMlog(); renderWriteups(); }
 
 /* ---------- staff write-ups ---------- */
 let writeups = [], wuOpen = null, wuSign = null, wuDel = null, wuPad = null;
@@ -1477,7 +1549,7 @@ function supGroups(rows, catOf) {
 }
 function renderSupplies() {
   if (!me) return;
-  if (!isMgr()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }
+  if (!(isMgr() || isChef())) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }
   const open = supNeeds.filter(n => !n.bought), bought = supNeeds.filter(n => n.bought).sort((a, b) => (b.bought_at || "").localeCompare(a.bought_at || ""));
   $("tab-supplies").textContent = open.length ? `Supplies (${open.length})` : "Supplies";
   $("supShare").hidden = !open.length;
@@ -1617,7 +1689,7 @@ $("toForm").addEventListener("submit", async e => {
   const { error } = await sb.from("time_off").insert({ off_from, back_on, note: $("to-note").value.trim() || null, created_by: me.email });
   if (error) {
     const m = /TIMEOFF_LIMIT:\s*(\d{4}-\d{2}-\d{2})/.exec(error.message || "");
-    const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "hosts" : me.role === "expo" ? "expo" : "managers";
+    const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "hosts" : me.role === "expo" ? "expo" : me.role === "boh" ? "cooks" : me.role === "chef" ? "chefs" : "managers";
     return err(m ? `Sorry, two ${who} are already requested off on ${fmt(m[1])}. Pick different dates or talk to a manager.` : friendly(error));
   }
   $("toForm").reset(); err(""); $("foot").textContent = "Request sent to managers."; loadAll();
@@ -2364,6 +2436,185 @@ function aplResumeBtn(a) {
 }
 
 
+
+/* ---------- Kitchen (restaurant): chef notes to the line, 86 list, temps, line check, chef log, Spanish ---------- */
+const isBoh = () => effRole() === "boh";
+const isChef = () => effRole() === "chef";
+const isKitchen = () => isBoh() || isChef() || isMgr();
+const isKLead = () => isChef() || isMgr();
+let kLangPick = null, kLastRole = null, kShift = new Date().getHours() < 15 ? "AM" : "PM", kOrig = {};
+const kLang = () => kLangPick || (isBoh() ? "es" : "en");
+const KT = {
+  en: { title: "🔪 Kitchen", t86: "🚫 86'd right now", none86: "Nothing is 86'd. 👍", ph86: "What's out? e.g. salmon", b86: "86 it", back: "Back on",
+    temps: "🌡️ Temps", rule: "Cold 41°F or below · Frozen 0°F or below · Hot 135°F or above", save: "Save", last: "Last", noRead: "No reading yet today",
+    over: "Out of range: tell the chef", lc: "✅ Line check", lcHelp: "Check every item before service. Out-of-range temps turn red and go to the chef.",
+    submit: "Submit line check", done: "Done", waiting: "Waiting for chef sign-off", signed: "Signed off by", sign: "Sign off", flagged: "flagged",
+    notice: "From the chef", got: "Got it", gotDone: "Got it ✓", seen: "got it", orig: "Original", trans: "Translated from English", showOrig: "See original", hideOrig: "Hide original",
+    today: "Today", foot: "Kitchen view. Everything you log goes to the chef and managers.", recent: "Today's readings", by: "by", tempErr: "Type the temperature first.", lcErr: "Add a temp for every item, or check it off." },
+  es: { title: "🔪 Cocina", t86: "🚫 86 ahora", none86: "No hay nada en 86. 👍", ph86: "¿Qué se acabó? ej. salmón", b86: "Marcar 86", back: "Ya hay",
+    temps: "🌡️ Temperaturas", rule: "Frío 41°F o menos · Congelado 0°F o menos · Caliente 135°F o más", save: "Guardar", last: "Última", noRead: "Sin lectura hoy",
+    over: "Fuera de rango: avisa al chef", lc: "✅ Revisión de línea", lcHelp: "Revisa cada producto antes del servicio. Las temperaturas fuera de rango salen en rojo y le llegan al chef.",
+    submit: "Enviar revisión de línea", done: "Listo", waiting: "Esperando firma del chef", signed: "Firmado por", sign: "Firmar", flagged: "marcados",
+    notice: "Aviso del chef", got: "Enterado", gotDone: "Enterado ✓", seen: "enterados", orig: "Original", trans: "Traducido del inglés", showOrig: "Ver original", hideOrig: "Ocultar original",
+    today: "Hoy", foot: "Vista de cocina. Todo lo que anotas le llega al chef y a los gerentes.", recent: "Lecturas de hoy", by: "por", tempErr: "Primero escribe la temperatura.", lcErr: "Pon la temperatura de cada producto o márcalo como listo." },
+};
+const kt = k => (KT[kLang()] || KT.en)[k];
+const K_LIMIT = { cold: [null, 41], frozen: [null, 0], hot: [135, null] };
+const kOk = (kind, t) => { const [lo, hi] = K_LIMIT[kind] || []; return (lo == null || t >= lo) && (hi == null || t <= hi); };
+const K_UNITS = [["walkin", "Walk-in cooler", "Cámara fría", "cold"], ["reachin", "Reach-in (line)", "Refrigerador de la línea", "cold"], ["freezer", "Walk-in freezer", "Congelador", "frozen"], ["hotbox", "Hot holding cabinet", "Gabinete caliente", "hot"]];
+const K_LINE = [
+  ["Grill", "Parrilla", [["Burger patties", "Hamburguesas", "cold"], ["Steaks", "Filetes", "cold"], ["Chicken breast", "Pechuga de pollo", "cold"]]],
+  ["Sauté", "Salteado", [["Salmon", "Salmón", "cold"], ["Scallops", "Vieiras", "cold"], ["Béarnaise (holding)", "Bearnesa (en caliente)", "hot"]]],
+  ["Fry", "Freidora", [["Fryer oil filtered", "Aceite de freidora filtrado", "check"], ["Fries", "Papas fritas", "frozen"]]],
+  ["Cold side", "Lado frío", [["Salad greens", "Lechuga", "cold"], ["Dressings", "Aderezos", "cold"], ["Cut fruit", "Fruta picada", "cold"]]],
+  ["Hot holding", "Mantener caliente", [["Soup of the day", "Sopa del día", "hot"], ["Rice", "Arroz", "hot"]]],
+];
+const kName = (en, es) => kLang() === "es" ? es : en;
+const kItemName = n => { for (const [, , list] of K_LINE) { const f = list.find(x => x[0] === n); if (f) return kName(f[0], f[1]); } return n; };
+const kUnitName = id => { const u = K_UNITS.find(x => x[0] === id); return u ? kName(u[1], u[2]) : id; };
+const kTime = iso => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).replace(" ", "").toLowerCase();
+const kToday = () => daysAgo(0);
+let kTemps = [], kChecks = [], kChef = [];
+async function kLoad() {
+  if (!me) return;
+  const [a, b, c] = await Promise.all([
+    sb.from("temp_logs").select("*").order("created_at", { ascending: false }).limit(200),
+    sb.from("line_checks").select("*").order("created_at", { ascending: false }).limit(60),
+    sb.from("chef_log").select("*").order("created_at", { ascending: false }).limit(200),
+  ]);
+  kTemps = a.data || []; kChecks = b.data || []; kChef = c.data || [];
+}
+function renderKitchen() { kLoad().then(() => { renderKitchenView(); renderChefLog(); kTrans(); }); }
+function renderKitchenView() {
+  if (!$("view-kitchen")) return;
+  if (kLastRole !== effRole()) { kLastRole = effRole(); kLangPick = null; }
+  $("kLang").hidden = !isKitchen();
+  $("kLang").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.klang === kLang()));
+  $("kTitle").textContent = kt("title"); $("k86Title").textContent = kt("t86"); $("kTempTitle").textContent = kt("temps"); $("kTempRule").textContent = kt("rule");
+  $("kLcTitle").textContent = kt("lc"); $("kLcHelp").textContent = kt("lcHelp"); $("kLcBtn").textContent = kt("submit");
+  $("k86Item").placeholder = kt("ph86"); $("k86Btn").textContent = kt("b86");
+  // chef notes to the line (last 3 days)
+  const since = Date.now() - 3 * 864e5;
+  const notes = kChef.filter(n => n.to_line && new Date(n.created_at) > since);
+  $("kNotices").innerHTML = notes.map(n => {
+    const es = kLang() === "es", txt = es && n.note_es ? n.note_es : n.note, acks = n.acks || [], mine = acks.includes(me.email), showO = kOrig[n.id];
+    return `<div class="quick k-notice"><div class="row"><span class="tag" style="background:var(--accent-soft);color:var(--accent)">${esc(kt("notice"))}</span><span class="meta">${esc(kTime(n.created_at))} · ${esc(nameOf(n.created_by))}</span></div>
+      <b style="font-size:1.02rem">${esc(txt)}</b>
+      ${es && n.note_es ? `<span class="meta">🌐 ${esc(kt("trans"))} · <button type="button" class="link" data-korig="${n.id}">${esc(showO ? kt("hideOrig") : kt("showOrig"))}</button></span>${showO ? `<span class="meta">${esc(kt("orig"))}: “${esc(n.note)}”</span>` : ""}` : ""}
+      <div class="actions">${isBoh() ? `<button type="button" class="${mine ? "ghost" : "primary"}" data-kack="${n.id}"${mine ? " disabled" : ""}>${esc(mine ? kt("gotDone") : kt("got"))}</button>` : ""}<span class="meta">${acks.length} ${esc(kt("seen"))}</span></div></div>`;
+  }).join("");
+  // 86 list, same data as the shift log's board
+  const out = daily.filter(d => d.category === "86'd" && d.entry_date >= daysAgo(1) && !(fups[d.id] && fups[d.id].done));
+  $("k86List").innerHTML = out.length ? out.map(d => `<div class="row k-item"><span style="flex:1"><b>${esc(d.note.replace(/^86\s*/i, "").replace(/^./, c => c.toUpperCase()))}</b><br><span class="meta">${esc(t12(d.entry_time))} · ${esc(nameOf(d.created_by))}</span></span>${isKLead() || effRole() === "expo" ? `<button type="button" class="ghost" data-back86="${d.id}">${esc(kt("back"))}</button>` : ""}</div>`).join("") : `<span class="meta">${esc(kt("none86"))}</span>`;
+  // temps: one row per unit with today's last reading
+  const today = kTemps.filter(t => t.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10) || new Date(t.created_at).toDateString() === new Date().toDateString());
+  $("kUnits").innerHTML = K_UNITS.map(([id, , , kind]) => {
+    const last = today.find(t => t.unit === id), bad = last && !kOk(kind, last.temp);
+    return `<form class="k-unit${bad ? " bad" : ""}" data-kunit="${id}"><span style="flex:1"><b>${esc(kUnitName(id))}</b><br><span class="meta">${last ? `${esc(kt("last"))}: <b style="color:${bad ? "var(--crit)" : "var(--ok)"}">${last.temp}°F</b> · ${esc(kTime(last.created_at))}${bad ? ` · ⚠ ${esc(kt("over"))}` : ""}` : esc(kt("noRead"))}</span></span>
+      <input type="number" step="1" inputmode="numeric" aria-label="°F" placeholder="°F" style="width:74px"><button type="submit" class="ghost">${esc(kt("save"))}</button></form>`;
+  }).join("");
+  $("kTempLog").innerHTML = today.length ? `<div class="lbl" style="margin-top:6px">${esc(kt("recent"))}</div>` + today.slice(0, 8).map(t => { const u = K_UNITS.find(x => x[0] === t.unit) || [, , , "cold"], bad = !kOk(u[3], t.temp); return `<div class="meta">${esc(kTime(t.created_at))} · ${esc(kUnitName(t.unit))} <b style="color:${bad ? "var(--crit)" : "inherit"}">${t.temp}°F${bad ? " ⚠" : ""}</b> · ${esc(nameOf(t.created_by))}</div>`; }).join("") : "";
+  // line check
+  $("kShift").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.kshift === kShift));
+  const doneNow = kChecks.find(c => c.check_date === kToday() && c.shift === kShift);
+  $("kLcForm").hidden = !!doneNow;
+  if (!doneNow && !$("kLcItems").dataset.built) {
+    $("kLcItems").innerHTML = K_LINE.map(([st, stEs, items], si) => `<div class="k-station"><b>${esc(kName(st, stEs))}</b>${items.map(([it, itEs, kind], ii) => `<div class="row k-item" data-kli="${si}-${ii}" data-kind="${kind}"><span style="flex:1">${esc(kName(it, itEs))}<br><span class="meta">${kind === "check" ? "" : kind === "hot" ? "≥ 135°F" : kind === "frozen" ? "≤ 0°F" : "≤ 41°F"}</span></span>${kind === "check" ? `<label class="fu-check" style="margin:0"><input type="checkbox"> ${esc(kt("done"))}</label>` : `<input type="number" step="1" inputmode="numeric" placeholder="°F" style="width:74px">`}</div>`).join("")}</div>`).join("");
+    $("kLcItems").dataset.built = kLang();
+  }
+  if ($("kLcItems").dataset.built && $("kLcItems").dataset.built !== kLang()) { $("kLcItems").dataset.built = ""; renderKitchenView(); return; }
+  const recent = kChecks.filter(c => c.check_date >= daysAgo(1));
+  $("kLcDone").innerHTML = recent.map(c => {
+    const flags = (c.items || []).filter(i => i.kind !== "check" && !kOk(i.kind, i.temp));
+    return `<div class="k-done${c.signed_by ? " ok" : ""}"><div class="row"><b>${esc(c.check_date === kToday() ? kt("today") : fmt(c.check_date))} · ${esc(c.shift)}</b><span class="meta">${esc(nameOf(c.created_by))} · ${esc(kTime(c.created_at))}</span></div>
+      ${flags.length ? `<span style="color:var(--crit);font-weight:600">⚠ ${flags.length} ${esc(kt("flagged"))}: ${flags.map(i => esc(kItemName(i.name)) + " " + i.temp + "°F").join(", ")}</span>` : ""}
+      <div class="row"><span class="meta">${c.signed_by ? `✓ ${esc(kt("signed"))} ${esc(nameOf(c.signed_by))} · ${esc(kTime(c.signed_at))}` : esc(kt("waiting"))}</span>${!c.signed_by && isKLead() ? `<button type="button" class="primary" data-ksign="${c.id}">${esc(kt("sign"))}</button>` : ""}</div></div>`;
+  }).join("");
+}
+function renderChefLog() {
+  if (!$("chefFeed")) return;
+  $("chefFeed").innerHTML = kChef.length ? kChef.map(n => `<div class="entry"><div class="row"><span class="tag">${esc(n.cat || "Note")}</span><span class="meta">${esc(new Date(n.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }))} · ${esc(kTime(n.created_at))} · ${esc(nameOf(n.created_by))}</span></div>
+    <p class="note" style="margin:6px 0 0">${esc(n.note)}</p>${n.to_line ? `<span class="meta">📣 Posted to the line · ${(n.acks || []).length} got it${n.note_es ? ` · 🇪🇸 “${esc(n.note_es)}”` : ""}</span>` : ""}</div>`).join("") : `<div class="empty"><b>No chef notes yet</b>Prep, waste, orders and equipment notes for the kitchen go here.</div>`;
+}
+// Spanish for the cook's screens: swaps fixed labels in the app (chat, time off, 1:1s, tabs) while Spanish is on.
+const K_ES = {
+  "Shift log": "Bitácora", "Team 💬": "Equipo 💬", "Time off": "Días libres", "1:1s": "1:1", "Kitchen": "Cocina", "Cook": "Cocinero", "Sous chef": "Sous chef",
+  "💬 Team chat": "💬 Chat del equipo", "📣 Announcements": "📣 Avisos", "📌 For you": "📌 Para ti", "📘 Employee handbook": "📘 Manual del empleado", "🔔 Notifications": "🔔 Notificaciones",
+  "🛠 Report an issue": "🛠 Reportar un problema", "Send": "Enviar", "Read handbook": "Leer manual", "Read it, then sign that you received it.": "Léelo y firma que lo recibiste.", "Sign receipt ↗": "Firmar recibo ↗",
+  "Goes straight to the managers' to-do list.": "Va directo a la lista de tareas de los gerentes.", "Message the whole team": "Mensaje para todo el equipo", "e.g. Out of limes, fryer 2 won't heat": "ej. No hay limones, la freidora 2 no calienta",
+  "Request time off": "Pedir días libres", "First day off": "Primer día libre", "Back to work": "Regreso al trabajo", "Note (optional)": "Nota (opcional)", "Send to managers": "Enviar a los gerentes",
+  "My requests": "Mis solicitudes", "Upcoming approved": "Próximos aprobados", "e.g. Family wedding": "ej. Boda familiar",
+  "No more than two people from the same station off at the same time. A request is just a request: it isn't time off until a manager approves it.": "No más de dos personas de la misma estación libres al mismo tiempo. Una solicitud no es día libre hasta que un gerente la aprueba.",
+  "Request a 1:1": "Pedir una reunión 1:1", "Pick a time that works for you. A manager will confirm it or suggest another time.": "Elige una hora que te funcione. Un gerente la confirma o sugiere otra.",
+  "With": "Con", "Any manager": "Cualquier gerente", "Day": "Día", "Time": "Hora", "What do you want to talk about? (optional)": "¿De qué quieres hablar? (opcional)", "Send request": "Enviar solicitud",
+  "My 1:1s": "Mis reuniones 1:1", "Upcoming 1:1s": "Próximas reuniones 1:1", "📁 My goal sheets": "📁 Mis hojas de metas", "e.g. Training to bartend, picking up more shifts": "ej. Aprender la parrilla, más turnos",
+  "↩ Reply": "↩ Responder", "Reply": "Responder", "Back to manager view": "Volver a la vista de gerente", "Pending": "Pendiente", "Approved": "Aprobado", "Declined": "No aprobado", "Cancel": "Cancelar", "Delete": "Borrar", "Exit preview": "Salir de la vista previa",
+};
+const K_EN = {}; Object.entries(K_ES).forEach(([a, b]) => K_EN[b] = a);
+function kTrans() {
+  if (kLastRole !== effRole()) { kLastRole = effRole(); kLangPick = null; }
+  const es = kLang() === "es", dict = es ? K_ES : K_EN, root = document.querySelector(".wrap");
+  if (!root) return;
+  const swap = v => { const t = v.trim(); if (dict[t]) return v.replace(t, dict[t]); const m = t.match(/^(.+?)( \(\d+\))$/); return m && dict[m[1]] ? v.replace(m[1], dict[m[1]]) : null; };
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n; (n = w.nextNode());) { if (n.parentElement && n.parentElement.closest("#view-kitchen, script, style")) continue; const r = swap(n.nodeValue); if (r !== null && r !== n.nodeValue) n.nodeValue = r; }
+  root.querySelectorAll("[placeholder]").forEach(el => { const r = swap(el.placeholder); if (r !== null) el.placeholder = r; });
+  if (isBoh()) $("foot").textContent = kt("foot");
+}
+document.addEventListener("click", async e => {
+  const lang = e.target.closest("[data-klang]"); if (lang) { kLangPick = lang.dataset.klang; renderKitchenView(); kTrans(); return; }
+  const sh = e.target.closest("[data-kshift]"); if (sh) { kShift = sh.dataset.kshift; renderKitchenView(); return; }
+  const o = e.target.closest("[data-korig]"); if (o) { kOrig[o.dataset.korig] = !kOrig[o.dataset.korig]; renderKitchenView(); return; }
+  const a = e.target.closest("[data-kack]"); if (a) {
+    const n = kChef.find(x => x.id === a.dataset.kack); a.disabled = true;
+    await sb.from("chef_log").update({ acks: [...new Set([...(n.acks || []), me.email])] }).eq("id", n.id); loadAll(); return;
+  }
+  const s = e.target.closest("[data-ksign]"); if (s) {
+    s.disabled = true; await sb.from("line_checks").update({ signed_by: me.email, signed_at: new Date().toISOString() }).eq("id", s.dataset.ksign);
+    $("foot").textContent = "Line check signed off."; loadAll(); return;
+  }
+});
+document.addEventListener("submit", async e => {
+  const f = e.target;
+  if (f.id === "k86Form") {
+    e.preventDefault(); const v = $("k86Item").value.trim(); if (!v) return;
+    await sb.from("daily_log").insert({ entry_date: daysAgo(0), entry_time: nowTime(), category: "86'd", note: "86 " + v, needs_followup: false, created_by: me.email });
+    $("k86Item").value = ""; loadAll(); return;
+  }
+  if (f.dataset && f.dataset.kunit) {
+    e.preventDefault(); const inp = f.querySelector("input"), t = parseFloat(inp.value);
+    if (isNaN(t)) { inp.focus(); $("foot").textContent = kt("tempErr"); return; }
+    const u = K_UNITS.find(x => x[0] === f.dataset.kunit);
+    await sb.from("temp_logs").insert({ unit: u[0], temp: t, created_by: me.email });
+    if (!kOk(u[3], t)) await sb.from("daily_log").insert({ entry_date: daysAgo(0), entry_time: nowTime(), category: "Maintenance", note: `${u[1]} read ${t}°F (${u[3] === "hot" ? "should be 135°F or above" : u[3] === "frozen" ? "should be 0°F or below" : "should be 41°F or below"}). Logged from the Kitchen tab.`, needs_followup: true, created_by: me.email });
+    inp.value = ""; loadAll(); return;
+  }
+  if (f.id === "kLcForm") {
+    e.preventDefault(); const items = []; let missing = false;
+    f.querySelectorAll("[data-kli]").forEach(row => {
+      const [si, ii] = row.dataset.kli.split("-").map(Number), [st, , list] = K_LINE[si], [name, , kind] = list[ii];
+      if (kind === "check") { const c = row.querySelector("input").checked; if (!c) missing = true; items.push({ station: st, name, kind, ok: c }); }
+      else { const v = parseFloat(row.querySelector("input").value); if (isNaN(v)) missing = true; items.push({ station: st, name, kind, temp: v }); }
+    });
+    if (missing) { $("kLcErr").textContent = kt("lcErr"); return; }
+    $("kLcErr").textContent = "";
+    await sb.from("line_checks").insert({ check_date: kToday(), shift: kShift, items, created_by: me.email, signed_by: null, signed_at: null });
+    const bad = items.filter(i => i.kind !== "check" && !kOk(i.kind, i.temp));
+    if (bad.length) await sb.from("daily_log").insert({ entry_date: daysAgo(0), entry_time: nowTime(), category: "Maintenance", note: `Line check (${kShift}): ${bad.map(i => i.name + " " + i.temp + "°F").join(", ")} out of range.`, needs_followup: true, created_by: me.email });
+    $("kLcItems").dataset.built = ""; loadAll(); return;
+  }
+  if (f.id === "chefForm") {
+    e.preventDefault(); const note = $("chefNote").value.trim(); if (!note) return;
+    const cat = ($("chefCats").querySelector("[aria-pressed=true]") || {}).textContent || "Note";
+    const { error } = await sb.from("chef_log").insert({ cat, note, note_es: $("chefEs").value.trim() || null, to_line: $("chefLine").checked, acks: [], created_by: me.email });
+    if (error) { $("chefErr").textContent = friendly(error); return; }
+    $("chefNote").value = ""; $("chefEs").value = ""; $("chefLine").checked = false; $("chefEsWrap").hidden = true;
+    $("foot").textContent = "Saved to the chef log."; loadAll(); return;
+  }
+});
+$("chefCats").addEventListener("click", e => { const b = e.target.closest(".cat"); if (!b) return; $("chefCats").querySelectorAll(".cat").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+$("chefLine").addEventListener("change", () => { $("chefEsWrap").hidden = !$("chefLine").checked; });
+
 /* ---------- employee handbook ---------- */
 async function latestHandbook() {
   const { data, error } = await sb.storage.from("photos").list("handbook", { limit: 1, sortBy: { column: "created_at", order: "desc" } });
@@ -2936,7 +3187,7 @@ function renderTeam() {
   if (!isMgr()) { $("teamFeed").innerHTML = ""; return; }
   $("teamFeed").innerHTML = team.map(p => `<article class="entry" style="--stripe:${p.role === "manager" ? "var(--accent)" : "var(--line)"}">
     <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}${p.role === "stylist" && p.also_desk ? " + Host" : ""}</span></div>
-    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "expo", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select>${p.role === "stylist" ? `<label style="flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:.85rem;color:var(--ink)"><input type="checkbox" data-also="${esc(p.email)}" ${p.also_desk ? "checked" : ""} style="width:18px;height:18px;min-height:0"> Also covers the host stand</label>` : ""}<button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
+    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "expo", "stylist", "boh", "chef", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select>${p.role === "stylist" ? `<label style="flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:.85rem;color:var(--ink)"><input type="checkbox" data-also="${esc(p.email)}" ${p.also_desk ? "checked" : ""} style="width:18px;height:18px;min-height:0"> Also covers the host stand</label>` : ""}<button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
   </article>`).join("");
 }
 $("teamFeed").addEventListener("change", async e => {

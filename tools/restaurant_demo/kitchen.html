@@ -1,0 +1,39 @@
+    <!-- KITCHEN (cooks, chefs, managers): chef notes, 86 list, temps, line check -->
+    <section id="view-kitchen" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="row" style="flex-wrap:wrap;gap:8px"><h2 class="h2" id="kTitle" style="margin:0">🔪 Kitchen</h2>
+        <div class="k-lang" id="kLang" hidden><button type="button" data-klang="en">EN</button><button type="button" data-klang="es">ES</button></div></div>
+      <div id="kNotices" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="k86Title">🚫 86'd right now</h2></div>
+        <div id="k86List" style="display:flex;flex-direction:column;gap:6px"></div>
+        <form id="k86Form" class="k-row" style="margin-top:4px"><input id="k86Item" maxlength="120" autocomplete="off"><button type="submit" class="primary" id="k86Btn">86 it</button></form>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="kTempTitle">🌡️ Temps</h2><span class="meta" id="kTempRule"></span></div>
+        <div id="kUnits" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="kTempLog"></div>
+      </div>
+      <div class="quick">
+        <div class="row"><h2 class="h2" id="kLcTitle">✅ Line check</h2><div class="tabs k-shift" id="kShift"><button type="button" data-kshift="AM" aria-selected="true">AM</button><button type="button" data-kshift="PM" aria-selected="false">PM</button></div></div>
+        <p class="meta" id="kLcHelp" style="margin:0"></p>
+        <form id="kLcForm" style="display:flex;flex-direction:column;gap:12px"><div id="kLcItems" style="display:flex;flex-direction:column;gap:12px"></div>
+          <div class="form-actions"><span class="form-err" id="kLcErr"></span><button type="submit" class="primary" id="kLcBtn"></button></div></form>
+        <div id="kLcDone" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- CHEF LOG (sous chef + managers) -->
+    <section id="view-chef" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="quick">
+        <h2 class="h2">🔪 Chef log</h2>
+        <p class="meta" style="margin:0">Kitchen notes for the chefs and managers: prep, waste, orders, equipment and staffing. Check <b>Post to the line</b> to send it to every cook too.</p>
+        <form id="chefForm" style="display:flex;flex-direction:column;gap:10px">
+          <div class="cats" id="chefCats"><button type="button" class="cat" aria-pressed="true">Prep</button><button type="button" class="cat" aria-pressed="false">Waste</button><button type="button" class="cat" aria-pressed="false">Order</button><button type="button" class="cat" aria-pressed="false">Equipment</button><button type="button" class="cat" aria-pressed="false">Staffing</button><button type="button" class="cat" aria-pressed="false">Note</button></div>
+          <textarea id="chefNote" required maxlength="2000" rows="3" placeholder="e.g. Braise 40 lb short rib tomorrow AM. Waste: 6 lb salmon (cooler)."></textarea>
+          <label class="fu-check"><input type="checkbox" id="chefLine"> Post to the line (cooks see it on their Kitchen screen)</label>
+          <label id="chefEsWrap" hidden>Spanish for the cooks <span class="meta">(the real app translates this for you; in the demo, type it or leave it blank)</span><textarea id="chefEs" maxlength="2000" rows="2" placeholder="ej. Mañana en la mañana: 40 lb de costilla."></textarea></label>
+          <div class="form-actions"><span class="form-err" id="chefErr"></span><button type="submit" class="primary">Save to chef log</button></div>
+        </form>
+      </div>
+      <div class="feed" id="chefFeed"></div>
+    </section>

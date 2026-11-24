@@ -7,10 +7,10 @@ window.__demoSeed = function (ME) {
   const ym = n => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - n); return d.getFullYear() + "-" + pad(d.getMonth() + 1); };
   const yr = String(new Date().getFullYear());
   const E = n => n + "@demokitchen.example";
-  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
+  const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma"), DIEGO = E("diego"), LUIS = E("luis"), ANA = E("ana");
   let i = 0; const id = p => p + "-" + (++i);
 
-  // role keys stay the app's own: front_desk = host, expo = expo (new), stylist = team member
+  // role keys: manager, chef (sous chef), front_desk = host, expo, stylist = front-of-house team, boh = cook
   const staff = [
     { email: ME, name: "Jordan Lee", role: "manager" },
     { email: SAM, name: "Sam Patel", role: "manager" },
@@ -19,12 +19,15 @@ window.__demoSeed = function (ME) {
     { email: MAYA, name: "Maya Torres", role: "stylist" },
     { email: AVA, name: "Ava Johnson", role: "stylist", also_desk: true },
     { email: LILY, name: "Lily Chen", role: "stylist" },
-    { email: NOAH, name: "Noah Kim", role: "stylist" },
+    { email: DIEGO, name: "Diego Herrera", role: "chef" },
+    { email: NOAH, name: "Noah Kim", role: "boh" },
+    { email: LUIS, name: "Luis Ramírez", role: "boh" },
+    { email: ANA, name: "Ana Morales", role: "boh" },
     { email: EMMA, name: "Emma Davis", role: "stylist" },
   ];
 
   const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
-  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", SAM, { needs_followup: true });
+  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", DIEGO, { needs_followup: true });
   const rep = dl(0, "14:10", "Visitor", "Beer rep dropped off samples of two new seasonal drafts. They're in the office for Jordan to try.", CASEY);
   const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", ME, { needs_followup: true });
   const pie = dl(1, "20:10", "86'd", "86 key lime pie. Sold the last slice at 8.", RILEY);
@@ -41,7 +44,7 @@ window.__demoSeed = function (ME) {
     dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", SAM),
   ];
   const followups = [
-    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: SAM, updated_at: ts(0, 15, 6) },
+    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: DIEGO, updated_at: ts(0, 15, 6) },
     { log_id: inspect.id, flagged: true, done: true, note: "Sam went through the logs. All caught up.", updated_by: SAM, updated_at: ts(1, 17, 30) },
     { log_id: pie.id, flagged: false, done: true, note: "Back on: fresh pies made this morning.", updated_by: SAM, updated_at: ts(0, 10, 0) },
   ];
@@ -102,7 +105,7 @@ window.__demoSeed = function (ME) {
   const time_off = [
     { id: id("to"), off_from: day(-10), back_on: day(-14), note: "Family wedding in Charleston", created_by: AVA, role: "stylist", status: "pending", created_at: ts(2, 9, 0) },
     { id: id("to"), off_from: day(-11), back_on: day(-13), note: "Long weekend", created_by: EMMA, role: "stylist", status: "pending", created_at: ts(1, 9, 0) },
-    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "stylist", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
+    { id: id("to"), off_from: day(-3), back_on: day(-6), note: "", created_by: NOAH, role: "boh", status: "approved", decided_by: SAM, decided_at: ts(8, 10, 0), created_at: ts(10, 9, 0) },
   ];
 
   const oMaya = { id: id("oo"), created_by: MAYA, with_manager: ME, req_date: day(-2), req_time: "14:00:00", meet_date: day(-2), meet_time: "14:00:00", topic: "Becoming a server trainer", status: "confirmed", decided_by: ME, decided_at: ts(1, 9, 0), created_at: ts(2, 8, 0) };
@@ -151,6 +154,29 @@ window.__demoSeed = function (ME) {
   return {
     print_jobs, staff, daily_log, followups, staff_alerts, cash_outs, log_replies, incidents, resolutions, staff_notes, supply_items, supply_needs, todos, manager_log,
     announcements, messages, time_off, one_on_ones, goal_sheets, applicants, staff_writeups, handbook_versions: [], push_subs: [],
+    temp_logs: [
+      { id: id("tl"), unit: "walkin", temp: 38, created_by: LUIS, created_at: ts(0, 9, 5) },
+      { id: id("tl"), unit: "reachin", temp: 37, created_by: LUIS, created_at: ts(0, 9, 6) },
+      { id: id("tl"), unit: "freezer", temp: -2, created_by: LUIS, created_at: ts(0, 9, 7) },
+      { id: id("tl"), unit: "hotbox", temp: 152, created_by: ANA, created_at: ts(0, 11, 30) },
+      { id: id("tl"), unit: "walkin", temp: 44, created_by: DIEGO, created_at: ts(0, 15, 0) },
+    ],
+    line_checks: [
+      { id: id("lc"), check_date: day(0), shift: "AM", created_by: LUIS, created_at: ts(0, 10, 25), signed_by: DIEGO, signed_at: ts(0, 10, 40),
+        items: [["Grill", "Burger patties", "cold", 38], ["Grill", "Steaks", "cold", 39], ["Grill", "Chicken breast", "cold", 37], ["Sauté", "Salmon", "cold", 36], ["Sauté", "Scallops", "cold", 37], ["Sauté", "Béarnaise (holding)", "hot", 140],
+          ["Fry", "Fryer oil filtered", "check", true], ["Fry", "Fries", "frozen", -4], ["Cold side", "Salad greens", "cold", 38], ["Cold side", "Dressings", "cold", 39], ["Cold side", "Cut fruit", "cold", 40], ["Hot holding", "Soup of the day", "hot", 158], ["Hot holding", "Rice", "hot", 146]]
+          .map(([station, name, kind, v]) => kind === "check" ? { station, name, kind, ok: v } : { station, name, kind, temp: v }) },
+      { id: id("lc"), check_date: day(1), shift: "PM", created_by: NOAH, created_at: ts(1, 16, 20), signed_by: null, signed_at: null,
+        items: [["Grill", "Burger patties", "cold", 40], ["Sauté", "Salmon", "cold", 43], ["Hot holding", "Rice", "hot", 141], ["Fry", "Fryer oil filtered", "check", true]]
+          .map(([station, name, kind, v]) => kind === "check" ? { station, name, kind, ok: v } : { station, name, kind, temp: v }) },
+    ],
+    chef_log: [
+      { id: id("cl"), cat: "Order", note: "Fish delivery short. 86 fish tacos until the truck comes tomorrow.", note_es: "Llegó poco pescado. No hay tacos de pescado hasta que llegue el camión mañana.", to_line: true, acks: [LUIS], created_by: DIEGO, created_at: ts(0, 14, 30) },
+      { id: id("cl"), cat: "Prep", note: "Tomorrow AM: braise 40 lb short rib and prep 2 batches of pumpkin cheesecake for the holiday menu.", note_es: "Mañana en la mañana: 40 lb de costilla estofada y 2 tandas de pastel de calabaza para el menú de fiestas.", to_line: true, acks: [], created_by: DIEGO, created_at: ts(0, 15, 45) },
+      { id: id("cl"), cat: "Waste", note: "Tossed 6 lb salmon after the walk-in read 44°F. Logged for the food cost report.", to_line: false, acks: [], created_by: DIEGO, created_at: ts(0, 15, 20) },
+      { id: id("cl"), cat: "Equipment", note: "Fryer 2 takes 15 minutes to come up to temp. Repair company coming Thursday.", to_line: false, acks: [], created_by: DIEGO, created_at: ts(1, 21, 0) },
+      { id: id("cl"), cat: "Staffing", note: "Ana is moving to the grill on weekends starting next week. Luis trains her Friday.", to_line: false, acks: [], created_by: SAM, created_at: ts(2, 17, 0) },
+    ],
     _handbooks: [{ name: "Demo_Kitchen_and_Bar_Handbook.pdf", created_at: ts(14, 12, 0), seed: true }],
     _fileMap: { "print/demo-flyer.png": "demo-flyer.png", "print/demo-sign.png": "demo-sign.png" },
   };

@@ -127,7 +127,7 @@ R2 = [
 ]
 for r in R2:
     rep(*r)
-s = s.replace('</style>', '#viewAs .tabs{display:grid;grid-template-columns:repeat(4,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}\n</style>', 1)   # Team / Host / Expo / Manager on one row
+s = s.replace('</style>', '#viewAs .tabs{display:grid;grid-template-columns:repeat(3,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}\n</style>', 1)   # Team / Host / Expo / Manager on one row
 s = s.replace('Demo Salon', NAME)   # write-up and goal-sheet headings, apply host name, logo alt text
 
 # ---- No Levels or Training on the restaurant side (salon-only features)
@@ -165,6 +165,43 @@ function renderDailyInner() {
 ''')
 
 assert not re.search(r'(?i)\b(stylists?|salon|cosmetology|haircut|balayage)\b', re.sub(r'<script>\n/\* Sample data[\s\S]*?\n</script>', '', s).replace('role === "stylist"', '').replace('"stylist"', '').replace('l.stylist', '').replace('stylist:', '').replace('sb.channel("salon")', '').replace('salonLogo', '')) or True
+# ---- Back of house: Cook (role "boh", sees the app in Spanish by default) and Sous chef (role "chef"),
+#      Kitchen tab (chef notes to the line, 86 list, temps, line check) and Chef log.
+CSS_K = ('.k-lang{display:flex;border:1.5px solid var(--line);border-radius:99px;overflow:hidden}.k-lang button{border:0;background:transparent;padding:5px 12px;font-weight:700;color:var(--muted);min-height:0}'
+  '.k-lang button[aria-pressed=true]{background:var(--accent);color:#fff}.k-unit{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}'
+  '.k-unit.bad{border-color:var(--crit);background:#fbe9e6}.k-row{display:flex;gap:8px}.k-row input{flex:1}.k-station{display:flex;flex-direction:column;gap:6px}'
+  '.k-item{gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}.k-done{border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}'
+  '.k-done.ok{border-left-color:var(--ok)}.k-notice{border:1.5px solid var(--accent)}.k-shift{display:flex;width:auto;flex:none;gap:4px}\n')
+R3 = [
+    ('<button type="button" id="va-expo" aria-selected="false">Expo</button>', '<button type="button" id="va-expo" aria-selected="false">Expo</button>\n        <button type="button" id="va-boh" aria-selected="false">Cook</button>\n        <button type="button" id="va-chef" aria-selected="false">Sous chef</button>'),
+    ('<button type="button" id="va-sty" aria-selected="false">Team</button>', '<button type="button" id="va-sty" aria-selected="false">Server / Bar</button>'),
+    ('r === "stylist" ? "Team member" : r === "expo" ? "Expo" : "Host";', 'r === "stylist" ? "Front of house" : r === "expo" ? "Expo" : r === "boh" ? "Cook" : r === "chef" ? "Sous chef" : "Host";'),
+    ('effRole() === "expo" || (!previewRole', 'effRole() === "expo" || effRole() === "chef" || (!previewRole'),
+    ('r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] :', 'r === "boh" ? ["luis@demokitchen.example", "Luis Ramírez"] : r === "chef" ? ["diego@demokitchen.example", "Diego Herrera"] : r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] :'),
+    ('$("va-expo").setAttribute("aria-selected", effRole() === "expo");', '$("va-expo").setAttribute("aria-selected", effRole() === "expo"); $("va-boh").setAttribute("aria-selected", effRole() === "boh"); $("va-chef").setAttribute("aria-selected", effRole() === "chef");'),
+    ('previewRole === "expo" ? "Casey, on expo" :', 'previewRole === "boh" ? "Luis, a line cook (Spanish)" : previewRole === "chef" ? "Diego, the sous chef" : previewRole === "expo" ? "Casey, on expo" :'),
+    ('$("va-expo").onclick = () => { previewRole = "expo"; applyRole(); };', '$("va-expo").onclick = () => { previewRole = "expo"; applyRole(); };\n$("va-boh").onclick = () => { previewRole = "boh"; current = "kitchen"; applyRole(); };\n$("va-chef").onclick = () => { previewRole = "chef"; current = "kitchen"; applyRole(); };'),
+    ('$("tab-staff").hidden = !isMgr();', '$("tab-kitchen").hidden = !isKitchen(); $("tab-chef").hidden = !isKLead(); $("tab-staff").hidden = !isMgr();'),
+    ('$("tab-supplies").hidden = !isMgr();', '$("tab-supplies").hidden = !(isMgr() || isChef());'),
+    ('if ((t === "supplies" || t === "cash") && !isMgr()) t = "chat";', 'if (t === "cash" && !isMgr()) t = "chat"; if (t === "supplies" && !(isMgr() || isChef())) t = "chat"; if (t === "kitchen" && !isKitchen()) t = "chat"; if (t === "chef" && !isKLead()) t = "chat";'),
+    ('if (!isMgr()) { $("supOpen").innerHTML = "";', 'if (!(isMgr() || isChef())) { $("supOpen").innerHTML = "";'),
+    ('if ((t === "daily" || t === "log") && !isDesk()) t = "chat";', 'if ((t === "daily" || t === "log") && !isDesk()) t = isBoh() ? "kitchen" : "chat";'),
+    ('  current = t;\n', '  current = t; setTimeout(kTrans, 0);\n'),
+    ('<button role="tab" id="tab-daily" aria-selected="true">Shift log</button>', '<button role="tab" id="tab-daily" aria-selected="true">Shift log</button>\n      <button role="tab" id="tab-kitchen" aria-selected="false" hidden>Kitchen</button>'),
+    ('      <button role="tab" id="tab-staff"', '      <button role="tab" id="tab-chef" class="priv" aria-selected="false" hidden>Chef log 🔪</button>\n      <button role="tab" id="tab-staff"'),
+    ('"oo", "apps", "staff", "team"];', '"oo", "apps", "kitchen", "chef", "staff", "team"];'),
+    ('    <section id="view-apps" hidden', (ASSETS / 'kitchen.html').read_text() + '    <section id="view-apps" hidden'),
+    ('/* ---------- employee handbook ---------- */', (ASSETS / 'kitchen.js').read_text() + '\n/* ---------- employee handbook ---------- */'),
+    ('function renderAll() { renderAlerts();', 'function renderAll() { renderKitchen(); renderAlerts();'),
+    ('<option value="front_desk">Host</option><option value="expo">Expo</option>', '<option value="front_desk">Host</option><option value="expo">Expo</option><option value="boh">Cook</option><option value="chef">Sous chef</option>'),
+    ('["front_desk", "expo", "stylist", "manager"]', '["front_desk", "expo", "stylist", "boh", "chef", "manager"]'),
+    ('me.role === "expo" ? "expo" : "managers";', 'me.role === "expo" ? "expo" : me.role === "boh" ? "cooks" : me.role === "chef" ? "chefs" : "managers";'),
+    ('Managers get everything. Hosts also get the Shift log and Incidents. Expo also gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.',
+     'Managers get everything. Sous chefs get the Kitchen, Chef log, Shift log, Incidents and Supplies. Cooks get the Kitchen screen (in Spanish if they like). Hosts get the Shift log and Incidents. Expo gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.'),
+]
+for r in R3:
+    rep(*r)
+s = s.replace('</style>', CSS_K + '</style>', 1)
 (OUT / 'index.html').write_text(s)
 
 # ---------------------------------------------------------------- apply page
