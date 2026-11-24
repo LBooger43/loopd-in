@@ -175,6 +175,7 @@ input[type=date]{min-width:0;min-height:42px;-webkit-appearance:none;appearance:
 #pushBox{display:none!important}#logout{display:none!important}
 .soon-pill{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--accent);color:#fff;border-radius:99px;padding:1px 6px;margin-left:4px;vertical-align:2px}.lv-soon{background:var(--accent-soft);border:1.5px dashed var(--accent);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:.9rem}.lv-scroll{overflow-x:auto;margin:0 -4px}.lv-table{border-collapse:collapse;width:100%;min-width:520px;font-size:.85rem}.lv-table th,.lv-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.lv-table th{color:var(--muted);font-weight:600;font-size:.75rem}.lv-badge{display:inline-block;font-weight:700;font-size:.75rem;border-radius:99px;padding:2px 9px;color:#fff}.lv-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}.lv-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px}.lv-bar{display:flex;flex-direction:column;gap:3px;font-size:.78rem}.lv-bar .track{height:7px;border-radius:99px;background:var(--line);overflow:hidden}.lv-bar .fill{height:100%;border-radius:99px}.lv-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}.lv-flag{font-size:.75rem;font-weight:700;border-radius:99px;padding:2px 9px}
 .tr-skill{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.88rem;background:var(--surface)}.tr-num{flex:none;width:26px;height:26px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:.8rem}.tr-pics{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:300px}.tr-pic{aspect-ratio:4/5;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:700;font-size:.8rem;text-shadow:0 1px 2px rgba(0,0,0,.3)}.tr-pic span{font-size:2rem}.tr-vid{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.85rem}.tr-play{flex:none;width:64px;height:40px;border-radius:8px;background:linear-gradient(135deg,#16213e,#5a56d6);color:#fff;display:grid;place-items:center;font-size:1rem}.tr-opt{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:.88rem}.tr-opt.right{border-color:var(--ok);background:#e3f4ea}.tr-opt.wrong{border-color:var(--crit);background:#fbe9e6}
+#viewAs .tabs{display:grid;grid-template-columns:repeat(4,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}
 </style>
 <script>
 /* Sample data for the Loopd-In restaurant demo. Dates are relative to today so the demo always looks current. */
@@ -189,12 +190,12 @@ window.__demoSeed = function (ME) {
   const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
   let i = 0; const id = p => p + "-" + (++i);
 
-  // role keys stay the app's own: front_desk = shift lead, stylist = team member
+  // role keys stay the app's own: front_desk = host, expo = expo (new), stylist = team member
   const staff = [
     { email: ME, name: "Jordan Lee", role: "manager" },
     { email: SAM, name: "Sam Patel", role: "manager" },
     { email: RILEY, name: "Riley Brooks", role: "front_desk" },
-    { email: CASEY, name: "Casey Nguyen", role: "front_desk" },
+    { email: CASEY, name: "Casey Nguyen", role: "expo" },
     { email: MAYA, name: "Maya Torres", role: "stylist" },
     { email: AVA, name: "Ava Johnson", role: "stylist", also_desk: true },
     { email: LILY, name: "Lily Chen", role: "stylist" },
@@ -203,31 +204,31 @@ window.__demoSeed = function (ME) {
   ];
 
   const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
-  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", RILEY, { needs_followup: true });
+  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", SAM, { needs_followup: true });
   const rep = dl(0, "14:10", "Visitor", "Beer rep dropped off samples of two new seasonal drafts. They're in the office for Jordan to try.", CASEY);
-  const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", RILEY, { needs_followup: true });
+  const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", ME, { needs_followup: true });
   const pie = dl(1, "20:10", "86'd", "86 key lime pie. Sold the last slice at 8.", RILEY);
   const allergy = dl(0, "11:40", "Phone call", "Mr. Alvarez called: shellfish allergy, reservation tonight at 7:30, table 9. Maya has that section.", RILEY);
   const daily_log = [
-    dl(0, "09:10", "Delivery", "Sysco order in. Short 1 case of romaine; credit memo signed and on the office desk.", RILEY),
+    dl(0, "09:10", "Delivery", "Sysco order in. Short 1 case of romaine; credit memo signed and on the office desk.", SAM),
     allergy, rep, cooler,
     dl(0, "17:45", "86'd", "86 short rib. Kitchen is out until tomorrow's prep.", CASEY),
     dl(0, "18:20", "86'd", "86 Sauvignon Blanc by the glass until Thursday's delivery. Pinot Grigio is the swap.", CASEY),
     dl(0, "19:15", "Guest", "Guest at table 12 left a credit card. Locked in the office safe with a note.", RILEY),
     pie, inspect,
-    dl(1, "22:40", "General", "Big night: 212 covers. Kitchen closed clean, drawer balanced. Thanks all!", RILEY),
+    dl(1, "22:40", "General", "Big night: 212 covers and a 25-minute wait at 7. Kept everyone happy with bar seats. Thanks all!", RILEY),
     dl(2, "12:30", "Phone call", "Party of 14 Saturday at 7 for a birthday. Put them in the back room; they want the prix fixe.", CASEY),
-    dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", RILEY),
+    dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", SAM),
   ];
   const followups = [
-    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: RILEY, updated_at: ts(0, 15, 6) },
+    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: SAM, updated_at: ts(0, 15, 6) },
     { log_id: inspect.id, flagged: true, done: true, note: "Sam went through the logs. All caught up.", updated_by: SAM, updated_at: ts(1, 17, 30) },
     { log_id: pie.id, flagged: false, done: true, note: "Back on: fresh pies made this morning.", updated_by: SAM, updated_at: ts(0, 10, 0) },
   ];
   const staff_alerts = [{ id: id("sa"), to_email: MAYA, note: allergy.note, log_id: allergy.id, created_by: RILEY, created_at: ts(0, 11, 41), done_at: ts(0, 16, 5) }];
   const cash_outs = [
-    { id: id("co"), close_date: day(0), note: "Bar drawer over $12. Recounted twice. Probably a cash tip that went in the drawer.", created_by: CASEY, created_at: ts(0, 23, 5) },
-    { id: id("co"), close_date: day(1), note: "Both drawers balanced. Deposit bag is in the safe.", created_by: RILEY, created_at: ts(1, 23, 2), reviewed_by: SAM, reviewed_at: ts(0, 9, 0), mgr_note: "Thanks Riley!" },
+    { id: id("co"), close_date: day(0), note: "Bar drawer over $12. Recounted twice. Probably a cash tip that went in the drawer.", created_by: SAM, created_at: ts(0, 23, 5) },
+    { id: id("co"), close_date: day(1), note: "Both drawers balanced. Deposit bag is in the safe.", created_by: ME, created_at: ts(1, 23, 2), reviewed_by: SAM, reviewed_at: ts(0, 9, 0), mgr_note: "Thanks Jordan!" },
   ];
   const log_replies = [{ id: id("rp"), log_id: rep.id, note: "Thanks! I'll try them before pre-shift.", created_by: ME, created_at: ts(0, 14, 40) }];
 
@@ -254,7 +255,7 @@ window.__demoSeed = function (ME) {
   const supply_items = items.map(([category, name], k) => ({ id: id("si"), category, name, sort: k + 1, active: true }));
   const item = n => supply_items.find(s => s.name === n);
   const need = (n, by, d, bought) => { const it = item(n); return { id: id("sn"), item_id: it.id, item_name: it.name, category: it.category, requested_by: by, requested_at: ts(d, 10, 0), bought: !!bought, bought_by: bought ? SAM : null, bought_at: bought ? ts(d - 1, 15, 0) : null }; };
-  const supply_needs = [need("Fryer oil", RILEY, 3), need("To-go containers (large)", RILEY, 3), need("Limes", CASEY, 0), need("Paper towels", MAYA, 4, true)];
+  const supply_needs = [need("Fryer oil", SAM, 3), need("To-go containers (large)", SAM, 3), need("Limes", ME, 0), need("Paper towels", MAYA, 4, true)];
 
   const todos = [
     { id: id("td"), task: "Follow up with the repair company about the walk-in cooler", done: false, created_by: ME, created_at: ts(0, 15, 30) },
@@ -324,7 +325,7 @@ window.__demoSeed = function (ME) {
     { id: id("pr"), title: "Trivia night table tents", file_path: "print/demo-sign.png", file_name: "Trivia night.png", file_type: "image/png", copies: 25, paper: "Cardstock",
       due_kind: "day", due_date: day(-2), note: "Fold in half, one on every table and the bar.", status: "pending", created_by: ME, created_at: ts(0, 7, 40) },
     { id: id("pr"), title: "Kids' coloring menus", file_path: "print/demo-flyer.png", file_name: "Kids menu.png", file_type: "image/png", copies: 50, paper: "Regular paper",
-      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: RILEY, printed_at: ts(2, 10, 10), created_by: ME, created_at: ts(3, 21, 0) },
+      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: SAM, printed_at: ts(2, 10, 10), created_by: ME, created_at: ts(3, 21, 0) },
   ];
 
   return {
@@ -565,8 +566,9 @@ window.__demoSeed = function (ME) {
   <div id="app" hidden style="display:flex;flex-direction:column;gap:16px">
     <div class="lbl" id="viewAs" hidden>Access level
       <div class="tabs">
-        <button type="button" id="va-sty" aria-selected="false">Team member</button>
-        <button type="button" id="va-desk" aria-selected="false">Shift lead</button>
+        <button type="button" id="va-sty" aria-selected="false">Team</button>
+        <button type="button" id="va-desk" aria-selected="false">Host</button>
+        <button type="button" id="va-expo" aria-selected="false">Expo</button>
         <button type="button" id="va-mgr" aria-selected="true">Manager</button>
       </div>
     </div>
@@ -619,8 +621,8 @@ window.__demoSeed = function (ME) {
           </div>
           <label>Needed<select id="pr-when"><option value="open_tomorrow">Before we open tomorrow</option><option value="open_today">Before we open today</option><option value="day">By a certain day</option><option value="any">Whenever</option></select></label>
           <label id="pr-dateWrap" hidden>Day<input id="pr-date" type="date"></label>
-          <label>Note for the shift lead <span class="meta">(optional)</span><input id="pr-note" maxlength="1000" placeholder="e.g. One in every menu, extras at the host stand"></label>
-          <div class="form-actions"><span class="form-err" id="pr-err"></span><button type="button" class="ghost" id="pr-cancel">Cancel</button><button type="submit" class="primary" id="pr-send">Send to shift lead</button></div>
+          <label>Note <span class="meta">(optional)</span><input id="pr-note" maxlength="1000" placeholder="e.g. One in every menu, extras at the host stand"></label>
+          <div class="form-actions"><span class="form-err" id="pr-err"></span><button type="button" class="ghost" id="pr-cancel">Cancel</button><button type="submit" class="primary" id="pr-send">Add to print list</button></div>
         </form>
         <div class="feed" id="prList"></div>
         <button type="button" class="link" id="prDoneToggle" hidden></button>
@@ -699,7 +701,7 @@ window.__demoSeed = function (ME) {
 
     <!-- STAFF NOTES (managers) -->
     <section id="view-staff" hidden style="display:flex;flex-direction:column;gap:16px">
-      <div class="banner">Only managers can see this tab. Shift leads and team members can't open or read these notes.</div>
+      <div class="banner">Only managers can see this tab. Host, expo and team members can't open or read these notes.</div>
       <button class="add-btn priv" id="openStaff" type="button">+ Add a staff note</button>
       <form id="staffForm" hidden>
         <label>Staff member<input id="s-name" required maxlength="100" list="staffList" autocomplete="off" placeholder="Name"></label>
@@ -752,7 +754,7 @@ window.__demoSeed = function (ME) {
     <section id="view-chat" hidden style="display:flex;flex-direction:column;gap:16px">
       <div class="quick" id="forYouBox" hidden style="border:2px solid var(--warn)">
         <h2 class="h2">📌 For you</h2>
-        <p class="meta" style="margin:0">Notes your shift leads sent you. Tap Done once you've handled it.</p>
+        <p class="meta" style="margin:0">Notes your host and expo sent you. Tap Done once you've handled it.</p>
         <div class="feed" id="forYouFeed"></div>
       </div>
       <div class="quick" id="hbBox" style="border:2px solid var(--accent)">
@@ -961,7 +963,7 @@ window.__demoSeed = function (ME) {
       </div>
       <div class="quick">
         <h2 class="h2">Manager log 🔒</h2>
-        <p class="meta" style="margin:0">Only managers can see this. Shift leads and team members can't.</p>
+        <p class="meta" style="margin:0">Only managers can see this. Host, expo and team members can't.</p>
         <form id="mlForm" class="plain">
           <label for="ml-note">What happened?</label>
           <div class="pbox"><textarea id="ml-note" required maxlength="4000" placeholder="e.g. Talked to landlord about parking lot lights. Fixing next week."></textarea><button type="button" class="cam" data-ph="ml" aria-label="Add a photo"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></button><input type="file" id="ph-ml" accept="image/*" hidden></div>
@@ -991,11 +993,11 @@ window.__demoSeed = function (ME) {
         <div class="feed" id="wuFeed"></div>
       </div>
       <h2 class="h2">Team</h2>
-      <div class="banner">Add someone here, then text them the link. The first time, they tap “Create your password” and use this same email. Managers get everything. Shift leads also get the Shift log, Incidents, Supplies and Cash out. Everyone gets Team chat, Time off and 1:1s.</div>
+      <div class="banner">Add someone here, then text them the link. The first time, they tap “Create your password” and use this same email. Managers get everything. Hosts also get the Shift log and Incidents. Expo also gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.</div>
       <form id="teamForm">
         <label>Name<input id="t-name" required maxlength="100" placeholder="e.g. Jennifer"></label>
         <label>Email<input id="t-email" type="email" required placeholder="name@example.com"></label>
-        <label class="full">Access<select id="t-role"><option value="front_desk">Shift lead</option><option value="stylist">Team member</option><option value="manager">Manager</option></select></label>
+        <label class="full">Access<select id="t-role"><option value="front_desk">Host</option><option value="expo">Expo</option><option value="stylist">Team member</option><option value="manager">Manager</option></select></label>
         <div class="full form-actions"><span class="form-err" id="t-err"></span><button type="submit" class="primary">Add person</button></div>
       </form>
       <div class="feed" id="teamFeed"></div>
@@ -1022,7 +1024,7 @@ const dayLabel = s => { const w = new Date(s + "T12:00").toLocaleDateString(unde
 const stripe = {low:"var(--ok)", med:"var(--warn)", high:"var(--crit)"};
 const sevName = {low:"Minor", med:"Watch", high:"Serious"};
 const staffStripe = {"Praise":"var(--ok)","Late arrival":"var(--warn)","Left early":"var(--warn)","Called out / sick":"var(--warn)","Attitude / mood":"var(--crit)","Policy issue":"var(--crit)"};
-const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Team member" : "Shift lead";
+const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Team member" : r === "expo" ? "Expo" : "Host";
 
 let session = null, me = null, previewRole = "", current = "daily";
 let daily = [], fups = {}, incidents = [], res = {}, notes = [], team = [];
@@ -1035,7 +1037,7 @@ let dcat = "General", fuOnly = false, fuOpen = null, logFilter = "all", sev = "m
 const realMgr = () => me && me.role === "manager";
 const effRole = () => previewRole || (me && me.role);
 const isMgr = () => effRole() === "manager";
-const isDesk = () => effRole() === "manager" || effRole() === "front_desk" || (!previewRole && !!me && me.role === "stylist" && !!me.also_desk);
+const isDesk = () => effRole() === "manager" || effRole() === "front_desk" || effRole() === "expo" || (!previewRole && !!me && me.role === "stylist" && !!me.also_desk);
 const nameOf = email => { const p = team.find(x => x.email === (email || "").toLowerCase()); return p ? p.name : (email || "Someone").split("@")[0]; };
 function show(view) { ["view-login", "view-noaccess", "app"].forEach(v => $(v).hidden = v !== view); }
 function friendly(err) {
@@ -1099,7 +1101,7 @@ new MutationObserver(() => addEyes()).observe(document.body, { childList: true, 
 const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
 function setTab(t) {
   if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
-  if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = "chat";
+  if ((t === "daily" || t === "log") && !isDesk()) t = "chat"; if (t === "log" && effRole() === "expo") t = "daily"; if ((t === "supplies" || t === "cash") && !isMgr()) t = "chat";
   current = t;
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
 }
@@ -1107,17 +1109,17 @@ TABS.forEach(k => $("tab-" + k).onclick = () => setTab(k));
 window.__demoMe = () => me && me.email;
 window.__demoPersona = () => {
   if (!me) return;
-  const r = effRole(), p = r === "stylist" ? ["maya@demokitchen.example", "Maya Torres"] : r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"] : ["jordan@demokitchen.example", "Jordan Lee"];
+  const r = effRole(), p = r === "stylist" ? ["maya@demokitchen.example", "Maya Torres"] : r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] : r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"] : ["jordan@demokitchen.example", "Jordan Lee"];
   me.email = p[0]; me.name = p[1]; $("whoName").textContent = p[1]; $("avatar").textContent = p[1][0];
 };
 function applyRole() {
   __demoPersona();
   openResolve = null; confirmDel = null; fuOpen = null;
   $("viewAs").hidden = !realMgr();
-  $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-mgr").setAttribute("aria-selected", isMgr());
+  $("va-sty").setAttribute("aria-selected", effRole() === "stylist"); $("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-expo").setAttribute("aria-selected", effRole() === "expo"); $("va-mgr").setAttribute("aria-selected", isMgr());
   $("previewBar").hidden = !previewRole;
-  $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a server" : "Riley, a shift lead"}. This is what they see.`;
-  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk(); $("tab-cash").hidden = !isDesk();
+  $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a server" : previewRole === "expo" ? "Casey, on expo" : "Riley, on the host stand"}. This is what they see.`;
+  $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk() || effRole() === "expo"; $("tab-supplies").hidden = !isMgr(); $("tab-cash").hidden = !isMgr();
   $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr();
   $("hbMgr").hidden = !isMgr(); refreshHandbookMeta(); renderPush();
   $("roleBadge").textContent = roleName(effRole());
@@ -1126,6 +1128,7 @@ function applyRole() {
 }
 $("va-sty").onclick = () => { previewRole = "stylist"; applyRole(); };
 $("va-desk").onclick = () => { previewRole = "front_desk"; applyRole(); };
+$("va-expo").onclick = () => { previewRole = "expo"; applyRole(); };
 $("va-mgr").onclick = () => { previewRole = ""; applyRole(); };
 $("exitPreview").onclick = () => { previewRole = ""; applyRole(); };
 
@@ -1474,7 +1477,7 @@ function supGroups(rows, catOf) {
 }
 function renderSupplies() {
   if (!me) return;
-  if (!isDesk()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }
+  if (!isMgr()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }
   const open = supNeeds.filter(n => !n.bought), bought = supNeeds.filter(n => n.bought).sort((a, b) => (b.bought_at || "").localeCompare(a.bought_at || ""));
   $("tab-supplies").textContent = open.length ? `Supplies (${open.length})` : "Supplies";
   $("supShare").hidden = !open.length;
@@ -1614,7 +1617,7 @@ $("toForm").addEventListener("submit", async e => {
   const { error } = await sb.from("time_off").insert({ off_from, back_on, note: $("to-note").value.trim() || null, created_by: me.email });
   if (error) {
     const m = /TIMEOFF_LIMIT:\s*(\d{4}-\d{2}-\d{2})/.exec(error.message || "");
-    const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "shift leads" : "managers";
+    const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "hosts" : me.role === "expo" ? "expo" : "managers";
     return err(m ? `Sorry, two ${who} are already requested off on ${fmt(m[1])}. Pick different dates or talk to a manager.` : friendly(error));
   }
   $("toForm").reset(); err(""); $("foot").textContent = "Request sent to managers."; loadAll();
@@ -2007,7 +2010,7 @@ $("view-apps").addEventListener("click", async e => {
 /* ---------- print queue: managers send flyers and ads; front desk prints and checks them off ---------- */
 let prJobs = [], prReady = false, prDoneOpen = false, prDel = null, prFile = null, prCleaned = false;
 const PR_MAX = 10 * 1024 * 1024;
-const prCanSee = () => isDesk();
+const prCanSee = () => isMgr();
 const prToday = () => daysAgo(0), prTomorrow = () => daysAgo(-1);
 function prDueText(j) {
   if (j.due_kind === "any" || !j.due_date) return "Whenever";
@@ -2041,7 +2044,7 @@ function renderPrint() {
   const done = prJobs.filter(j => j.status === "printed").sort((a, b) => (b.printed_at || "").localeCompare(a.printed_at || ""));
   const late = open.filter(prLate).length;
   $("prHead").textContent = open.length ? `🖨 To print (${open.length})${late ? ` · ${late} late` : ""}` : "🖨 To print";
-  $("prList").innerHTML = open.length ? open.map(prCard).join("") : `<div class="meta">Nothing to print right now.${isMgr() ? " Tap “+ Send to print” to send a menu insert or flyer to the shift leads." : ""}</div>`;
+  $("prList").innerHTML = open.length ? open.map(prCard).join("") : `<div class="meta">Nothing to print right now.${isMgr() ? " Tap “+ Send to print” to add a menu insert or flyer to the print list." : ""}</div>`;
   $("prDoneToggle").hidden = !done.length;
   $("prDoneToggle").textContent = prDoneOpen ? "Hide printed" : `Printed recently (${done.length})`;
   $("prDone").hidden = !prDoneOpen;
@@ -2093,13 +2096,13 @@ $("prForm").addEventListener("submit", async e => {
   const ext = ((prFile.name.split(".").pop() || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf").slice(0, 5);
   const path = `print/${Date.now()}-${(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).slice(0, 8)}.${ext}`;
   const up = await sb.storage.from("photos").upload(path, prFile, { contentType: prFile.type });
-  if (up.error) { btn.disabled = false; btn.textContent = "Send to shift lead"; return err("The file didn't upload. Check your connection and try again."); }
+  if (up.error) { btn.disabled = false; btn.textContent = "Add to print list"; return err("The file didn't upload. Check your connection and try again."); }
   const row = { title: $("pr-title").value.trim() || prFile.name, file_path: path, file_name: prFile.name.slice(0, 150), file_type: prFile.type, copies, paper: $("pr-paper").value,
     due_kind: w === "any" ? "any" : w === "day" ? "day" : "open", due_date: w === "any" ? null : w === "day" ? $("pr-date").value : w === "open_today" ? prToday() : prTomorrow(), note: $("pr-note").value.trim() || null, status: "pending" };
   const { error } = await sb.from("print_jobs").insert(row);
-  btn.disabled = false; btn.textContent = "Send to shift lead";
+  btn.disabled = false; btn.textContent = "Add to print list";
   if (error) return err(friendly(error));
-  $("prForm").hidden = true; prFile = null; $("foot").textContent = "Sent to the shift leads to print."; loadAll();
+  $("prForm").hidden = true; prFile = null; $("foot").textContent = "Added to the print list."; loadAll();
 });
 $("prDoneToggle").onclick = () => { prDoneOpen = !prDoneOpen; renderPrint(); };
 $("prBox").addEventListener("click", async e => {
@@ -2932,8 +2935,8 @@ $("staffFeed").addEventListener("click", async e => {
 function renderTeam() {
   if (!isMgr()) { $("teamFeed").innerHTML = ""; return; }
   $("teamFeed").innerHTML = team.map(p => `<article class="entry" style="--stripe:${p.role === "manager" ? "var(--accent)" : "var(--line)"}">
-    <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}${p.role === "stylist" && p.also_desk ? " + Shift lead" : ""}</span></div>
-    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select>${p.role === "stylist" ? `<label style="flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:.85rem;color:var(--ink)"><input type="checkbox" data-also="${esc(p.email)}" ${p.also_desk ? "checked" : ""} style="width:18px;height:18px;min-height:0"> Also a shift lead</label>` : ""}<button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
+    <div class="row"><span><span class="name">${esc(p.name)}</span> <span class="meta">${esc(p.email)}</span></span><span class="tag">${roleName(p.role)}${p.role === "stylist" && p.also_desk ? " + Host" : ""}</span></div>
+    ${p.email === me.email ? `<div class="actions"><span class="meta">This is you.</span><button class="link" data-tact="mypw">Change my password</button></div>${pwOpen ? `<div class="fu-box"><input id="myPw" type="password" minlength="6" autocomplete="new-password" placeholder="New password (6+ characters)"><div class="actions"><button class="primary" data-tact="mypw-save">Save password</button><button class="link" data-tact="mypw-cancel">Cancel</button><span class="form-err" id="myPwErr"></span></div></div>` : ""}` : confirmDel === "r:" + p.email ? `<div class="actions"><span class="meta">Reset ${esc(p.name)}'s password? They'll create a new one next time they sign in.</span><button class="link del" data-tact="reset-yes" data-email="${esc(p.email)}">Yes, reset</button><button class="link" data-tact="rm-no">Cancel</button></div>` : confirmDel === "t:" + p.email ? `<div class="actions"><span class="meta">Remove ${esc(p.name)}? They lose access right away.</span><button class="link del" data-tact="rm-yes" data-email="${esc(p.email)}">Yes, remove</button><button class="link" data-tact="rm-no">Keep</button></div>` : `<div class="actions"><select data-role-email="${esc(p.email)}" aria-label="Access level" style="width:auto;padding:4px 8px;font-size:.82rem">${["front_desk", "expo", "stylist", "manager"].map(r => `<option value="${r}"${r === p.role ? " selected" : ""}>${roleName(r)}</option>`).join("")}</select>${p.role === "stylist" ? `<label style="flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:.85rem;color:var(--ink)"><input type="checkbox" data-also="${esc(p.email)}" ${p.also_desk ? "checked" : ""} style="width:18px;height:18px;min-height:0"> Also covers the host stand</label>` : ""}<button class="link" data-tact="reset" data-email="${esc(p.email)}">Reset password</button><button class="link del" data-tact="rm" data-email="${esc(p.email)}">Remove</button></div>`}
   </article>`).join("");
 }
 $("teamFeed").addEventListener("change", async e => {
@@ -2941,7 +2944,7 @@ $("teamFeed").addEventListener("change", async e => {
   if (also && isMgr()) {
     const { error } = await sb.from("staff").update({ also_desk: also.checked }).eq("email", also.dataset.also);
     if (error) { also.checked = !also.checked; return alert(friendly(error)); }
-    $("foot").textContent = also.checked ? "They'll see the shift lead tabs next time they open the app." : "Shift lead tabs removed for them.";
+    $("foot").textContent = also.checked ? "They'll see the host tabs next time they open the app." : "Host tabs removed for them.";
     return loadAll();
   }
   const sel = e.target.closest("[data-role-email]"); if (!sel || !isMgr()) return;
@@ -2984,7 +2987,7 @@ const PUSH_CATS = [
   ["applicants", "New applicants", "When someone applies online", true],
   ["print", "Things to print", "When a manager sends a flyer or ad to print", false],
   ["announcements", "Announcements and handbook", "New announcements and handbook updates", false],
-  ["foryou", "Notes sent to me", "When a shift lead sends you a note from the shift log", false],
+  ["foryou", "Notes sent to me", "When host or expo sends you a note from the shift log", false],
   ["replies", "Replies to me", "When someone replies to your chat message", false],
   ["chat", "Team chat", "Every chat message (can get busy)", false],
 ];
@@ -3051,7 +3054,7 @@ function renderPush() {
   st.textContent = on ? "On for this device ✓" : "Off";
   help.textContent = on ? "Choose what pops up on this device." : "Get banners on this phone for requests, approvals and updates, even when Loopd-In is closed.";
   btns.innerHTML = on ? '<button class="link" data-push="test">Send me a test</button><button class="link del" data-push="off">Turn off on this device</button>' : '<button class="primary" data-push="on">Turn on notifications</button>';
-  if (on) prefs.innerHTML = PUSH_CATS.filter(c => (!c[3] || isMgr()) && (c[0] !== "print" || isDesk())).map(([k, label, sub]) => `<label style="flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--ink)"><input type="checkbox" data-pref="${k}" ${pushPrefs[k] !== false ? "checked" : ""} style="width:20px;height:20px"><span>${label}<br><span class="meta">${sub}</span></span></label>`).join("");
+  if (on) prefs.innerHTML = PUSH_CATS.filter(c => (!c[3] || isMgr()) && (c[0] !== "print" || isMgr())).map(([k, label, sub]) => `<label style="flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--ink)"><input type="checkbox" data-pref="${k}" ${pushPrefs[k] !== false ? "checked" : ""} style="width:20px;height:20px"><span>${label}<br><span class="meta">${sub}</span></span></label>`).join("");
 }
 $("pushBox").addEventListener("click", async e => {
   const b = e.target.closest("[data-push]"); if (!b || pushBusy) return;

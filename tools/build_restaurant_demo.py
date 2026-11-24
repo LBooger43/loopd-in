@@ -38,17 +38,17 @@ R = [
     ('In your salon, this opens your own handbook sign-off form', 'In your restaurant, this opens your own handbook sign-off form'),
     # roles
     ('<button type="button" id="va-sty" aria-selected="false">Stylist</button>', '<button type="button" id="va-sty" aria-selected="false">Team member</button>'),
-    ('<button type="button" id="va-desk" aria-selected="false">Front desk</button>', '<button type="button" id="va-desk" aria-selected="false">Shift lead</button>'),
-    ('const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Stylist" : "Front desk";', 'const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Team member" : "Shift lead";'),
-    ('previewRole === "stylist" ? "Maya, a stylist" : "Riley, at the front desk"', 'previewRole === "stylist" ? "Maya, a server" : "Riley, a shift lead"'),
-    ('const who = me.role === "stylist" ? "stylists" : me.role === "front_desk" ? "front desk people" : "managers";', 'const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "shift leads" : "managers";'),
-    ('${p.role === "stylist" && p.also_desk ? " + Front desk" : ""}', '${p.role === "stylist" && p.also_desk ? " + Shift lead" : ""}'),
-    ('"They\'ll see the front desk tabs next time they open the app." : "Front desk tabs removed for them."', '"They\'ll see the shift lead tabs next time they open the app." : "Shift lead tabs removed for them."'),
-    ('<option value="front_desk">Front desk</option><option value="stylist">Stylist</option>', '<option value="front_desk">Shift lead</option><option value="stylist">Team member</option>'),
-    ('Front desk logins can\'t open or read these notes.', 'Shift leads and team members can\'t open or read these notes.'),
-    ('Only managers can see this. Front desk and stylists can\'t.', 'Only managers can see this. Shift leads and team members can\'t.'),
-    ('Notes the front desk sent you.', 'Notes your shift leads sent you.'),
-    ('When the front desk sends you a note from the daily log', 'When a shift lead sends you a note from the shift log'),
+    ('<button type="button" id="va-desk" aria-selected="false">Front desk</button>', '<button type="button" id="va-desk" aria-selected="false">Host / Expo</button>'),
+    ('const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Stylist" : "Front desk";', 'const roleName = r => r === "manager" ? "Manager" : r === "stylist" ? "Team member" : "Host / Expo";'),
+    ('previewRole === "stylist" ? "Maya, a stylist" : "Riley, at the front desk"', 'previewRole === "stylist" ? "Maya, a server" : "Riley, on the host stand"'),
+    ('const who = me.role === "stylist" ? "stylists" : me.role === "front_desk" ? "front desk people" : "managers";', 'const who = me.role === "stylist" ? "team members" : me.role === "front_desk" ? "host and expo" : "managers";'),
+    ('${p.role === "stylist" && p.also_desk ? " + Front desk" : ""}', '${p.role === "stylist" && p.also_desk ? " + Host / Expo" : ""}'),
+    ('"They\'ll see the front desk tabs next time they open the app." : "Front desk tabs removed for them."', '"They\'ll see the host / expo tabs next time they open the app." : "Host / expo tabs removed for them."'),
+    ('<option value="front_desk">Front desk</option><option value="stylist">Stylist</option>', '<option value="front_desk">Host / Expo</option><option value="stylist">Team member</option>'),
+    ('Front desk logins can\'t open or read these notes.', 'Host, expo and team members can\'t open or read these notes.'),
+    ('Only managers can see this. Front desk and stylists can\'t.', 'Only managers can see this. Host, expo and team members can\'t.'),
+    ('Notes the front desk sent you.', 'Notes your host and expo sent you.'),
+    ('When the front desk sends you a note from the daily log', 'When host or expo sends you a note from the shift log'),
     ('No more than two stylists (or two front desk) out of the salon at the same time.', 'No more than two people from the same station off at the same time.'),
     # daily log becomes the shift log, with an 86 list
     ('<button role="tab" id="tab-daily" aria-selected="true">Daily log</button>', '<button role="tab" id="tab-daily" aria-selected="true">Shift log</button>'),
@@ -57,13 +57,13 @@ R = [
     ('placeholder="Search the daily log (e.g. UPS, plumber, Sherwin)"', 'placeholder="Search the shift log (e.g. Sysco, cooler, 86)"'),
     ('placeholder="e.g. Out of 6N color, dryer #2 is broken"', 'placeholder="e.g. Out of limes, fryer 2 won\'t heat"'),
     # print queue goes to shift leads
-    ('Note for the front desk <span class="meta">(optional)</span>', 'Note for the shift lead <span class="meta">(optional)</span>'),
+    ('Note for the front desk <span class="meta">(optional)</span>', 'Note <span class="meta">(optional)</span>'),
     ('placeholder="e.g. Cut in half; put a stack at checkout and in the shampoo area"', 'placeholder="e.g. One in every menu, extras at the host stand"'),
     ('placeholder="e.g. November color special flyer"', 'placeholder="e.g. Holiday menu insert"'),
-    ('>Send to front desk</button>', '>Send to shift lead</button>'),
-    ('btn.textContent = "Send to front desk"', 'btn.textContent = "Send to shift lead"', 2),
-    ('to send a flyer or ad to the front desk.', 'to send a menu insert or flyer to the shift leads.'),
-    ('"Sent to the front desk to print."', '"Sent to the shift leads to print."'),
+    ('>Send to front desk</button>', '>Add to print list</button>'),
+    ('btn.textContent = "Send to front desk"', 'btn.textContent = "Add to print list"', 2),
+    ('to send a flyer or ad to the front desk.', 'to add a menu insert or flyer to the print list.'),
+    ('"Sent to the front desk to print."', '"Added to the print list."'),
     # incidents are guest incidents
     ('<span>Repeat clients</span>', '<span>Repeat guests</span>'),
     ('Log a client incident', 'Log a guest incident', 2),
@@ -93,12 +93,41 @@ R = [
     ('["license","License"]', '["license","Food handler / ServSafe"]'),
     ('["cos_na","Cosmetology school"],["cos_name","Cosmetology school"]', '["cos_na","Culinary or hospitality school"],["cos_name","Culinary or hospitality school"]'),
     ('handbook/Salon_Saia_Handbook_', 'handbook/Demo_Kitchen_and_Bar_Handbook_'),
-    ('Managers get everything; front desk gets Daily log, Incidents and Team chat; stylists get Team chat only.', 'Managers get everything. Shift leads also get the Shift log, Incidents, Supplies and Cash out. Everyone gets Team chat, Time off and 1:1s.'),
+    ('Managers get everything; front desk gets Daily log, Incidents and Team chat; stylists get Team chat only.', 'Managers get everything. Host / Expo also get the Shift log (with the 86 board) and Incidents. Everyone gets Team chat, Time off and 1:1s.'),
     ('placeholder="e.g. Dryer sheets, balloons for Friday"', 'placeholder="e.g. Lemons, balloons for Friday"'),
-    (' Also works front desk</label>', ' Also a shift lead</label>'),
+    (' Also works front desk</label>', ' Also covers host / expo</label>'),
+    # supplies, cash out and the print list are manager jobs; host / expo keep the shift log and incidents
+    ('if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = "chat";', 'if ((t === "daily" || t === "log") && !isDesk()) t = "chat"; if ((t === "supplies" || t === "cash") && !isMgr()) t = "chat";'),
+    ('$("tab-supplies").hidden = !isDesk(); $("tab-cash").hidden = !isDesk();', '$("tab-supplies").hidden = !isMgr(); $("tab-cash").hidden = !isMgr();'),
+    ('if (!isDesk()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }', 'if (!isMgr()) { $("supOpen").innerHTML = ""; $("supCatalog").innerHTML = ""; return; }'),
+    ('const prCanSee = () => isDesk();', 'const prCanSee = () => isMgr();'),
+    ('(c[0] !== "print" || isDesk())', '(c[0] !== "print" || isMgr())'),
 ]
 for r in R:
     rep(*r)
+# ---- Host and Expo are separate roles. Host: shift log + incidents. Expo: shift log (86 items, notes) + chat. Role key "expo" is new.
+R2 = [
+    ('<button type="button" id="va-desk" aria-selected="false">Host / Expo</button>', '<button type="button" id="va-desk" aria-selected="false">Host</button>\n        <button type="button" id="va-expo" aria-selected="false">Expo</button>'),
+    ('r === "stylist" ? "Team member" : "Host / Expo";', 'r === "stylist" ? "Team member" : r === "expo" ? "Expo" : "Host";'),
+    ('effRole() === "front_desk" || (!previewRole', 'effRole() === "front_desk" || effRole() === "expo" || (!previewRole'),
+    ('r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"]', 'r === "expo" ? ["casey@demokitchen.example", "Casey Nguyen"] : r === "front_desk" ? ["riley@demokitchen.example", "Riley Brooks"]'),
+    ('$("va-desk").setAttribute("aria-selected", effRole() === "front_desk");', '$("va-desk").setAttribute("aria-selected", effRole() === "front_desk"); $("va-expo").setAttribute("aria-selected", effRole() === "expo");'),
+    ('previewRole === "stylist" ? "Maya, a server" : "Riley, on the host stand"', 'previewRole === "stylist" ? "Maya, a server" : previewRole === "expo" ? "Casey, on expo" : "Riley, on the host stand"'),
+    ('$("tab-log").hidden = !isDesk();', '$("tab-log").hidden = !isDesk() || effRole() === "expo";'),
+    ('if ((t === "daily" || t === "log") && !isDesk()) t = "chat";', 'if ((t === "daily" || t === "log") && !isDesk()) t = "chat"; if (t === "log" && effRole() === "expo") t = "daily";'),
+    ('$("va-desk").onclick = () => { previewRole = "front_desk"; applyRole(); };', '$("va-desk").onclick = () => { previewRole = "front_desk"; applyRole(); };\n$("va-expo").onclick = () => { previewRole = "expo"; applyRole(); };'),
+    ('me.role === "front_desk" ? "host and expo" : "managers";', 'me.role === "front_desk" ? "hosts" : me.role === "expo" ? "expo" : "managers";'),
+    ('<option value="front_desk">Host / Expo</option>', '<option value="front_desk">Host</option><option value="expo">Expo</option>'),
+    ('${["front_desk", "stylist", "manager"].map(r =>', '${["front_desk", "expo", "stylist", "manager"].map(r =>'),
+    ('Managers get everything. Host / Expo also get the Shift log (with the 86 board) and Incidents. Everyone gets Team chat, Time off and 1:1s.', 'Managers get everything. Hosts also get the Shift log and Incidents. Expo also gets the Shift log, to 86 items and post notes. Everyone gets Team chat, Time off and 1:1s.'),
+    (' Also covers host / expo</label>', ' Also covers the host stand</label>'),
+    ('<button type="button" id="va-sty" aria-selected="false">Team member</button>', '<button type="button" id="va-sty" aria-selected="false">Team</button>'),
+    ('" + Host / Expo" : ""}', '" + Host" : ""}'),
+    ('"They\'ll see the host / expo tabs next time they open the app." : "Host / expo tabs removed for them."', '"They\'ll see the host tabs next time they open the app." : "Host tabs removed for them."'),
+]
+for r in R2:
+    rep(*r)
+s = s.replace('</style>', '#viewAs .tabs{display:grid;grid-template-columns:repeat(4,1fr)}#viewAs .tabs button{padding-left:4px;padding-right:4px}\n</style>', 1)   # Team / Host / Expo / Manager on one row
 s = s.replace('Demo Salon', NAME)   # write-up and goal-sheet headings, apply host name, logo alt text
 
 # ---- No Levels or Training on the restaurant side (salon-only features)

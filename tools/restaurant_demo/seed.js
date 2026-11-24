@@ -10,12 +10,12 @@ window.__demoSeed = function (ME) {
   const SAM = E("sam"), RILEY = E("riley"), CASEY = E("casey"), MAYA = E("maya"), AVA = E("ava"), LILY = E("lily"), NOAH = E("noah"), EMMA = E("emma");
   let i = 0; const id = p => p + "-" + (++i);
 
-  // role keys stay the app's own: front_desk = shift lead, stylist = team member
+  // role keys stay the app's own: front_desk = host, expo = expo (new), stylist = team member
   const staff = [
     { email: ME, name: "Jordan Lee", role: "manager" },
     { email: SAM, name: "Sam Patel", role: "manager" },
     { email: RILEY, name: "Riley Brooks", role: "front_desk" },
-    { email: CASEY, name: "Casey Nguyen", role: "front_desk" },
+    { email: CASEY, name: "Casey Nguyen", role: "expo" },
     { email: MAYA, name: "Maya Torres", role: "stylist" },
     { email: AVA, name: "Ava Johnson", role: "stylist", also_desk: true },
     { email: LILY, name: "Lily Chen", role: "stylist" },
@@ -24,31 +24,31 @@ window.__demoSeed = function (ME) {
   ];
 
   const dl = (n, time, category, note, by, extra) => ({ id: id("dl"), entry_date: day(n), entry_time: time, category, note, created_by: by, created_at: ts(n, +time.slice(0, 2), +time.slice(3)), needs_followup: false, deleted_at: null, ...(extra || {}) });
-  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", RILEY, { needs_followup: true });
+  const cooler = dl(0, "15:05", "Maintenance", "Walk-in cooler read 43°F at 3pm. Moved the fish to the reach-in and called the repair company. Checking it again at 4.", SAM, { needs_followup: true });
   const rep = dl(0, "14:10", "Visitor", "Beer rep dropped off samples of two new seasonal drafts. They're in the office for Jordan to try.", CASEY);
-  const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", RILEY, { needs_followup: true });
+  const inspect = dl(1, "16:45", "Reminder", "Health inspection window opens next week. Temp logs and the sanitizer log need to be up to date.", ME, { needs_followup: true });
   const pie = dl(1, "20:10", "86'd", "86 key lime pie. Sold the last slice at 8.", RILEY);
   const allergy = dl(0, "11:40", "Phone call", "Mr. Alvarez called: shellfish allergy, reservation tonight at 7:30, table 9. Maya has that section.", RILEY);
   const daily_log = [
-    dl(0, "09:10", "Delivery", "Sysco order in. Short 1 case of romaine; credit memo signed and on the office desk.", RILEY),
+    dl(0, "09:10", "Delivery", "Sysco order in. Short 1 case of romaine; credit memo signed and on the office desk.", SAM),
     allergy, rep, cooler,
     dl(0, "17:45", "86'd", "86 short rib. Kitchen is out until tomorrow's prep.", CASEY),
     dl(0, "18:20", "86'd", "86 Sauvignon Blanc by the glass until Thursday's delivery. Pinot Grigio is the swap.", CASEY),
     dl(0, "19:15", "Guest", "Guest at table 12 left a credit card. Locked in the office safe with a note.", RILEY),
     pie, inspect,
-    dl(1, "22:40", "General", "Big night: 212 covers. Kitchen closed clean, drawer balanced. Thanks all!", RILEY),
+    dl(1, "22:40", "General", "Big night: 212 covers and a 25-minute wait at 7. Kept everyone happy with bar seats. Thanks all!", RILEY),
     dl(2, "12:30", "Phone call", "Party of 14 Saturday at 7 for a birthday. Put them in the back room; they want the prix fixe.", CASEY),
-    dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", RILEY),
+    dl(3, "10:20", "Supplies", "Low on fryer oil and large to-go containers. Added both to Supplies.", SAM),
   ];
   const followups = [
-    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: RILEY, updated_at: ts(0, 15, 6) },
+    { log_id: cooler.id, flagged: true, done: false, note: "", updated_by: SAM, updated_at: ts(0, 15, 6) },
     { log_id: inspect.id, flagged: true, done: true, note: "Sam went through the logs. All caught up.", updated_by: SAM, updated_at: ts(1, 17, 30) },
     { log_id: pie.id, flagged: false, done: true, note: "Back on: fresh pies made this morning.", updated_by: SAM, updated_at: ts(0, 10, 0) },
   ];
   const staff_alerts = [{ id: id("sa"), to_email: MAYA, note: allergy.note, log_id: allergy.id, created_by: RILEY, created_at: ts(0, 11, 41), done_at: ts(0, 16, 5) }];
   const cash_outs = [
-    { id: id("co"), close_date: day(0), note: "Bar drawer over $12. Recounted twice. Probably a cash tip that went in the drawer.", created_by: CASEY, created_at: ts(0, 23, 5) },
-    { id: id("co"), close_date: day(1), note: "Both drawers balanced. Deposit bag is in the safe.", created_by: RILEY, created_at: ts(1, 23, 2), reviewed_by: SAM, reviewed_at: ts(0, 9, 0), mgr_note: "Thanks Riley!" },
+    { id: id("co"), close_date: day(0), note: "Bar drawer over $12. Recounted twice. Probably a cash tip that went in the drawer.", created_by: SAM, created_at: ts(0, 23, 5) },
+    { id: id("co"), close_date: day(1), note: "Both drawers balanced. Deposit bag is in the safe.", created_by: ME, created_at: ts(1, 23, 2), reviewed_by: SAM, reviewed_at: ts(0, 9, 0), mgr_note: "Thanks Jordan!" },
   ];
   const log_replies = [{ id: id("rp"), log_id: rep.id, note: "Thanks! I'll try them before pre-shift.", created_by: ME, created_at: ts(0, 14, 40) }];
 
@@ -75,7 +75,7 @@ window.__demoSeed = function (ME) {
   const supply_items = items.map(([category, name], k) => ({ id: id("si"), category, name, sort: k + 1, active: true }));
   const item = n => supply_items.find(s => s.name === n);
   const need = (n, by, d, bought) => { const it = item(n); return { id: id("sn"), item_id: it.id, item_name: it.name, category: it.category, requested_by: by, requested_at: ts(d, 10, 0), bought: !!bought, bought_by: bought ? SAM : null, bought_at: bought ? ts(d - 1, 15, 0) : null }; };
-  const supply_needs = [need("Fryer oil", RILEY, 3), need("To-go containers (large)", RILEY, 3), need("Limes", CASEY, 0), need("Paper towels", MAYA, 4, true)];
+  const supply_needs = [need("Fryer oil", SAM, 3), need("To-go containers (large)", SAM, 3), need("Limes", ME, 0), need("Paper towels", MAYA, 4, true)];
 
   const todos = [
     { id: id("td"), task: "Follow up with the repair company about the walk-in cooler", done: false, created_by: ME, created_at: ts(0, 15, 30) },
@@ -145,7 +145,7 @@ window.__demoSeed = function (ME) {
     { id: id("pr"), title: "Trivia night table tents", file_path: "print/demo-sign.png", file_name: "Trivia night.png", file_type: "image/png", copies: 25, paper: "Cardstock",
       due_kind: "day", due_date: day(-2), note: "Fold in half, one on every table and the bar.", status: "pending", created_by: ME, created_at: ts(0, 7, 40) },
     { id: id("pr"), title: "Kids' coloring menus", file_path: "print/demo-flyer.png", file_name: "Kids menu.png", file_type: "image/png", copies: 50, paper: "Regular paper",
-      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: RILEY, printed_at: ts(2, 10, 10), created_by: ME, created_at: ts(3, 21, 0) },
+      due_kind: "open", due_date: day(2), note: null, status: "printed", printed_by: SAM, printed_at: ts(2, 10, 10), created_by: ME, created_at: ts(3, 21, 0) },
   ];
 
   return {
