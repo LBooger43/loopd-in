@@ -579,8 +579,6 @@ window.__demoSeed = function (ME) {
       <button role="tab" id="tab-time" aria-selected="false">Time off</button>
       <button role="tab" id="tab-oo" aria-selected="false">1:1s</button>
       <button role="tab" id="tab-apps" class="priv" aria-selected="false" hidden>Applicants</button>
-      <button role="tab" id="tab-levels" class="priv" aria-selected="false" hidden>Levels <span class="soon-pill">Soon</span></button>
-      <button role="tab" id="tab-training" class="priv" aria-selected="false" hidden>Training <span class="soon-pill">Soon</span></button>
       <button role="tab" id="tab-staff" class="priv" aria-selected="false" hidden>Staff notes 🔒</button>
       <button role="tab" id="tab-team" class="priv" aria-selected="false" hidden>Managers ⚙</button>
     </div>
@@ -811,74 +809,6 @@ window.__demoSeed = function (ME) {
     </section>
 
     <!-- APPLICANTS (managers only; fed by the Jotform application form) -->
-    <section id="view-levels" hidden style="display:flex;flex-direction:column;gap:16px">
-      <div class="lv-soon"><b>✨ Levels is coming soon.</b> This is a preview with sample servers, so try anything: nothing here is saved or seen by your team.</div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">📈 Your level scale</h2><span class="tag">Sample</span></div>
-        <p class="meta" style="margin:0">Set your own levels: the pay bump, section size and shift pick for each one, and the numbers a server needs to reach it. These are example numbers.</p>
-        <div class="lv-scroll"><table class="lv-table" id="lvScale"></table></div>
-        <p class="meta" style="margin:0">If a server stays under their level's numbers for 60 days in a row, they move back one level. You choose the rule.</p>
-      </div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">👥 Your team's levels</h2><span class="tag">Sample</span></div>
-        <p class="meta" style="margin:0">Each server's numbers for the last 60 days, compared with the next level up. Tap <b>Move up</b> or <b>Move down</b> to try it.</p>
-        <div id="lvTeam" style="display:flex;flex-direction:column;gap:10px"></div>
-        <button type="button" class="link" id="lvReset" style="align-self:flex-start">Reset the sample</button>
-      </div>
-      <div class="quick">
-        <h2 class="h2">👀 What a server will see</h2>
-        <p class="meta" style="margin:0">Each server sees only their own level and how close they are to the next one. No one sees anyone else's numbers.</p>
-        <div id="lvMine"></div>
-      </div>
-      <div class="quick">
-        <h2 class="h2">How it will work</h2>
-        <ol class="lv-steps">
-          <li><b>Set your levels.</b> Name each level and set its pay bump, section size, shift pick and target numbers.</li>
-          <li><b>Add the numbers.</b> Type in each server's monthly numbers, or bring them in from your POS later.</li>
-          <li><b>See who's ready.</b> Loopd-In flags who has hit the next level and who has been under target for 60 days.</li>
-          <li><b>Move people up or down.</b> One tap, with the date and who approved it saved to their file. It can also go on their 1:1 agenda.</li>
-        </ol>
-        <div class="form-actions" style="justify-content:flex-start"><button type="button" class="primary" id="lvWant">I want this for my restaurant</button></div>
-      </div>
-    </section>
-    <section id="view-training" hidden style="display:flex;flex-direction:column;gap:16px">
-      <div class="lv-soon"><b>✨ Training is coming soon.</b> This is a preview with sample trainees, so try anything: nothing here is saved or seen by your team.</div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">✅ Waiting for check-off</h2><span class="tag">Sample</span></div>
-        <p class="meta" style="margin:0">A trainer or manager signs off each step on the floor or the line, with photos for kitchen plates. Or asks for a redo.</p>
-        <div id="trReview" style="display:flex;flex-direction:column;gap:10px"></div>
-      </div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">👩‍🍳 Your trainees</h2><span class="tag">Sample</span></div>
-        <div id="trPeople" style="display:flex;flex-direction:column;gap:10px"></div>
-        <button type="button" class="link" id="trReset" style="align-self:flex-start">Reset the sample</button>
-      </div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">📚 Your training path</h2><span class="tag">Sample</span></div>
-        <p class="meta" style="margin:0">Build your own path: the skills in order, your own videos, a short quiz and how many check-offs each one needs. Front of house and kitchen can each have their own path.</p>
-        <div id="trPath" style="display:flex;flex-direction:column;gap:6px"></div>
-      </div>
-      <div class="quick">
-        <div class="row"><h2 class="h2">📝 Try a sample quiz</h2><span class="tag">Sample</span></div>
-        <div id="trQuiz" style="display:flex;flex-direction:column;gap:12px"></div>
-      </div>
-      <div class="quick">
-        <h2 class="h2">👀 What a trainee will see</h2>
-        <p class="meta" style="margin:0">Each trainee sees their own path, their next videos and what's waiting for sign-off.</p>
-        <div id="trMine"></div>
-      </div>
-      <div class="quick">
-        <h2 class="h2">How it will work</h2>
-        <ol class="lv-steps">
-          <li><b>Build your path.</b> List your skills in order and link your own training videos (YouTube or Vimeo).</li>
-          <li><b>Watch and test.</b> Trainees watch the videos and pass a short quiz for each step: menu, allergies, food safety.</li>
-          <li><b>Trail and practice.</b> They trail a trainer on real shifts. Cooks upload photos of their plates next to the spec.</li>
-          <li><b>Sign off.</b> A trainer or manager taps Checked out or Redo, with notes. Every attempt is saved.</li>
-          <li><b>Certify.</b> After the certification shift they're on the schedule on their own, and it can go on their next 1:1.</li>
-        </ol>
-        <div class="form-actions" style="justify-content:flex-start"><button type="button" class="primary" id="trWant">I want this for my restaurant</button></div>
-      </div>
-    </section>
     <section id="view-apps" hidden style="display:flex;flex-direction:column;gap:16px">
       <div class="banner">Managers only. Share your apply page below and applications land here automatically, résumés included.</div>
       <style>.apl-wait > :not(.row):not(p){display:none!important}</style>
@@ -1166,9 +1096,9 @@ addEyes();
 new MutationObserver(() => addEyes()).observe(document.body, { childList: true, subtree: true });
 
 /* ---------- tabs & preview ---------- */
-const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "levels", "training", "staff", "team"];
+const TABS = ["daily", "log", "supplies", "cash", "chat", "time", "oo", "apps", "staff", "team"];
 function setTab(t) {
-  if ((t === "staff" || t === "team" || t === "apps" || t === "levels" || t === "training") && !isMgr()) t = "daily";
+  if ((t === "staff" || t === "team" || t === "apps") && !isMgr()) t = "daily";
   if ((t === "daily" || t === "log" || t === "supplies" || t === "cash") && !isDesk()) t = "chat";
   current = t;
   for (const k of TABS) { $("tab-" + k).setAttribute("aria-selected", k === t); $("view-" + k).hidden = k !== t; }
@@ -1188,7 +1118,7 @@ function applyRole() {
   $("previewBar").hidden = !previewRole;
   $("previewText").textContent = `You're ${previewRole === "stylist" ? "Maya, a server" : "Riley, a shift lead"}. This is what they see.`;
   $("tab-daily").hidden = !isDesk(); $("tab-log").hidden = !isDesk(); $("tab-supplies").hidden = !isDesk(); $("tab-cash").hidden = !isDesk();
-  $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr(); $("tab-levels").hidden = !isMgr(); renderLevels(); $("tab-training").hidden = !isMgr(); renderTraining();
+  $("tab-staff").hidden = !isMgr(); $("tab-team").hidden = !isMgr(); $("tab-apps").hidden = !isMgr();
   $("hbMgr").hidden = !isMgr(); refreshHandbookMeta(); renderPush();
   $("roleBadge").textContent = roleName(effRole());
   $("foot").textContent = isMgr() ? "Manager view. Deleted notes go to Deleted history at the bottom of each log; only managers can delete forever." : isDesk() ? "Everything you add is visible to the whole team. Keep notes factual." : "Announcements and chat are shared with the whole team.";
@@ -2430,158 +2360,6 @@ function aplResumeBtn(a) {
   return resumeAsked[p] === 2 ? `<span class="meta">📄 Résumé: ${esc(nm)}</span>` : `<span class="meta">📄 Loading résumé…</span>`;
 }
 
-
-/* ---------- Levels preview (coming soon, sample data only) ---------- */
-const LV_LEVELS = [
-  { n: 1, name: "Trainee", color: "#7a86a6", pay: "Base", cut: 3, color$: "Last pick", req: 0, ret: 85, pre: 15, add: 20, retail: 90 },
-  { n: 2, name: "Server", color: "#2f6be0", pay: "+$0.50/hr", cut: 4, color$: "4th pick", req: 1, ret: 88, pre: 20, add: 25, retail: 93 },
-  { n: 3, name: "Lead Server", color: "#5a56d6", pay: "+$1.00/hr", cut: 5, color$: "3rd pick", req: 2, ret: 90, pre: 25, add: 30, retail: 95 },
-  { n: 4, name: "Trainer", color: "#8247b8", pay: "+$1.50/hr", cut: 5, color$: "2nd pick", req: 3, ret: 92, pre: 30, add: 35, retail: 97 },
-  { n: 5, name: "Captain", color: "#b8478a", pay: "+$2.00/hr", cut: 6, color$: "First pick", req: 4, ret: 94, pre: 35, add: 40, retail: 98 },
-];
-const LV_METRICS = [["req", "5-star mentions / mo", ""], ["ret", "Guest score", "%"], ["pre", "Apps & desserts", "%"], ["add", "Drinks & wine", "%"], ["retail", "On time", "%"]];
-const LV_SAMPLE = () => [
-  { id: "a", name: "Maya T.", level: 2, since: 210, nums: { req: 3, ret: 91, pre: 27, add: 31, retail: 96 } },
-  { id: "b", name: "Emma D.", level: 3, since: 400, nums: { req: 2, ret: 90, pre: 22, add: 30, retail: 95 }, under: 21 },
-  { id: "c", name: "Lily C.", level: 1, since: 95, nums: { req: 0, ret: 87, pre: 17, add: 21, retail: 92 } },
-  { id: "d", name: "Ava J.", level: 4, since: 520, nums: { req: 3, ret: 90, pre: 27, add: 33, retail: 94 }, under: 48 },
-];
-let lvTeam = LV_SAMPLE(), lvAsk = null, lvDone = {};
-const lvL = n => LV_LEVELS[n - 1];
-const lvBadge = n => `<span class="lv-badge" style="background:${lvL(n).color}">Level ${n} · ${esc(lvL(n).name)}</span>`;
-const lvHits = (p, n) => LV_METRICS.every(([k]) => p.nums[k] >= lvL(n)[k]);
-function lvBars(p, target) {
-  return `<div class="lv-bars">${LV_METRICS.map(([k, label, u]) => {
-    const goal = lvL(target)[k], v = p.nums[k], pct = Math.min(100, Math.round(v / goal * 100)), ok = v >= goal;
-    return `<div class="lv-bar"><span class="row" style="gap:6px"><span>${label}</span><b style="color:${ok ? "var(--ok)" : "var(--ink)"}">${v}${u} <span class="meta">/ ${goal}${u}</span></b></span><div class="track"><div class="fill" style="width:${pct}%;background:${ok ? "var(--ok)" : "var(--accent)"}"></div></div></div>`;
-  }).join("")}</div>`;
-}
-function renderLevels() {
-  if (!$("lvScale")) return;
-  $("lvScale").innerHTML = `<tr><th>Level</th><th>Pay</th><th>Section</th><th>Shift pick</th>${LV_METRICS.map(([, l]) => `<th>${l}</th>`).join("")}</tr>` +
-    LV_LEVELS.map(l => `<tr><td>${lvBadge(l.n)}</td><td><b>${l.pay}</b></td><td>${l.cut} tables</td><td>${l.color$}</td>${LV_METRICS.map(([k, , u]) => `<td>${l[k]}${u}</td>`).join("")}</tr>`).join("");
-  $("lvTeam").innerHTML = lvTeam.map(p => {
-    const top = p.level === LV_LEVELS.length, next = top ? p.level : p.level + 1;
-    const ready = !top && lvHits(p, next), below = !lvHits(p, p.level);
-    const flag = ready ? `<span class="lv-flag" style="background:#e3f4ea;color:var(--ok)">✓ Ready to move up</span>`
-      : below ? `<span class="lv-flag" style="background:#fdf0dc;color:var(--warn)">Under target ${p.under || 0} of 60 days</span>`
-      : `<span class="lv-flag" style="background:var(--accent-soft);color:var(--accent)">On track</span>`;
-    const ask = lvAsk && lvAsk.id === p.id ? (() => {
-      const to = lvL(lvAsk.to), from = lvL(p.level);
-      return `<div class="lv-soon" style="display:flex;flex-direction:column;gap:8px"><span>Move <b>${esc(p.name)}</b> from Level ${from.n} to <b>Level ${to.n} · ${esc(to.name)}</b>?<br><span class="meta">Pay ${from.pay} → ${to.pay} · Section ${from.cut} → ${to.cut} tables · Shift pick ${from.color$} → ${to.color$}</span></span>
-        <div class="actions"><button type="button" class="primary" data-lv="yes" data-id="${p.id}">Yes, move ${lvAsk.to > p.level ? "up" : "down"}</button><button type="button" class="ghost" data-lv="no">Cancel</button></div></div>`;
-    })() : "";
-    return `<div class="lv-card"><div class="row" style="flex-wrap:wrap;gap:8px"><b>${esc(p.name)}</b>${lvBadge(p.level)}${flag}</div>
-      <span class="meta">${top ? "At the top level. Numbers compared with this level." : `Numbers compared with Level ${next} · ${esc(lvL(next).name)}`} · ${p.since < 30 ? "new to this level" : `on this level ${Math.round(p.since / 30)} months`}</span>
-      ${lvBars(p, next)}
-      ${lvDone[p.id] ? `<span class="meta" style="color:var(--ok)">✓ ${esc(lvDone[p.id])} <i>(preview, not saved)</i></span>` : ""}
-      ${ask || `<div class="actions">${!top ? `<button type="button" class="${ready ? "primary" : "ghost"}" data-lv="ask" data-id="${p.id}" data-to="${p.level + 1}">Move up to Level ${p.level + 1}</button>` : ""}${p.level > 1 ? `<button type="button" class="link" data-lv="ask" data-id="${p.id}" data-to="${p.level - 1}">Move down</button>` : ""}</div>`}</div>`;
-  }).join("");
-  const me = lvTeam[0], nx = Math.min(me.level + 1, LV_LEVELS.length), have = LV_METRICS.filter(([k]) => me.nums[k] >= lvL(nx)[k]).length;
-  $("lvMine").innerHTML = `<div class="lv-card" style="max-width:420px"><div class="row"><b>Hi ${esc(me.name.split(" ")[0])}!</b>${lvBadge(me.level)}</div>
-    <span>${have === LV_METRICS.length ? `You've hit every target for <b>Level ${nx}</b>. Talk to your manager about moving up! 🎉` : `You've hit <b>${have} of ${LV_METRICS.length}</b> targets for Level ${nx} · ${esc(lvL(nx).name)}. Keep going!`}</span>${lvBars(me, nx)}</div>`;
-}
-$("view-levels").addEventListener("click", e => {
-  const b = e.target.closest("[data-lv]"); if (!b) return;
-  const p = lvTeam.find(x => x.id === b.dataset.id);
-  if (b.dataset.lv === "ask") lvAsk = { id: p.id, to: +b.dataset.to };
-  if (b.dataset.lv === "no") lvAsk = null;
-  if (b.dataset.lv === "yes") {
-    const up = lvAsk.to > p.level; p.level = lvAsk.to; p.since = 0; p.under = 0; lvAsk = null;
-    lvDone[p.id] = `Moved ${up ? "up" : "down"} to Level ${p.level} today by ${me && me.name ? me.name : "you"}`;
-    $("foot").textContent = "Preview only: in the real Levels, this would be saved to their file.";
-  }
-  renderLevels();
-});
-$("lvReset").onclick = () => { lvTeam = LV_SAMPLE(); lvAsk = null; lvDone = {}; renderLevels(); };
-$("lvWant").onclick = () => { $("foot").textContent = "Levels is coming soon. Ask the Loopd-In team to save you a spot!"; $("foot").scrollIntoView({ behavior: "smooth" }); };
-
-
-/* ---------- Training preview (coming soon, sample data only) ---------- */
-const TR_PATH = [
-  { name: "Host stand and greeting guests", vids: 2, models: 2 },
-  { name: "Menu knowledge and tasting", vids: 3, models: 2 },
-  { name: "Allergies and special requests", vids: 2, models: 2 },
-  { name: "Steps of service", vids: 3, models: 3 },
-  { name: "POS: orders, splits and comps", vids: 2, models: 2 },
-  { name: "Wine and cocktail basics", vids: 3, models: 2 },
-  { name: "Food safety and sanitation", vids: 2, models: 1 },
-  { name: "Line: prep and station setup", vids: 3, models: 3 },
-  { name: "Line: plating to spec", vids: 3, models: 4 },
-  { name: "Certification shift", vids: 1, models: 1 },
-];
-const TR_SAMPLE = () => ({
-  people: [
-    { id: "p1", name: "Daniel R.", done: 8, started: "Oct 2026", note: "Moving from dish to the line. Plating check-offs next." },
-    { id: "p2", name: "Lily C.", done: 3, started: "Sep 2026", note: "Host moving to server. Trailing Maya this week." },
-    { id: "p3", name: "Jasmine O.", done: 9, started: "Aug 2026", note: "One step left: her certification shift!" },
-  ],
-  review: [
-    { id: "r1", who: "p1", skill: 9, model: 2, when: "Today, 4:40 PM", from: ["#4a5a3c", "#8aa06a"], to: ["#6b4a2f", "#c48a52"], tip: "Salmon entrée: sauce under the fish, greens on the left, like the spec photo.", pics: ["Spec photo", "Their plate"] },
-    { id: "r2", who: "p2", skill: 4, model: 1, when: "Yesterday", tip: "Trailed Maya on section 3: greeted every table in under a minute, rang in apps and drinks correctly." },
-  ],
-});
-let tr = TR_SAMPLE(), trAsk = null, trQ = {};
-const trName = id => (tr.people.find(p => p.id === id) || {}).name || "";
-const trPct = p => Math.round(p.done / TR_PATH.length * 100);
-const trPic = (c, label, icon) => `<div class="tr-pic" style="background:linear-gradient(160deg,${c[0]},${c[1]})"><span>${icon}</span>${label}</div>`;
-const TR_QUIZ = [
-  { q: "What is the temperature danger zone for food?", a: ["32°F to 100°F", "41°F to 135°F", "50°F to 150°F", "70°F to 165°F"], right: 1 },
-  { q: "A guest tells you they have a peanut allergy. What do you do first?", a: ["Suggest a dish that looks safe", "Tell the kitchen and a manager, and mark the allergy on the ticket", "Ask them to order something else", "Nothing, the menu lists allergens"], right: 1 },
-  { q: "How long should you scrub when you wash your hands?", a: ["5 seconds", "At least 20 seconds", "Only if they look dirty", "Hand sanitizer is enough"], right: 1 },
-];
-function renderTraining() {
-  if (!$("trPath")) return;
-  $("trPath").innerHTML = TR_PATH.map((s, i) => `<div class="tr-skill"><span class="tr-num">${i + 1}</span><span style="flex:1;display:flex;flex-direction:column">${esc(s.name)}<span class="meta">🎬 ${s.vids} video${s.vids > 1 ? "s" : ""} · 📝 quiz · ✅ ${s.models} check-off${s.models > 1 ? "s" : ""}</span></span></div>`).join("");
-  $("trReview").innerHTML = tr.review.length ? tr.review.map(r => {
-    const s = TR_PATH[r.skill - 1], ask = trAsk && trAsk.id === r.id;
-    return `<div class="lv-card"><div class="row" style="flex-wrap:wrap;gap:6px"><b>${esc(trName(r.who))}</b><span class="meta">${esc(r.when)}</span></div>
-      <span><b>${esc(s.name)}</b> · check-off ${r.model} of ${s.models}</span>
-      ${r.from ? `<div class="tr-pics">${trPic(r.from, r.pics[0], "📋")}${trPic(r.to, r.pics[1], "🍽️")}</div>` : ""}
-      <span class="meta">“${esc(r.tip)}”</span>
-      ${ask ? `<div class="lv-soon" style="display:flex;flex-direction:column;gap:8px"><label style="margin:0">What should they work on?<textarea id="trNote" rows="2" placeholder="e.g. Check your guide at the crown, it's uneven"></textarea></label><div class="actions"><button type="button" class="primary" data-tr="redo-yes" data-id="${r.id}">Send back for a redo</button><button type="button" class="ghost" data-tr="no">Cancel</button></div></div>`
-        : `<div class="actions"><button type="button" class="primary" data-tr="ok" data-id="${r.id}">✓ Checked out</button><button type="button" class="ghost" data-tr="redo" data-id="${r.id}">Redo</button></div>`}</div>`;
-  }).join("") : `<div class="meta">All caught up. Nothing waiting for check-off. <i>(preview)</i></div>`;
-  $("trPeople").innerHTML = tr.people.map(p => {
-    const grad = p.done >= TR_PATH.length, next = TR_PATH[Math.min(p.done, TR_PATH.length - 1)];
-    return `<div class="lv-card"><div class="row" style="flex-wrap:wrap;gap:8px"><b>${esc(p.name)}</b>${grad ? `<span class="lv-flag" style="background:#e3f4ea;color:var(--ok)">🎓 Certified</span>` : `<span class="lv-badge" style="background:#7a86a6">Trainee</span>`}</div>
-      <div class="lv-bar"><span class="row"><span>${p.done} of ${TR_PATH.length} skills checked out</span><b>${trPct(p)}%</b></span><div class="track"><div class="fill" style="width:${trPct(p)}%;background:${grad ? "var(--ok)" : "var(--accent)"}"></div></div></div>
-      <span class="meta">${grad ? "Every step signed off. Put them on the schedule and talk about it at their next 1:1." : `Working on: <b>${esc(next.name)}</b>`} · started ${esc(p.started)}</span>
-      ${p.flash ? `<span class="meta" style="color:var(--ok)">✓ ${esc(p.flash)} <i>(preview, not saved)</i></span>` : `<span class="meta">${esc(p.note)}</span>`}</div>`;
-  }).join("");
-  $("trQuiz").innerHTML = TR_QUIZ.map((x, i) => `<div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:.92rem">${i + 1}. ${esc(x.q)}</b>${x.a.map((t, j) => {
-      const picked = trQ[i] === j, cls = trQ[i] === undefined ? "" : j === x.right ? " right" : picked ? " wrong" : "";
-      return `<button type="button" class="tr-opt${cls}" data-tr="q" data-i="${i}" data-j="${j}"${trQ[i] !== undefined ? " disabled" : ""}>${esc(t)}</button>`;
-    }).join("")}</div>`).join("") + (Object.keys(trQ).length === TR_QUIZ.length ? (() => {
-      const score = TR_QUIZ.filter((x, i) => trQ[i] === x.right).length, pass = score / TR_QUIZ.length >= 0.66;
-      return `<div class="lv-soon"><b>${score} of ${TR_QUIZ.length} right. ${pass ? "Passed! 🎉" : "Not yet. Rewatch the videos and try again."}</b> <button type="button" class="link" data-tr="retake">Take it again</button></div>`;
-    })() : "");
-  const me = tr.people[0], nx = TR_PATH[Math.min(me.done, TR_PATH.length - 1)];
-  $("trMine").innerHTML = `<div class="lv-card" style="max-width:440px"><div class="row"><b>Hi ${esc(me.name.split(" ")[0])}!</b><span class="lv-badge" style="background:#7a86a6">Trainee</span></div>
-    <div class="lv-bar"><span class="row"><span>${me.done} of ${TR_PATH.length} skills done</span><b>${trPct(me)}%</b></span><div class="track"><div class="fill" style="width:${trPct(me)}%;background:var(--accent)"></div></div></div>
-    <span>Up next: <b>${esc(nx.name)}</b></span>
-    <div class="tr-vid"><span class="tr-play">▶</span><span>${esc(nx.name)}: the basics<br><span class="meta">Video 1 of ${nx.vids} · 8 min</span></span></div>
-    <div class="tr-vid"><span class="tr-play">▶</span><span>Step by step on a real shift<br><span class="meta">Video 2 of ${nx.vids} · 14 min</span></span></div>
-    <div class="actions"><span class="meta">📝 Quiz · ✅ 0 of ${nx.models} check-offs done</span></div></div>`;
-}
-$("view-training").addEventListener("click", e => {
-  const b = e.target.closest("[data-tr]"); if (!b) return;
-  const act = b.dataset.tr, r = tr.review.find(x => x.id === b.dataset.id);
-  if (act === "q") trQ[+b.dataset.i] = +b.dataset.j;
-  if (act === "retake") trQ = {};
-  if (act === "redo") trAsk = { id: r.id };
-  if (act === "no") trAsk = null;
-  if (act === "ok" || act === "redo-yes") {
-    const p = tr.people.find(x => x.id === r.who), s = TR_PATH[r.skill - 1];
-    if (act === "ok") { if (r.model >= s.models - 1) p.done = Math.max(p.done, r.skill); p.flash = `${s.name}: model ${r.model} checked out today`; }
-    else p.flash = `${s.name}: sent back for a redo${($("trNote") || {}).value ? ` (“${$("trNote").value.trim().slice(0, 80)}”)` : ""}`;
-    tr.review = tr.review.filter(x => x !== r); trAsk = null;
-    $("foot").textContent = "Preview only: in the real Training, this would be saved and the trainee would get an alert.";
-  }
-  renderTraining();
-});
-$("trReset").onclick = () => { tr = TR_SAMPLE(); trAsk = null; trQ = {}; renderTraining(); };
-$("trWant").onclick = () => { $("foot").textContent = "Training is coming soon. Ask the Loopd-In team to save you a spot!"; $("foot").scrollIntoView({ behavior: "smooth" }); };
 
 /* ---------- employee handbook ---------- */
 async function latestHandbook() {

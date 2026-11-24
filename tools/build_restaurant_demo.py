@@ -36,7 +36,6 @@ R = [
     ('<div class="eyebrow">Demo Salon · Sample data</div>', f'<div class="eyebrow">{NAME} · Every shift. In the loop.</div>'),
     ('<span><b>Loopd-In demo.</b> Everything here is sample data.', '<span><b>Loopd-In for restaurants demo.</b> Everything here is sample data.'),
     ('In your salon, this opens your own handbook sign-off form', 'In your restaurant, this opens your own handbook sign-off form'),
-    ('I want this for my salon', 'I want this for my restaurant', 2),
     # roles
     ('<button type="button" id="va-sty" aria-selected="false">Stylist</button>', '<button type="button" id="va-sty" aria-selected="false">Team member</button>'),
     ('<button type="button" id="va-desk" aria-selected="false">Front desk</button>', '<button type="button" id="va-desk" aria-selected="false">Shift lead</button>'),
@@ -97,101 +96,21 @@ R = [
     ('Managers get everything; front desk gets Daily log, Incidents and Team chat; stylists get Team chat only.', 'Managers get everything. Shift leads also get the Shift log, Incidents, Supplies and Cash out. Everyone gets Team chat, Time off and 1:1s.'),
     ('placeholder="e.g. Dryer sheets, balloons for Friday"', 'placeholder="e.g. Lemons, balloons for Friday"'),
     (' Also works front desk</label>', ' Also a shift lead</label>'),
-    ('this would be saved and the associate would get an alert.', 'this would be saved and the trainee would get an alert.'),
 ]
 for r in R:
     rep(*r)
 s = s.replace('Demo Salon', NAME)   # write-up and goal-sheet headings, apply host name, logo alt text
 
-# ---- Levels: server levels instead of stylist levels
-LV_OLD = s[s.index('const LV_LEVELS = ['):s.index('let lvTeam = LV_SAMPLE()')]
-LV_NEW = '''const LV_LEVELS = [
-  { n: 1, name: "Trainee", color: "#7a86a6", pay: "Base", cut: 3, color$: "Last pick", req: 0, ret: 85, pre: 15, add: 20, retail: 90 },
-  { n: 2, name: "Server", color: "#2f6be0", pay: "+$0.50/hr", cut: 4, color$: "4th pick", req: 1, ret: 88, pre: 20, add: 25, retail: 93 },
-  { n: 3, name: "Lead Server", color: "#5a56d6", pay: "+$1.00/hr", cut: 5, color$: "3rd pick", req: 2, ret: 90, pre: 25, add: 30, retail: 95 },
-  { n: 4, name: "Trainer", color: "#8247b8", pay: "+$1.50/hr", cut: 5, color$: "2nd pick", req: 3, ret: 92, pre: 30, add: 35, retail: 97 },
-  { n: 5, name: "Captain", color: "#b8478a", pay: "+$2.00/hr", cut: 6, color$: "First pick", req: 4, ret: 94, pre: 35, add: 40, retail: 98 },
-];
-const LV_METRICS = [["req", "5-star mentions / mo", ""], ["ret", "Guest score", "%"], ["pre", "Apps & desserts", "%"], ["add", "Drinks & wine", "%"], ["retail", "On time", "%"]];
-const LV_SAMPLE = () => [
-  { id: "a", name: "Maya T.", level: 2, since: 210, nums: { req: 3, ret: 91, pre: 27, add: 31, retail: 96 } },
-  { id: "b", name: "Emma D.", level: 3, since: 400, nums: { req: 2, ret: 90, pre: 22, add: 30, retail: 95 }, under: 21 },
-  { id: "c", name: "Lily C.", level: 1, since: 95, nums: { req: 0, ret: 87, pre: 17, add: 21, retail: 92 } },
-  { id: "d", name: "Ava J.", level: 4, since: 520, nums: { req: 3, ret: 90, pre: 27, add: 33, retail: 94 }, under: 48 },
-];
-'''
-s = s.replace(LV_OLD, LV_NEW)
-for r in [
-    ('<th>Commission</th><th>Haircut</th><th>Color</th>', '<th>Pay</th><th>Section</th><th>Shift pick</th>'),
-    ('<td><b>${l.pay}%</b></td><td>$${l.cut}</td><td>$${l.color$}</td>', '<td><b>${l.pay}</b></td><td>${l.cut} tables</td><td>${l.color$}</td>'),
-    ('Commission ${from.pay}% → ${to.pay}% · Haircut $${from.cut} → $${to.cut} · Color $${from.color$} → $${to.color$}', 'Pay ${from.pay} → ${to.pay} · Section ${from.cut} → ${to.cut} tables · Shift pick ${from.color$} → ${to.color$}'),
-    ('This is a preview with sample stylists, so try anything', 'This is a preview with sample servers, so try anything'),
-    ('Set your own levels: what each one pays, what it charges, and the numbers a stylist needs to reach it.', 'Set your own levels: the pay bump, section size and shift pick for each one, and the numbers a server needs to reach it.'),
-    ('If a stylist stays under', 'If a server stays under'),
-    ("Each stylist's numbers for the last 60 days", "Each server's numbers for the last 60 days"),
-    ('👀 What a stylist will see', '👀 What a server will see'),
-    ('Each stylist sees only their own level', 'Each server sees only their own level'),
-    ("Type in each stylist's monthly numbers, or bring them in from your booking software later.", "Type in each server's monthly numbers, or bring them in from your POS later."),
-    ('<li><b>Set your levels.</b> Name each level and set its commission, service prices and target numbers.</li>', '<li><b>Set your levels.</b> Name each level and set its pay bump, section size, shift pick and target numbers.</li>'),
-]:
-    rep(*r)
-
-# ---- Training: restaurant onboarding, kitchen plate check-offs with photos
-TR_OLD = s[s.index('const TR_PATH = ['):s.index('let tr = TR_SAMPLE()')]
-TR_NEW = '''const TR_PATH = [
-  { name: "Host stand and greeting guests", vids: 2, models: 2 },
-  { name: "Menu knowledge and tasting", vids: 3, models: 2 },
-  { name: "Allergies and special requests", vids: 2, models: 2 },
-  { name: "Steps of service", vids: 3, models: 3 },
-  { name: "POS: orders, splits and comps", vids: 2, models: 2 },
-  { name: "Wine and cocktail basics", vids: 3, models: 2 },
-  { name: "Food safety and sanitation", vids: 2, models: 1 },
-  { name: "Line: prep and station setup", vids: 3, models: 3 },
-  { name: "Line: plating to spec", vids: 3, models: 4 },
-  { name: "Certification shift", vids: 1, models: 1 },
-];
-const TR_SAMPLE = () => ({
-  people: [
-    { id: "p1", name: "Daniel R.", done: 8, started: "Oct 2026", note: "Moving from dish to the line. Plating check-offs next." },
-    { id: "p2", name: "Lily C.", done: 3, started: "Sep 2026", note: "Host moving to server. Trailing Maya this week." },
-    { id: "p3", name: "Jasmine O.", done: 9, started: "Aug 2026", note: "One step left: her certification shift!" },
-  ],
-  review: [
-    { id: "r1", who: "p1", skill: 9, model: 2, when: "Today, 4:40 PM", from: ["#4a5a3c", "#8aa06a"], to: ["#6b4a2f", "#c48a52"], tip: "Salmon entrée: sauce under the fish, greens on the left, like the spec photo.", pics: ["Spec photo", "Their plate"] },
-    { id: "r2", who: "p2", skill: 4, model: 1, when: "Yesterday", tip: "Trailed Maya on section 3: greeted every table in under a minute, rang in apps and drinks correctly." },
-  ],
-});
-'''
-s = s.replace(TR_OLD, TR_NEW)
-QUIZ_OLD = s[s.index('const TR_QUIZ = ['):s.index('function renderTraining()')]
-QUIZ_NEW = '''const TR_QUIZ = [
-  { q: "What is the temperature danger zone for food?", a: ["32°F to 100°F", "41°F to 135°F", "50°F to 150°F", "70°F to 165°F"], right: 1 },
-  { q: "A guest tells you they have a peanut allergy. What do you do first?", a: ["Suggest a dish that looks safe", "Tell the kitchen and a manager, and mark the allergy on the ticket", "Ask them to order something else", "Nothing, the menu lists allergens"], right: 1 },
-  { q: "How long should you scrub when you wash your hands?", a: ["5 seconds", "At least 20 seconds", "Only if they look dirty", "Hand sanitizer is enough"], right: 1 },
-];
-'''
-s = s.replace(QUIZ_OLD, QUIZ_NEW)
-for r in [
-    ('<div class="tr-pics">${trPic(r.from, "Before", "💇")}${trPic(r.to, "After", "✨")}</div>', '${r.from ? `<div class="tr-pics">${trPic(r.from, r.pics[0], "📋")}${trPic(r.to, r.pics[1], "🍽️")}</div>` : ""}'),
-    ('✂️ ${s.models} models', '✅ ${s.models} check-off${s.models > 1 ? "s" : ""}'),
-    ('model ${r.model} of ${s.models}', 'check-off ${r.model} of ${s.models}'),
-    ('✂️ 0 of ${nx.models} models uploaded', '✅ 0 of ${nx.models} check-offs done'),
-    ('<span class="lv-badge" style="background:#7a86a6">Associate</span>', '<span class="lv-badge" style="background:#7a86a6">Trainee</span>', 2),
-    ('This is a preview with sample associates, so try anything', 'This is a preview with sample trainees, so try anything'),
-    ('Associates upload photos of their model work. An educator or manager checks it out or asks for a redo.', 'A trainer or manager signs off each step on the floor or the line, with photos for kitchen plates. Or asks for a redo.'),
-    ('👩‍🎓 Your associates', '👩‍🍳 Your trainees'),
-    ('Build your own path: the skills in order, your own videos, a short quiz and how many models each skill needs. Finishing the path moves an associate to Level 1.', 'Build your own path: the skills in order, your own videos, a short quiz and how many check-offs each one needs. Front of house and kitchen can each have their own path.'),
-    ('👀 What an associate will see', '👀 What a trainee will see'),
-    ('Each associate sees their own path, their next videos and what\'s waiting for check-off.', 'Each trainee sees their own path, their next videos and what\'s waiting for sign-off.'),
-    ('<li><b>Watch and test.</b> Associates watch the videos and pass a short quiz for each skill.</li>', '<li><b>Watch and test.</b> Trainees watch the videos and pass a short quiz for each step: menu, allergies, food safety.</li>'),
-    ('<li><b>Model and upload.</b> They do the service on a model and upload before and after photos from their phone.</li>', '<li><b>Trail and practice.</b> They trail a trainer on real shifts. Cooks upload photos of their plates next to the spec.</li>'),
-    ('<li><b>Check out.</b> An educator or manager taps Checked out or Redo, with notes. Every attempt is saved.</li>', '<li><b>Sign off.</b> A trainer or manager taps Checked out or Redo, with notes. Every attempt is saved.</li>'),
-    ('<li><b>Graduate.</b> When every skill is checked out, they\'re ready for Level 1, and it can go on their next 1:1.</li>', '<li><b>Certify.</b> After the certification shift they\'re on the schedule on their own, and it can go on their next 1:1.</li>'),
-    ('Every skill checked out. Talk about Level 1 at their next 1:1.', 'Every step signed off. Put them on the schedule and talk about it at their next 1:1.'),
-    ('🎓 Ready for Level 1', '🎓 Certified'),
-    ('Step by step on a model', 'Step by step on a real shift'),
-]:
-    rep(*r)
+# ---- No Levels or Training on the restaurant side (salon-only features)
+a, b = s.index('/* ---------- Levels preview'), s.index('/* ---------- employee handbook')
+assert '/* ---------- Training preview' in s[a:b]
+s = s[:a] + s[b:]
+for tab in ['levels', 'training']:
+    m = re.search(r'      <button role="tab" id="tab-%s"[^\n]*\n' % tab, s); s = s[:m.start()] + s[m.end():]
+    a = s.index('    <section id="view-%s"' % tab); b = s.index('    </section>\n', a) + len('    </section>\n'); s = s[:a] + s[b:]
+rep('"apps", "levels", "training", "staff", "team"];', '"apps", "staff", "team"];')
+rep('t === "apps" || t === "levels" || t === "training") && !isMgr()) t = "daily";', 't === "apps") && !isMgr()) t = "daily";')
+rep(' $("tab-levels").hidden = !isMgr(); renderLevels(); $("tab-training").hidden = !isMgr(); renderTraining();', '')
 
 # ---- 86 board on the shift log: anything 86'd that isn't back on yet, for everyone to see
 CARD = '''      <div class="quick" id="eightySix" hidden style="border-color:var(--crit)">
