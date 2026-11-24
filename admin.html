@@ -31,13 +31,14 @@ button,.btn{font:600 .92rem var(--body);border-radius:10px;padding:9px 14px;curs
 .primary{background:var(--peri);border-color:var(--peri);color:#fff}
 .link{border:0;background:none;color:var(--peri);padding:4px 0;text-decoration:underline}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-textarea,input{font:inherit;width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+textarea,input,select{font:inherit;width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
 details{font-size:.86rem;color:var(--muted)}details summary{cursor:pointer;color:var(--peri);font-weight:600}
 details dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:6px 0 0}details dt{font-weight:600}details dd{margin:0;word-break:break-word}
 .shot{max-width:100%;max-height:320px;border-radius:10px;border:1px solid var(--line);align-self:flex-start}
 .reply{background:var(--lav2);border-left:3px solid var(--peri);border-radius:8px;padding:8px 10px}
 .signin{max-width:380px;margin:60px auto}
 .err{color:var(--err);font-weight:600;font-size:.9rem;min-height:1.2em}
+label.meta{display:flex;flex-direction:column;gap:4px;font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px 14px}
 </style>
 </head>
@@ -56,9 +57,23 @@ details dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margi
   <div class="card" id="denied" hidden><h2>Not an admin account</h2><p class="meta" style="margin:0">This page is only for the people who run Loopd-In.</p></div>
 
   <main id="main" hidden>
-    <div class="tabs" role="tablist"><button data-t="help" aria-selected="true" id="t-help">Help requests</button><button data-t="salons" aria-selected="false" id="t-salons">Salons</button></div>
+    <div class="tabs" role="tablist"><button data-t="help" aria-selected="true" id="t-help">Help requests</button><button data-t="salons" aria-selected="false" id="t-salons">Salons</button><button data-t="invites" aria-selected="false" id="t-invites">Invites</button></div>
     <section id="v-help"><div class="actions" style="margin-bottom:10px"><button class="link" id="showClosed"></button></div><div class="list" id="tickets"></div></section>
     <section id="v-salons" hidden><div class="list" id="salons"></div></section>
+    <section id="v-invites" hidden>
+      <form class="card" id="newInv">
+        <h2>New invite code</h2>
+        <p class="meta" style="margin:0">One code per salon. It works once, then it's used up.</p>
+        <div class="grid">
+          <label class="meta">Code<input id="ni-code" required maxlength="30" placeholder="PINUP-2026" style="text-transform:uppercase"></label>
+          <label class="meta">Plan<select id="ni-plan"><option value="front_desk">Front Desk</option><option value="team">Team</option><option value="owner" selected>Owner</option></select></label>
+        </div>
+        <label class="meta">Who it's for<input id="ni-note" maxlength="200" placeholder="Salon name, owner, who introduced them"></label>
+        <div class="err" id="niErr"></div>
+        <div class="actions"><button class="primary" type="submit">Make code</button></div>
+      </form>
+      <div class="list" id="invites"></div>
+    </section>
   </main>
 </div>
 <script>
@@ -72,7 +87,7 @@ const ROLE = { manager: "Manager", front_desk: "Front desk", stylist: "Stylist" 
 const SCREEN = { daily: "Daily log", log: "Incidents", supplies: "Supplies", chat: "Team chat", time: "Time off", oo: "1:1s", staff: "Staff notes", team: "Managers", apps: "Applicants" };
 const device = ua => { ua = ua || ""; const os = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : "Other";
   const br = /CriOS|Chrome/.test(ua) && !/Edg/.test(ua) ? "Chrome" : /Edg/.test(ua) ? "Edge" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Safari/.test(ua) ? "Safari" : ""; return os + (br ? " · " + br : ""); };
-let salons = [], tickets = [], shots = {}, tab = "help", showClosed = false;
+let salons = [], tickets = [], invites = [], shots = {}, tab = "help", showClosed = false;
 
 async function boot() {
   const { data: { session } } = await db.auth.getSession();
@@ -86,8 +101,8 @@ async function boot() {
   db.channel("admin").on("postgres_changes", { event: "*", schema: "public", table: "lp_support_tickets" }, () => load()).subscribe();
 }
 async function load() {
-  const [s, t] = await Promise.all([db.rpc("lp_admin_salons"), db.from("lp_support_tickets").select("*").order("created_at", { ascending: false }).limit(300)]);
-  salons = s.data || []; tickets = t.data || [];
+  const [s, t, iv] = await Promise.all([db.rpc("lp_admin_salons"), db.from("lp_support_tickets").select("*").order("created_at", { ascending: false }).limit(300), db.rpc("lp_admin_invites")]);
+  salons = s.data || []; tickets = t.data || []; invites = iv.data || [];
   const need = tickets.filter(k => k.screenshot && !shots[k.id]).map(k => k.salon_id + "/" + k.screenshot);
   if (need.length) { const { data } = await db.storage.from("lp-files").createSignedUrls(need, 3600 * 6); (data || []).forEach(x => { const k = tickets.find(k => k.salon_id + "/" + k.screenshot === x.path); if (k && x.signedUrl) shots[k.id] = x.signedUrl; }); }
   render();
@@ -106,9 +121,27 @@ function openBtn(s) {
   return accessOn(s) ? `<button class="primary" data-open="${s.id}">Open their salon</button><span class="meta">Access on until ${esc(when(s.support_until))}</span>`
     : `<span class="meta">Support access is off. Ask them to turn it on: Managers ⚙ → Your salon → Loopd-In support access.</span>`;
 }
+function inviteCard(c) {
+  const used = c.salons || [], live = c.uses_left > 0;
+  const status = used.length ? `<span class="tag ok">Signed up</span>` : live ? `<span class="tag warn">Invited · not signed up yet</span>` : `<span class="tag">Turned off</span>`;
+  const signed = used.map(s => {
+    const full = salonOf(s.id);
+    return `<div class="meta">✅ <b>${esc(s.name)}</b>${s.city ? " · " + esc(s.city) : ""} · signed up ${esc(day(s.created_at))}${full.id ? " · 👥 " + full.team + " on the team · last active " + esc(ago(full.last_active)) : ""} ${full.id ? betaLine(full) : ""}</div>`;
+  }).join("");
+  return `<div class="card">
+      <div class="row"><h2 style="font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">${esc(c.code)}</h2>${status}</div>
+      <div class="meta">${esc(c.note || "No note")} · ${esc(PLAN[c.plan] || c.plan)} plan · made ${esc(day(c.created_at))} · ${c.uses_left} use${c.uses_left === 1 ? "" : "s"} left</div>
+      ${signed}
+      ${live ? `<div class="actions"><button data-off="${esc(c.code)}" style="color:#c0392b">Turn off</button></div>` : ""}
+    </div>`;
+}
 function render() {
   $("t-help").setAttribute("aria-selected", tab === "help"); $("t-salons").setAttribute("aria-selected", tab === "salons");
-  $("v-help").hidden = tab !== "help"; $("v-salons").hidden = tab !== "salons";
+  $("v-help").hidden = tab !== "help"; $("v-salons").hidden = tab !== "salons"; $("v-invites").hidden = tab !== "invites";
+  $("t-invites").setAttribute("aria-selected", tab === "invites");
+  const waiting = invites.filter(c => c.uses_left > 0 && !(c.salons || []).length);
+  $("t-invites").textContent = waiting.length ? `Invites (${waiting.length} waiting)` : "Invites";
+  $("invites").innerHTML = invites.length ? invites.map(inviteCard).join("") : `<div class="card"><span class="meta">No invite codes yet.</span></div>`;
   const open = tickets.filter(k => k.status === "open");
   $("t-help").textContent = open.length ? `Help requests (${open.length})` : "Help requests";
   $("t-salons").textContent = `Salons (${salons.length})`;
@@ -153,6 +186,12 @@ document.addEventListener("click", async e => {
     if (error) return alert(error.message);
     return load();
   }
+  if (b.dataset.off) {
+    if (!confirm(`Turn off ${b.dataset.off}? Nobody new can sign up with it. Salons already in are not affected.`)) return;
+    b.disabled = true; const { error } = await db.rpc("lp_admin_turn_off_invite", { p_code: b.dataset.off }); b.disabled = false;
+    if (error) return alert(error.message);
+    return load();
+  }
   if (b.dataset.open) {
     b.disabled = true; const { error } = await db.rpc("lp_admin_enter", { p_salon: b.dataset.open });
     if (error) { b.disabled = false; alert(/NO_ACCESS/.test(error.message) ? "Their support access is off or has run out." : error.message); return load(); }
@@ -165,6 +204,13 @@ document.addEventListener("click", async e => {
   if (b.dataset.reopen) row = { status: "open" };
   b.disabled = true; const { error } = await db.from("lp_support_tickets").update(row).eq("id", id); b.disabled = false;
   if (error) return alert(error.message);
+  load();
+});
+$("newInv").addEventListener("submit", async e => {
+  e.preventDefault(); $("niErr").textContent = "";
+  const { data, error } = await db.rpc("lp_admin_create_invite", { p_code: $("ni-code").value, p_plan: $("ni-plan").value, p_note: $("ni-note").value, p_uses: 1 });
+  if (error) { $("niErr").textContent = /CODE_TAKEN/.test(error.message) ? "That code is already taken. Try another." : /BAD_FORMAT/.test(error.message) ? "Use 4 to 30 letters, numbers or dashes." : error.message; return; }
+  $("ni-code").value = ""; $("ni-note").value = ""; $("niErr").textContent = `Made ${data}.`;
   load();
 });
 $("signin").addEventListener("submit", async e => {
